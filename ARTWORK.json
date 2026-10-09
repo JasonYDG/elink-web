@@ -1,0 +1,43 @@
+{
+  "generator": "built-in imagegen",
+  "target": [
+    250,
+    122
+  ],
+  "inks": [
+    "#000000",
+    "#FFFFFF",
+    "#BE0000"
+  ],
+  "runtime_processing": "precomputed native 8000-byte frame; no resampling",
+  "prompts": [
+    {
+      "name": "13-space-rabbit",
+      "prompt": "Use case: illustration-story. Asset type: native 2.13 inch three-ink e-paper artwork. Create one finished wide 250:122 aspect ratio illustration of a small rabbit astronaut sitting on a crescent moon, one bold red planet and sparse black stars in a white deep space, charming quiet silhouette. Designed for final 250 by 122 pixels: large legible shapes, crisp contours at small size, deliberate negative space, sophisticated composition. ONLY solid black #000000, solid paper white #FFFFFF, solid red #BE0000. No grey, no colors other than these three. No gradients, no dithering, no stipple noise, no tiny texture, no text, no logos, no borders. Flat screenprint/woodcut illustration, clean pixel-friendly silhouettes. Keep all important forms inside the composition. Landscape image with aspect 2.049:1.",
+      "file": "image/13-space-rabbit.png",
+      "png_sha256": "96425c70cd2c913d8473326009daf9807ba30f459de0fc306af0b5bf8f3b6039",
+      "native_frame_sha256": "405661543a2829da80151ce6bfa15241d3152304e60343dc55cbc8f704298c8e"
+    },
+    {
+      "name": "14-japanese-gate",
+      "prompt": "Use case: illustration-story. Asset type: native 2.13 inch three-ink e-paper artwork. Create one finished wide 250:122 aspect ratio illustration of a graceful red torii gate beside a still lake, black mountain silhouettes, reeds, white sky and a black crane, balanced Japanese woodcut landscape. Designed for final 250 by 122 pixels: large legible shapes, crisp contours at small size, deliberate negative space, sophisticated composition. ONLY solid black #000000, solid paper white #FFFFFF, solid red #BE0000. No grey, no colors other than these three. No gradients, no dithering, no stipple noise, no tiny texture, no text, no logos, no borders. Flat screenprint/woodcut illustration, clean pixel-friendly silhouettes. Keep all important forms inside the composition. Landscape image with aspect 2.049:1.",
+      "file": "image/14-japanese-gate.png",
+      "png_sha256": "672c91af207e22bb756e477b1d14341a75641803b19decd782a11b308a852efb",
+      "native_frame_sha256": "493ea8d569e5f9869415ebae9ea0a0fe59da80619a30ef332cdaa3321286dfe2"
+    },
+    {
+      "name": "15-whale-ocean",
+      "prompt": "Use case: illustration-story. Asset type: native 2.13 inch three-ink e-paper artwork. Create one finished wide 250:122 aspect ratio illustration of a majestic black and white humpback whale above stylized ocean waves, a small red sunrise and three black seabirds, expansive clean white sky. Designed for final 250 by 122 pixels: large legible shapes, crisp contours at small size, deliberate negative space, sophisticated composition. ONLY solid black #000000, solid paper white #FFFFFF, solid red #BE0000. No grey, no colors other than these three. No gradients, no dithering, no stipple noise, no tiny texture, no text, no logos, no borders. Flat screenprint/woodcut illustration, clean pixel-friendly silhouettes. Keep all important forms inside the composition. Landscape image with aspect 2.049:1.",
+      "file": "image/15-whale-ocean.png",
+      "png_sha256": "16e9d23cb8522662bf180fa4995d53916f4edb1f3347e8a5c0ceb02054b7034c",
+      "native_frame_sha256": "97346fe63e263feee8907896b0efc4c1742f7f27a8ecfc4d9b34d7f5b5a20e10"
+    },
+    {
+      "name": "16-fox-garden",
+      "prompt": "Use case: illustration-story. Asset type: native 2.13 inch three-ink e-paper artwork. Create one finished wide 250:122 aspect ratio illustration of a curled sleeping red fox beneath black leafy branches, white wildflowers and one tiny black butterfly, serene woodland vignette. Designed for final 250 by 122 pixels: large legible shapes, crisp contours at small size, deliberate negative space, sophisticated composition. ONLY solid black #000000, solid paper white #FFFFFF, solid red #BE0000. No grey, no colors other than these three. No gradients, no dithering, no stipple noise, no tiny texture, no text, no logos, no borders. Flat screenprint/woodcut illustration, clean pixel-friendly silhouettes. Keep all important forms inside the composition. Landscape image with aspect 2.049:1.",
+      "file": "image/16-fox-garden.png",
+      "png_sha256": "f39994d2744216dbc60478d8ed45bf7f641ae41e88e7d89fd87032970932b90f",
+      "native_frame_sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267"
+    }
+  ]
+}
