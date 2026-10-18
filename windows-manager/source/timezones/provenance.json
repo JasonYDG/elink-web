@@ -1,0 +1,12 @@
+{
+  "package": "tzdata",
+  "version": "2026.5",
+  "url": "https://files.pythonhosted.org/packages/94/21/1e5995a1c920cce14e4bffae20c665ec10e7ed03ab25e006cd741092b718/tzdata-2026.5-py2.py3-none-any.whl",
+  "wheel_sha256": "b683bd1b6659ddcd810ff02ad09ba821d4bf1065072805063eb35c49617905ac",
+  "file": "Europe-Amsterdam.tzif",
+  "file_sha256": "b10f9542a8509f0a63ebca78e3d80432dd86b8ea296400280febd9cfa76e8288",
+  "licenses": [
+    "tzdata-2026.5.dist-info/licenses/LICENSE",
+    "tzdata-2026.5.dist-info/licenses/licenses/LICENSE_APACHE"
+  ]
+}

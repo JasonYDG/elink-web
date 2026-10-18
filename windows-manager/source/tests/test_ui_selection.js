@@ -1,0 +1,44 @@
+// Exercise the production target resolver and request builder without BLE writes.
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
+const file=process.argv[2]||path.join(__dirname,'../opendesign/mockups/elink-manager/app.js');
+const lines=fs.readFileSync(file,'utf8').split(/\r?\n/);
+const functions=['selected','singleDevice','selectionChanged','selectDevice','queue'].map(name=>lines.find(line=>line.startsWith('function '+name+'(')||line.startsWith('async function '+name+'('))).filter(Boolean).join('\n');
+const old='18:BC:5A:6B:86:66',pilot='18:BC:5A:6B:91:A7',dropdown={value:old},sent=[],loaded=[],messages=[];
+const context={state:{devices:[{address:old},{address:pilot}]},targets:new Set([pilot]),$:()=>dropdown,actions:{settings:'应用设置'},api:async(route,body)=>{sent.push({route,...body});return {id:'request-only'};},refresh:async()=>{},message:text=>messages.push(text),displayDevice:()=>{},loadSettings:()=>loaded.push(context.selected().address)};
+vm.createContext(context);vm.runInContext(functions,context);
+context.pending=()=>false;context.albumEnabled=()=>false;
+vm.runInContext(lines.find(line=>line.startsWith('function pageIssue(')),context);
+assert.match(context.pageIssue({state:{protocol:1,firmware_id:'6c3279f4',photo_calendar:true,photo_calendar_commit:true}},'photo_calendar'),/1\.5\.9/);
+assert.match(context.pageIssue({state:{protocol:1,firmware_id:'14271ec2',photo_calendar:true}},'photo_calendar'),/1\.5\.9/);
+assert.match(context.pageIssue({state:{protocol:1,firmware_id:'14271ec2',photo_calendar:true,photo_calendar_native_digits:true}},'photo_calendar'),/1\.5\.9/);
+assert.equal(context.pageIssue({state:{protocol:1,photo_calendar:true,photo_calendar_native_digits:true,photo_calendar_wide:true}},'photo_calendar'),'');
+assert.match(context.pageIssue({state:{protocol:1,offline_album:true,album:{protocol_version:1}}},'album'),/1\.5\.8/);
+assert.equal(context.pageIssue({state:{protocol:1,offline_album:true,album_minute_tick:true,album:{protocol_version:2}}},'album'),'');
+assert.match(context.pageIssue({state:{protocol:1,offline_album:true,album:{protocol_version:2}}},'album'),/1\.5\.9/);
+(async()=>{
+    await context.queue('settings',{clock_timezone:'Europe/Amsterdam'});
+    assert.equal(sent[0].address,pilot,'Checked pilot must win over the first dropdown device');
+    assert.equal(sent[0].payload.clock_timezone,'Europe/Amsterdam');
+    assert.ok(messages[0].includes(pilot),'Queue message must name the actual target');
+    context.targets.add(old);
+    await assert.rejects(context.queue('ota',{}),/只选择一台/);
+    assert.equal(sent.length,1,'Ambiguous single-device actions must not submit requests');
+    context.targets.clear();
+    await assert.rejects(context.queue('sync',{}),/只选择一台/);
+    assert.equal(sent.length,1,'No selection must not silently send to the first device');
+    context.selectDevice(pilot);
+    assert.deepEqual([...context.targets],[pilot]);assert.equal(dropdown.value,pilot);assert.equal(loaded.at(-1),pilot);
+    context.selectDevice(old);
+    assert.deepEqual([...context.targets],[old]);assert.equal(dropdown.value,old);assert.equal(loaded.at(-1),old);
+    await context.queue('probe',{});assert.equal(sent[1].address,old);
+    context.targets.clear();context.targets.add(pilot);context.selectionChanged();
+    assert.equal(dropdown.value,pilot);assert.equal(loaded.at(-1),pilot);
+    // Validating an OTA file must not discard an unrelated template editing session.
+    context.editingTemplate='editing-existing-template';context.previewTimer=42;context.otaPackage=null;
+    context.perform=async(button,fn)=>fn();
+    dropdown.files=[{size:100,text:async()=>JSON.stringify({firmware_id:'test-id'})}];
+    vm.runInContext(lines.find(line=>line.startsWith('$("ota-file").onchange=')),context);
+    await dropdown.onchange();
+    assert.equal(context.editingTemplate,'editing-existing-template');assert.equal(context.previewTimer,42);
+    console.log('PASS: actual queue target, no/multiple-selection guards, inspected target and settings synchronization');
+})().catch(error=>{console.error(error);process.exitCode=1;});

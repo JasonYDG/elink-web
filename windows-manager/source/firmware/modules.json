@@ -1,0 +1,133 @@
+{
+  "format": "elink-static-modules-1",
+  "api_version": 1,
+  "composition": "static-unity",
+  "modules": [
+    {
+      "id": "clock",
+      "sources": {
+        "c_fragment": [
+          "modules/clock/render.inc",
+          "modules/clock/schedule.inc"
+        ]
+      },
+      "hooks": {
+        "render": "clock_face",
+        "tick": "product_clock",
+        "select": "product_view"
+      },
+      "legacy_routes": [
+        "91/9E: sync",
+        "98: resume",
+        "9C 00: clock"
+      ],
+      "requires_time": true,
+      "owned_functions": [
+        "clock_face",
+        "product_clock",
+        "product_view"
+      ]
+    },
+    {
+      "id": "calendar",
+      "sources": {
+        "c_fragment": [
+          "modules/calendar/render.inc",
+          "modules/calendar/photo.inc"
+        ]
+      },
+      "hooks": {
+        "render": "calendar"
+      },
+      "legacy_routes": [
+        "9C 01: calendar",
+        "9C 03: single uploaded photo calendar"
+      ],
+      "requires_time": true,
+      "owned_functions": [
+        "calendar",
+        "band",
+        "photo_calendar",
+        "photo_day",
+        "photo_label"
+      ]
+    },
+    {
+      "id": "reminder",
+      "sources": {
+        "c_source": [
+          "modules/reminder/reminders.c"
+        ]
+      },
+      "hooks": {
+        "command": "product_reminder_cmd",
+        "tick": "product_reminder_tick",
+        "finish": "product_reminder_finish"
+      },
+      "legacy_routes": [
+        "B0..BB: reminders"
+      ],
+      "requires_time": true,
+      "owned_functions": [
+        "product_reminder_cmd",
+        "product_reminder_tick",
+        "product_reminder_finish",
+        "addr",
+        "get32",
+        "put32",
+        "product_crc",
+        "product_flash_write",
+        "product_publish",
+        "entry",
+        "load",
+        "utc",
+        "occurrence",
+        "dot",
+        "product_frame_refresh",
+        "summary"
+      ]
+    },
+    {
+      "id": "image",
+      "sources": {
+        "asm_fragment": [
+          "modules/image/commands.s"
+        ],
+        "c_source": [
+          "modules/image/album.c"
+        ]
+      },
+      "hooks": {
+        "begin": "begin",
+        "write": "data",
+        "commit": "commit",
+        "album": "product_album_cmd",
+        "tick": "product_album_tick",
+        "finish": "product_album_finish"
+      },
+      "legacy_routes": [
+        "95: begin",
+        "96: data",
+        "97: commit",
+        "BD: offline album"
+      ],
+      "requires_time": false,
+      "owned_functions": [
+        "product_album_cmd",
+        "product_album_tick",
+        "product_album_init",
+        "product_album_finish",
+        "product_album_restore",
+        "product_minute_tick",
+        "product_album_draw",
+        "album_copy",
+        "album_checksum",
+        "album_valid",
+        "album_address",
+        "album_load",
+        "album_save",
+        "album_initialize"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # ELINK Web 1.0.2
 
+Windows 本地服务端已同步至 [windows-manager](windows-manager/README.md)：管理端 **1.5.11**，配套固件 **1.5.10**，支持设备离线图库、图片日历及 Windows OTA。[下载服务端与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.11)。
+
 独立的 2.13 寸红白黑墨水屏网页控制器。静态 HTML、CSS、JavaScript，使用访问者手机或电脑的 Web Bluetooth；不连接家庭后台，不使用服务器蓝牙。现有 Windows 集成版本继续保留。
 
 安卓使用最新版 Chrome，通过 HTTPS 打开网页，选择 `ELINK-` 开头的设备。设备须已刷入支持 ELK1 的固件；图片、月历、新版时钟和提醒依设备能力开放。普通 iPhone Safari 不支持此蓝牙接口。
@@ -41,7 +43,7 @@ node --test tests/*.test.js
 python -m http.server 16666 --bind 127.0.0.1
 ```
 
-本机调试使用 localhost；正式访问必须 HTTPS。不要将家庭后台数据库、账号、设备密钥、服务程序或固件私钥放进此仓库。
+本机调试使用 localhost；正式访问必须 HTTPS。不要将家庭后台数据库、账号、设备密钥或固件私钥放进此仓库。Windows 本地服务端源码与下载入口见 [windows-manager](windows-manager/README.md)。
 
 ## 图稿与字体
 

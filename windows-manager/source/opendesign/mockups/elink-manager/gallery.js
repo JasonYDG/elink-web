@@ -1,0 +1,96 @@
+"use strict";
+let albumSettings={};try{albumSettings=JSON.parse(localStorage.getItem("elink-album-settings")||"{}");if(!albumSettings||typeof albumSettings!=="object")albumSettings={};}catch(_){}
+const albumSelection=Array.isArray(albumSettings.items)?[...new Set(albumSettings.items.filter(x=>typeof x==="string"))].slice(0,4):[];let albumListKey="";
+function saveAlbumSettings(){try{localStorage.setItem("elink-album-settings",JSON.stringify({items:albumSelection,enabled:$("album-save").checked,interval:$("album-interval").value,hours:$("album-hours").value}));}catch(_){}}
+function albumEnabled(){return $("album-save").checked&&["publish","photo_calendar"].includes(pageAction());}
+let gallerySelectionSequence=0,previewImage=null,previewDate=null,previewKey="",previewLoad=0,dragPhoto=null;
+let photoPositions={};try{photoPositions=JSON.parse(localStorage.getItem("elink-photo-positions")||"{}");if(!photoPositions||typeof photoPositions!=="object"||Array.isArray(photoPositions))photoPositions={};}catch(_){photoPositions={};}
+async function builtinTemplate(path){const old=state.templates.find(t=>JSON.parse(t.spec).builtin===path);return old?old.id:(await api("/api/builtin",{path})).id;}
+function initGallery(items){
+    $("album-save").checked=albumSettings.enabled===true;
+    if(["60","120","360","720","1440","2880","10080","0"].includes(albumSettings.interval))$("album-interval").value=albumSettings.interval;
+    if(Number.isInteger(Number(albumSettings.hours))&&Number(albumSettings.hours)>=1&&Number(albumSettings.hours)<=168)$("album-hours").value=albumSettings.hours;
+    $("album-custom").hidden=$("album-interval").value!=="0";
+    for(const host of document.querySelectorAll('[data-native-gallery]')){
+        host.replaceChildren();
+        for(const item of items){
+            const button=document.createElement("button"),image=document.createElement("img"),title=document.createElement("span");
+            button.type="button";button.className="image-choice";button.dataset.path=item.path;button.setAttribute("aria-pressed","false");button.setAttribute("aria-label","选择 "+item.title);
+            image.src="/"+item.path;image.alt="";image.loading="lazy";title.textContent=item.title;button.append(image,title);
+            button.onclick=()=>perform(button,async()=>{if(operationBusy())throw Error("请等待屏幕操作完成");const sequence=++gallerySelectionSequence,id=await builtinTemplate(item.path);await refresh();if(sequence!==gallerySelectionSequence)return;$("publish-template").value=id;if(albumEnabled())toggleAlbum(id);showSaved();pageControls();});
+            host.append(button);
+        }
+    }
+    $("album-save").onchange=()=>{if(albumEnabled()&&!albumSelection.length&&$("publish-template").value)toggleAlbum($("publish-template").value);saveAlbumSettings();pageControls();};
+    $("album-add").onclick=()=>perform($("album-add"),async()=>{const id=$("publish-template").value;if(!id)throw Error("请先选择图片");if(!albumSelection.includes(id))toggleAlbum(id);pageControls();});
+    $("album-interval").onchange=()=>{$("album-custom").hidden=$("album-interval").value!=="0";saveAlbumSettings();};
+    $("album-hours").oninput=saveAlbumSettings;
+    $("album-stop").onclick=()=>perform($("album-stop"),()=>batch("album_stop"));
+    $("photo-x").oninput=()=>positionPhoto(Number($("photo-x").value));
+    for(const [id,x] of [["photo-left",0],["photo-center",38],["photo-right",76]])$(id).onclick=()=>positionPhoto(x);
+    const canvas=$("photo-canvas");
+    canvas.onpointerdown=e=>{if(!previewImage||operationBusy()||e.offsetX/canvas.clientWidth>174/250)return;dragPhoto={id:e.pointerId,x:e.clientX,start:Number($("photo-x").value)};canvas.setPointerCapture(e.pointerId);};
+    canvas.onpointermove=e=>{if(!dragPhoto||e.pointerId!==dragPhoto.id)return;positionPhoto(Math.round(dragPhoto.start-(e.clientX-dragPhoto.x)*250/canvas.getBoundingClientRect().width));};
+    canvas.onpointerup=canvas.onpointercancel=()=>{dragPhoto=null;};
+}
+function positionPhoto(x){
+    x=Math.max(0,Math.min(76,x));$("photo-x").value=x;const id=$("publish-template").value;
+    if(id){photoPositions[id]=x;try{localStorage.setItem("elink-photo-positions",JSON.stringify(photoPositions));}catch(_){}}
+    paintPhoto();
+}
+function paintPhoto(){
+    const x=Number($("photo-x").value);$("photo-x-label").textContent=x===38?"居中":x<38?"靠左 "+(38-x)+" 像素":"靠右 "+(x-38)+" 像素";
+    const canvas=$("photo-canvas"),ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;ctx.fillStyle="white";ctx.fillRect(0,0,250,122);
+    if(previewImage)ctx.drawImage(previewImage,x,0,174,122,0,0,174,122);
+    if(previewDate)ctx.drawImage(previewDate,174,0,76,122,174,0,76,122);
+}
+function imageControls(){
+    const photo=pageAction()==="photo_calendar";$("photo-position").hidden=!photo;$("image-section-title").textContent=photo?"选择日历图片":"选择图片";
+    $("image-preview-note").textContent=photo?"日期预览采用当前查看屏幕的时区；屏幕独立跨天更新。新版宽图日历与离线轮播需1.5.9固件。":"250 × 122 · 点击应用后才发送到屏幕";
+    renderSelection();renderAlbum();
+}
+function renderSelection(){
+    const id=$("publish-template").value,photo=pageAction()==="photo_calendar",row=state.templates.find(t=>t.id===id),builtin=row?JSON.parse(row.spec).builtin:"";
+    for(const card of document.querySelectorAll('[data-native-gallery] button'))card.setAttribute("aria-pressed",String(albumEnabled()?albumSelection.some(id=>{const t=state.templates.find(x=>x.id===id);return t&&JSON.parse(t.spec).builtin===card.dataset.path;}):card.dataset.path===builtin));
+    $("saved-preview").hidden=!id||photo;$("photo-canvas").hidden=!id||!photo;$("preview-empty").hidden=!!id;$("photo-x").disabled=!id;
+    if(!id){previewKey="";previewLoad++;previewImage=null;previewDate=null;return;}
+    const zone=selected()?.settings?.clock_timezone||selected()?.state?.clock_timezone||"local",day=new Intl.DateTimeFormat("en-CA",{timeZone:zone==="local"?undefined:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()),key=[id,row?.sha256,zone,day].join("|");
+    if(key===previewKey){paintPhoto();return;}previewKey=key;previewImage=null;previewDate=null;paintPhoto();
+    const position=photoPositions[id];$("photo-x").value=Number.isInteger(position)&&position>=0?Math.min(position,76):38;
+    const seq=++previewLoad,src="/api/templates/"+encodeURIComponent(id)+"/preview.png",im=new Image(),date=new Image();
+    $("saved-preview").src=src;
+    im.onload=()=>{if(seq!==previewLoad)return;previewImage=im;paintPhoto();};date.onload=()=>{if(seq!==previewLoad)return;previewDate=date;paintPhoto();};
+    im.onerror=date.onerror=()=>{if(seq===previewLoad){previewKey="";message("预览加载失败，请重新选择图片",true);}};
+    im.src=src;date.src="/api/photo-date.png?timezone="+encodeURIComponent(zone);
+}
+
+function toggleAlbum(id){
+    const at=albumSelection.indexOf(id);
+    if(at>=0)albumSelection.splice(at,1);
+    else {if(albumSelection.length>=4)throw Error("屏幕图库最多 4 张，请先移除一张");albumSelection.push(id);}
+    saveAlbumSettings();
+}
+function renderAlbum(){
+    for(let i=albumSelection.length-1;i>=0;i--)if(!state.templates.some(t=>t.id===albumSelection[i]))albumSelection.splice(i,1);
+    $("album-options").hidden=!albumEnabled();$("album-count").textContent="已选 "+albumSelection.length+" / 4 张";
+    const list=$("album-items"),key=JSON.stringify(albumSelection.map(id=>[id,state.templates.find(t=>t.id===id)?.title]));
+    if(key!==albumListKey){albumListKey=key;list.replaceChildren();
+    for(const [i,id] of albumSelection.entries()){
+        const t=state.templates.find(t=>t.id===id),li=document.createElement("li"),focus=document.createElement("button"),remove=document.createElement("button");
+        focus.type=remove.type="button";focus.textContent=(i+1)+". "+t.title;focus.setAttribute("aria-pressed",String($("publish-template").value===id));focus.onclick=()=>{$("publish-template").value=id;showSaved();pageControls();};
+        remove.textContent="移除";remove.setAttribute("aria-label","从图库移除 "+t.title);remove.onclick=()=>{toggleAlbum(id);pageControls();};li.append(focus,remove);list.append(li);
+    }
+    }
+    for(const [i,li] of [...list.children].entries())li.firstElementChild.setAttribute("aria-pressed",String($("publish-template").value===albumSelection[i]));
+    const devices=state.devices.filter(d=>targets.has(d.address));
+    $("album-device-status").textContent=devices.map(d=>{const a=d.state?.album;return d.name+"："+(!d.state?.offline_album?"需升级 1.5.9 并读取状态":!a?"读取状态可查看设备图库":a.protocol_version<2||!d.state?.album_minute_tick?"离线轮播需升级 1.5.9":!a.count?"尚未保存图片":a.count+" 张 · "+(a.enabled?(!a.running&&!a.writing?"已暂停，需核对":a.count===1?"保存显示":"每 "+a.interval_minutes/60+" 小时轮播"):"已停止")+(a.index<a.count?" · 当前第 "+(a.index+1)+" 张":""));}).join("；");
+    $("album-stop").disabled=batching||!devices.some(d=>d.state?.offline_album&&!pending(d.address));
+}
+function albumPayload(){
+    if(!albumSelection.length)throw Error("请选择 1–4 张图库图片");
+    const hours=Number($("album-hours").value);
+    if($("album-interval").value==="0"&&!Number.isInteger(hours))throw Error("请输入 1–168 的整数小时");
+    const minutes=Number($("album-interval").value)||hours*60;
+    if(!Number.isInteger(minutes)||minutes<60||minutes>10080)throw Error("换图间隔须为 1–168 个整小时");
+    return {mode:pageAction()==="photo_calendar"?"calendar":"image",interval_minutes:minutes,items:albumSelection.map(id=>({template_id:id,photo_x:Math.min(photoPositions[id]??38,76)}))};
+}

@@ -1,0 +1,132 @@
+{
+  "version": "1.0.2",
+  "firmware_versions": {
+    "de05d8d1": "1.0.3",
+    "768fcd19": "1.0.4",
+    "24f56403": "1.0.5",
+    "e7d6ebb6": "1.0.6",
+    "1d535d26": "1.1.0",
+    "6341f450": "1.1.1",
+    "38d70f9e": "1.2.0",
+    "90559ec8": "1.2.1",
+    "28768807": "1.2.2",
+    "ca9539bd": "1.3.0",
+    "c79d8ca9": "1.3.1",
+    "f48afcd5": "1.3.2",
+    "9a0265b2": "1.3.3",
+    "b23bdd6d": "1.3.4",
+    "85bba3ef": "1.3.5",
+    "2dbcfd7c": "1.4.0",
+    "54937aa2": "1.5.0",
+    "af092599": "1.5.1",
+    "3bbf1f31": "1.5.2"
+  },
+  "width": 250,
+  "height": 122,
+  "gallery": [
+    {
+      "title": "日出山水",
+      "path": "image/01-sunrise-lake.png",
+      "frame": "image/01-sunrise-lake.bin",
+      "sha256": "9b5e3bac1369c486a8b342eb63df2347962f80bf52ef7b390ce11202a5b0afa0"
+    },
+    {
+      "title": "荷兰风车",
+      "path": "image/02-dutch-windmill.png",
+      "frame": "image/02-dutch-windmill.bin",
+      "sha256": "e684357cde1c315891ebca40c874fb5fd01222424c42487816926c8628a6a609"
+    },
+    {
+      "title": "晚安睡猫",
+      "path": "image/03-sleeping-cat.png",
+      "frame": "image/03-sleeping-cat.bin",
+      "sha256": "6ae8558f939decaa8f1cad0567c0c77071b59140a8aa225ef2d78310deff797a"
+    },
+    {
+      "title": "咖啡与书",
+      "path": "image/04-coffee-book.png",
+      "frame": "image/04-coffee-book.bin",
+      "sha256": "2d657b09f5022ac9e7d570e038d33e296e69f3e13b3aaa37f7570ea66ccb1109"
+    },
+    {
+      "title": "海边灯塔",
+      "path": "image/05-seaside-lighthouse.png",
+      "frame": "image/05-seaside-lighthouse.bin",
+      "sha256": "e40a1d208c8b3014ce6d3fbaa7bf739941b7f33d5d33a4d5466b19bd72351524"
+    },
+    {
+      "title": "窗边小猫",
+      "path": "image/06-window-cat.png",
+      "frame": "image/06-window-cat.bin",
+      "sha256": "3a739f0cb8295739c08e8b84c27028ea7e138c1a78b16d8870854989125acfc5"
+    },
+    {
+      "title": "山间列车",
+      "path": "image/07-mountain-train.png",
+      "frame": "image/07-mountain-train.bin",
+      "sha256": "7505b416bc52ae7753f40262bf14c47459fc50a7843138d2d5cccb94ee2196d0"
+    },
+    {
+      "title": "荷兰运河",
+      "path": "image/08-dutch-canal.png",
+      "frame": "image/08-dutch-canal.bin",
+      "sha256": "6f68e17daf74066a8c53e54db8151b5432fc1e684891c8fb5342aa89a696f920"
+    },
+    {
+      "title": "水墨山居",
+      "path": "image/09-chinese-mountain-retreat.png",
+      "frame": "image/09-chinese-mountain-retreat.bin",
+      "sha256": "dcab981f15b23656f7a8fe24d8293ec3df3f0bf884fab0381722b3c0fdb6fe6d"
+    },
+    {
+      "title": "熊猫竹林",
+      "path": "image/10-panda-bamboo.png",
+      "frame": "image/10-panda-bamboo.bin",
+      "sha256": "3cc32acc46c7bde10440752cdcb5bc00135355e1da5c607c1e836aea2725130f"
+    },
+    {
+      "title": "江南水乡",
+      "path": "image/11-jiangnan-water-town.png",
+      "frame": "image/11-jiangnan-water-town.bin",
+      "sha256": "69f428821a4765d5803a8570615169573362abf38255f55622b3f9ac1128aab8"
+    },
+    {
+      "title": "红梅喜鹊",
+      "path": "image/12-plum-magpie.png",
+      "frame": "image/12-plum-magpie.bin",
+      "sha256": "b10e9075a7cf7bc80a23fef5b2718add49206290fd12f16467e1c288f7c2b622"
+    },
+    {
+      "title": "月球小兔",
+      "path": "image/13-space-rabbit.png",
+      "frame": "image/13-space-rabbit.bin",
+      "sha256": "405661543a2829da80151ce6bfa15241d3152304e60343dc55cbc8f704298c8e"
+    },
+    {
+      "title": "湖畔鸟居",
+      "path": "image/14-japanese-gate.png",
+      "frame": "image/14-japanese-gate.bin",
+      "sha256": "493ea8d569e5f9869415ebae9ea0a0fe59da80619a30ef332cdaa3321286dfe2"
+    },
+    {
+      "title": "鲸跃海面",
+      "path": "image/15-whale-ocean.png",
+      "frame": "image/15-whale-ocean.bin",
+      "sha256": "97346fe63e263feee8907896b0efc4c1742f7f27a8ecfc4d9b34d7f5b5a20e10"
+    },
+    {
+      "title": "林间睡狐",
+      "path": "image/16-fox-garden.png",
+      "frame": "image/16-fox-garden.bin",
+      "sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267"
+    }
+  ],
+  "default_clock": {
+    "mode": 1,
+    "full_every": 60,
+    "refresh_minutes": 5
+  },
+  "browser_only": true,
+  "storage": "IndexedDB",
+  "ota": false
+}

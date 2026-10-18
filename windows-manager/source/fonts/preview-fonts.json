@@ -1,0 +1,48 @@
+{
+  "purpose": "OFL Noto Sans SC Black native 12px ASCII/countdown and 44px photo date, Medium 14/18px labels, OFL Fusion Pixel remaining 12px Chinese; original fonts unmodified.",
+  "fusion": {
+    "version": "2026.09.25",
+    "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
+    "archive_sha256": "d75f5262f108757edb0f47ee8e3d2dfdfbecfd94558faf5ffb0c06dc5866fb3b",
+    "original_file": "fusion-pixel-12px-monospaced-zh_hans.bdf",
+    "original_sha256": "bb2cdfa029674d83ad9fc6b01bba11752f61779cae1219a722c7ccee96b2d0ae",
+    "local_file": "fusion-pixel-12px-monospaced-zh_hans.bdf.gz",
+    "local_sha256": "1cc43ef154f2b223d085889d0d2f6ace35b56e11488db7897768d06de6f10ae4",
+    "license": "FusionPixel/OFL.txt"
+  },
+  "unifont": {
+    "version": "17.0.04",
+    "source": "https://unifoundry.com/pub/unifont/unifont-17.0.04/font-builds/unifont-17.0.04.hex.gz",
+    "local_file": "unifont-17.0.04.hex.gz",
+    "local_sha256": "e808096f98ff04294f0d49452cad51964e2930b7be046ac8e1efadc46b2bab0f",
+    "license": "https://unifoundry.com/LICENSE.txt"
+  },
+  "noto": {
+    "family": "Noto Sans SC Black (Source Han Sans SC Heavy design)",
+    "source": "https://github.com/notofonts/noto-cjk/raw/165c01b46ea533872e002e0785ff17e44f6d97d8/Sans/SubsetOTF/SC/NotoSansSC-Black.otf",
+    "local_file": "NotoSansSC/NotoSansSC-Black.otf",
+    "local_sha256": "ccb496022356b7dd14d117538a472ae40feff8f6e8f3fe8bffc5616785d2f3f9",
+    "license": "NotoSansSC/LICENSE.txt",
+    "font_files_modified": false
+  },
+  "harmony": {
+    "source": "https://developer.huawei.com/images/download/next/HarmonyOS-Sans.zip",
+    "official_page": "https://developer.huawei.com/consumer/cn/design/resource/",
+    "archive_sha256": "ba7ddf71fc4dee33a7170869564ad76d421a2ed5c58e5aac9a573c39945ef654",
+    "local_file": "HarmonyOS/HarmonyOS_SansSC_Bold.ttf",
+    "local_sha256": "c215d8ab1cb6709fec2e063f8213e9af86d7587d345b56325e36b67d6b947d98",
+    "compact_file": "HarmonyOS/HarmonyOS_Sans_Condensed_Bold.ttf",
+    "compact_sha256": "fa964ca60754b42dae91beaf27909578053cfa31901690e05d93615e3aeb0bfb",
+    "license": "HarmonyOS/LICENSE.txt",
+    "license_source": "https://raw.githubusercontent.com/openharmony/global_system_resources/master/LICENSE_Fonts",
+    "font_files_modified": false
+  },
+  "noto_medium": {
+    "family": "Noto Sans SC Medium",
+    "source": "https://github.com/notofonts/noto-cjk/raw/165c01b46ea533872e002e0785ff17e44f6d97d8/Sans/SubsetOTF/SC/NotoSansSC-Medium.otf",
+    "local_file": "NotoSansSC/NotoSansSC-Medium.otf",
+    "local_sha256": "7633f5a016d4dd95e685a69633d818aabc4644c4b08e26bd35b1b30c45ed5dda",
+    "license": "NotoSansSC/LICENSE.txt",
+    "font_files_modified": false
+  }
+}
