@@ -1,0 +1,16 @@
+Noto Sans SC font source and license
+
+Project: https://github.com/notofonts/noto-cjk
+Pinned commit: 165c01b46ea533872e002e0785ff17e44f6d97d8
+Directory: Sans/SubsetOTF/SC
+License: SIL Open Font License, Version 1.1 (see LICENSE.txt)
+
+NotoSansSC-Medium.otf
+SHA256: 7633f5a016d4dd95e685a69633d818aabc4644c4b08e26bd35b1b30c45ed5dda
+Unmodified upstream OTF. Application bitmap subsets are generated at
+12, 14, 18 and 44 pixels. The 44px decimal digits are losslessly run-length
+encoded for the application font region; they are not a new upstream font.
+
+The existing Black font remains used for other application sizes.
+Exact hashes of both source files are listed in ../preview-fonts.json.
+No font binaries were extracted from the third-party 4.2-inch firmware.

@@ -14,7 +14,7 @@ from ota import validate_package
 from clock_time import settings,dutch_zone
 from builtin_gallery import gallery,native,entry as builtin_entry,resource as builtin_resource
 
-VERSION='1.5.11'
+VERSION='1.5.12'
 SOURCE=Path(sys._MEIPASS)/'source' if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[1]
 UI=SOURCE/'opendesign/mockups/elink-manager'
 TOKENS=SOURCE/'opendesign/design-systems/elink-home/tokens/colors_and_type.css'

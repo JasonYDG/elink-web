@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 let firmwareVersions={};
 let token="", state={devices:[],templates:[],jobs:[],plans:[],reminders:[]}, upload="", previewSequence=0, otaPackage=null, editingTemplate="", previewTimer=null,editingReminder="",reminderPreviewSequence=0;
 const targets=new Set();let batching=false,noticeJobIds=[],settingsJob="",batchResults=[];
-const labels={queued:"排队中",waiting:"等待接收窗口",running:"执行中",awaiting_display:"等待刷新完成",succeeded:"已完成",failed:"失败",delivery_unknown:"结果待核对",cancelled:"已取消"};
+const labels={queued:"排队中",waiting:"等待设备连接",running:"执行中",awaiting_display:"等待刷新完成",succeeded:"已完成",failed:"失败",delivery_unknown:"结果待核对",cancelled:"已取消"};
 const actions={album:"保存离线图库",album_stop:"停止离线轮播",probe:"读取状态",sync:"校时",default:"默认界面",resume:"新版时钟",calendar:"设备月历",settings:"应用设置",publish:"发送图片",photo_calendar:"图片日历",reminder:"离线任务提醒",overview:"今日任务汇总",ota:"蓝牙 OTA"};
 const unfinished=["queued","waiting","running","awaiting_display"];
 let deviceRequests=0,operationAwaiting=false,operationEpoch=0,refreshSequence=0;

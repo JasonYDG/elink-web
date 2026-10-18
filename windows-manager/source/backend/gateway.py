@@ -1,6 +1,7 @@
 """Serialized BLE transactions with explicit device identity and capability checks."""
-import asyncio,json,time,secrets,base64,struct,zlib,hashlib,datetime
+import asyncio,json,time,secrets,base64,struct,zlib,hashlib,datetime,sys
 from bleak import BleakClient,BleakScanner
+from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 from protocol import decode_album,SERVICE,CONTROL,VOLTS,decode_battery,decode_status,decode_ui_capabilities,decode_reminder_slot,decode_reminder_runtime,reminder_metadata,image_packets,policy_packet,timing_packet,sync_packet
 from render import notice_battery,frame_png
@@ -18,6 +19,17 @@ def block(data,size):
     return data
 class Gateway:
     def __init__(self,store):self.store=store;self.lock=asyncio.Lock();self.devices={}
+    async def connect_ready(self,client,job,timeout=20):
+        for attempt in range(3):
+            self.store.update_job(job['id'],phase=f'连接并发现控制接口 · {attempt+1}/3')
+            await asyncio.wait_for(client.connect(),timeout)
+            if client.services.get_characteristic(CONTROL):return
+            services=', '.join(service.uuid for service in client.services) or '空列表'
+            if attempt==2:raise ValueError(f'3 次服务发现仍未取得 FF01 控制接口，本轮连接未发送操作命令；本次发现的服务：{services}')
+            # An active WinRT session can return an incomplete service table.
+            self.store.update_job(job['id'],phase='服务发现不完整，释放连接后重新发现（未发送命令）')
+            await asyncio.wait_for(client.disconnect(),5)
+            await asyncio.sleep(1)
     async def scan(self):
         async with self.lock:
             found=await BleakScanner.discover(timeout=6,return_adv=True)
@@ -172,7 +184,7 @@ class Gateway:
                         try:await client.disconnect()
                         except Exception:pass
                         self.devices.pop(job['address'],None)
-                        await asyncio.sleep(2);await asyncio.wait_for(client.connect(),15)
+                        await asyncio.sleep(2);await self.connect_ready(client,job,15)
                     check=await self.wait_idle(client,job,await self.status(client))
                     album=await self.query(client,b'\xbd\x00',decode_album)
                     if not album['enabled'] or not album['running'] or album['sequence']!=sequence or album['count']!=len(frames) or album['mode']!=mode or album['interval_minutes']!=payload['interval_minutes'] or album['crc32']!=crcs or album['photo_x']!=[i['photo_x'] for i in payload['items']] or album['writing'] or album['index']!=0:
@@ -372,7 +384,7 @@ class Gateway:
             while time.monotonic()<deadline:
                 await asyncio.sleep(2)
                 try:
-                    await asyncio.wait_for(client.connect(),15)
+                    await self.connect_ready(client,job,15)
                     check=await self.status(client)
                     if check.get('firmware_id')==receipt['firmware_id']:
                         check.update(await self.capabilities(client))
@@ -406,17 +418,25 @@ class Gateway:
             dev=self.devices.get(address)
             if dev is None:
                 dev=await BleakScanner.find_device_by_address(address,timeout=8)
+            if dev is None and sys.platform=='win32':
+                from winrt.windows.devices.bluetooth import BluetoothLEDevice,BluetoothConnectionStatus
+                known=await asyncio.wait_for(BluetoothLEDevice.from_bluetooth_address_async(int(address.replace(':',''),16)),3)
+                if known is not None:
+                    try:
+                        if known.bluetooth_address==int(address.replace(':',''),16) and known.connection_status==BluetoothConnectionStatus.CONNECTED:
+                            # Pinned Bleak WinRT uses a BLEDevice's address, not its details.
+                            dev=BLEDevice(address,known.name,None)
+                    finally:known.close()
             if dev is None:raise ConnectionError('设备未广播；任务等待下一接收窗口。')
             self.devices[address]=dev
             client=BleakClient(dev,timeout=15,services=[SERVICE],winrt={'use_cached_services':False})
             committed=False
             try:
                 self.store.update_job(job['id'],phase='建立蓝牙连接并获取 GATT 服务')
-                try:await asyncio.wait_for(client.connect(),20)
+                try:await self.connect_ready(client,job)
                 except (BleakError,TimeoutError,OSError) as exc:
                     self.devices.pop(address,None)
                     raise ConnectionError('蓝牙连接失败，将重新扫描重试：'+str(exc)) from exc
-                if not client.services.get_characteristic(CONTROL):raise ValueError('设备没有 HMCLOCK FF01 控制特征')
                 # Preserve the scan response name; Windows dev.name can remain cached after OTA.
                 self.store.execute('UPDATE devices SET last_seen=?,updated=? WHERE address=?',(time.time(),time.time(),address))
                 self.store.update_job(job['id'],status='running',progress=2,error=None,phase='读取设备状态与电池电压')
@@ -628,7 +648,11 @@ async def worker(store,gateway,stop):
             else:store.update_job(job['id'],status='succeeded',progress=100,receipt=result,error=None)
         except DeliveryUnknown as exc:store.update_job(job['id'],status='delivery_unknown',error=str(exc))
         except (ConnectionError,TimeoutError) as exc:
-            if time.time()-job['created']<86400:
-                store.update_job(job['id'],status='waiting',error=str(exc),attempts=job['attempts']+1,due=time.time()+10+secrets.randbelow(8000)/1000)
+            payload=json.loads(job['payload']);attempts=job['attempts']+1
+            background=job['action']=='reminder' or (isinstance(payload,dict) and payload.get('scheduled') is True)
+            if not background and attempts>=3:
+                store.update_job(job['id'],status='failed',attempts=attempts,phase='连接未建立，本次操作已停止',error='3 次连接尝试未完成，操作已停止，可重新读取状态：'+str(exc))
+            elif time.time()-job['created']<86400:
+                store.update_job(job['id'],status='waiting',error=str(exc),attempts=attempts,due=time.time()+10+secrets.randbelow(8000)/1000)
             else:store.update_job(job['id'],status='failed',error='24 小时内未找到可用设备：'+str(exc))
         except Exception as exc:store.update_job(job['id'],status='failed',error=str(exc))

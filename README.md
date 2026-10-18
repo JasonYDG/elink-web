@@ -1,6 +1,6 @@
 # ELINK Web 1.0.2
 
-Windows 本地服务端已同步至 [windows-manager](windows-manager/README.md)：管理端 **1.5.11**，配套固件 **1.5.10**，支持设备离线图库、图片日历及 Windows OTA。[下载服务端与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.11)。
+Windows 本地服务端已同步至 [windows-manager](windows-manager/README.md)：管理端 **1.5.12**，配套固件 **1.5.10**，支持设备离线图库、图片日历及 Windows OTA。[下载服务端与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.12)。
 
 独立的 2.13 寸红白黑墨水屏网页控制器。静态 HTML、CSS、JavaScript，使用访问者手机或电脑的 Web Bluetooth；不连接家庭后台，不使用服务器蓝牙。现有 Windows 集成版本继续保留。
 
