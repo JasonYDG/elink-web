@@ -11,6 +11,10 @@ function harness(){
 }
 const flush=()=>new Promise(setImmediate);
 
+test("slow transport script loading leaves connection controls disabled without aborting startup",()=>{
+    const {c,elements}=harness();delete c.portable;delete c.ELinkBLE;assert.doesNotThrow(()=>c.operationLocks());assert.equal(elements["portable-connect"].disabled,true);assert.equal(elements["portable-disconnect"].disabled,true);
+});
+
 test("unfinished work blocks all device controls and duplicate requests",async()=>{
     const {c,elements,requests}=harness();for(const status of c.unfinished){c.state={...empty(),jobs:[{status,progress:100}]};c.operationLocks();for(const name of ["screens","reminders","content"])assert.equal(elements[name].inert,true);await assert.rejects(c.api("/api/jobs",{address:"test",action:"probe"}),/尚未完成/);}
     assert.equal(requests.length,0);assert.equal(elements["restore-file"].disabled,true);assert.equal(elements["portable-connect"].disabled,true);
