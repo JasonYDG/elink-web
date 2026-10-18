@@ -15,6 +15,32 @@ test("queued image stays immutable after editing and deleting its template",asyn
     await local.api("/api/templates",{id:ident(1),title:"edited",spec:{kind:"image",test_frame:changed}});await local.api("/api/templates/delete",{id:ident(1)});
     assert.equal(local.job(j.id).payload.sha256,sha);assert.deepEqual(P.decode64(local.job(j.id).payload.frame),frame);assert.equal(local.summary().templates.length,0);
 });
+
+test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
+    const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.0");
+    await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
+});
+
+test("readback restores native originals and duplicate pictures to distinct editable slots",async()=>{
+    const h=await harness(),other=frame.slice();other[0]^=1;const a={capacity:7,count:2,crc32:[P.crc32(frame),P.crc32(other)],photo_x:[10,60],sequence:3,mode:1,enabled:true,interval_minutes:1440};
+    const restored=await h.local.restoreAlbum(a,[frame,other]);assert.equal(restored.editable,true);assert.equal(restored.items[0].title,"月球小兔");assert.deepEqual(Array.from(h.local.albumMatches(restored)),Array.from(restored.items,i=>i.template_id));
+    const copy=await h.local.restoreAlbum({...a,crc32:[P.crc32(frame),P.crc32(frame)]},[null,frame]);assert.notEqual(copy.items[0].template_id,copy.items[1].template_id);
+    await h.local.updateState(address,{album_capacity:7,display_mode:8,album:copy});const payload={mode:"calendar",interval_minutes:1440,items:copy.items.map(i=>({template_id:i.template_id,photo_x:i.photo_x}))};
+    const result=await h.local.api("/api/jobs",{address,action:"album",payload});const queued=h.local.job(result.id);assert.equal(queued.payload.items.length,2);assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
+    await h.local.api("/api/templates/delete",{id:copy.items[1].template_id});assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
+    await h.local.api("/api/cancel",{id:result.id});const photo=await h.local.api("/api/jobs",{address,action:"photo_calendar",payload:{template_id:copy.items[0].template_id,photo_x:10}});assert.deepEqual(P.decode64(h.local.job(photo.id).payload.frame),P.photoFrame(frame,10));
+    const backup=structuredClone(h.saved.get("current"));backup.templates[0].spec=JSON.stringify({...JSON.parse(backup.templates[0].spec),native_frame:P.bytes64(other)});await assert.rejects(h.local.validateImport(backup),/像素校验/);
+});
+
+test("seven-image request is refused by old device capacity before a job is admitted",async()=>{
+    const h=await harness();await assert.rejects(h.local.api("/api/jobs",{address,action:"album",payload:{mode:"image",interval_minutes:1440,items:Array.from({length:7},(_,i)=>({template_id:ident(i+1),photo_x:38}))}}),/上限/);assert.equal(h.local.summary().jobs.length,0);
+});
+
+test("an interrupted album restore commit inside calibration cannot be automatically replayed",async()=>{
+    let attempts=0;const h=await harness(workspace(),async()=>{attempts++;const e=Error("resume commit lost");e.connection=e.submitted=true;throw e;});
+    const j=await h.local.api("/api/jobs",{address,action:"sync"});await h.local.tick();await h.local.tick();assert.equal(attempts,1);assert.equal(h.local.job(j.id).status,"delivery_unknown");
+});
 test("commit followed by disconnect is recorded once and never automatically replayed",async()=>{
     let attempts=0,h;h=await harness(workspace(),async j=>{attempts++;await h.local.updateJob(j,{committed:true,status:"awaiting_display"});const e=Error("connection lost after commit");e.connection=true;throw e;});
     const j=await h.local.api("/api/jobs",{address,action:"calendar"});await h.local.tick();await h.local.tick();assert.equal(attempts,1);assert.equal(h.local.job(j.id).status,"delivery_unknown");

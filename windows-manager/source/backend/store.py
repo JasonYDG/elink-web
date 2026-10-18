@@ -17,7 +17,7 @@ def album_snapshot(store,value):
     if not isinstance(value,dict) or set(value)!={'items','mode','interval_minutes'}:raise ValueError('图库设置不合法')
     if value['mode'] not in ('image','calendar') or type(value['interval_minutes']) is not int or not 60<=value['interval_minutes']<=10080:raise ValueError('换图间隔须为 1 小时至 7 天')
     items=value['items']
-    if not isinstance(items,list) or not 1<=len(items)<=4:raise ValueError('屏幕图库请选择 1–4 张图片')
+    if not isinstance(items,list) or not 1<=len(items)<=7:raise ValueError('屏幕图库请选择 1–7 张图片')
     result=[];seen=set()
     for item in items:
         if not isinstance(item,dict) or set(item)!={'template_id','photo_x'} or not isinstance(item['template_id'],str) or item['template_id'] in seen or type(item['photo_x']) is not int or not 0<=item['photo_x']<=84:raise ValueError('图库图片或取景位置不合法')

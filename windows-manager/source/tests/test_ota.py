@@ -61,6 +61,8 @@ class Ota(unittest.TestCase):
         raw=firmware_file('-app.bin').read_bytes()
         p={'format':'elink-update-1','board':BOARD,'application':base64.b64encode(raw).decode(),'sha256':hashlib.sha256(raw).hexdigest(),'firmware_id':raw[0xe2f0:0xe2f4].hex()}
         self.assertEqual(validate_package(p)[0],raw)
+        oversized=raw+b'\xff'*(65535-len(raw));too_large={**p,'application':base64.b64encode(oversized).decode(),'sha256':hashlib.sha256(oversized).hexdigest()}
+        with self.assertRaises(ValueError):validate_package(too_large)
         p['sha256']='0'*64
         with self.assertRaises(ValueError):validate_package(p)
 if __name__=='__main__':unittest.main()

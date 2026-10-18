@@ -8,6 +8,8 @@ SECTIONS {
     ASSERT(SIZEOF(.product) <= 0x116c, "Product code overlaps retained UI state")
     .reminder 0x07fcba00 : { *(.reminder.main) }
     ASSERT(SIZEOF(.reminder) <= 0x8a0, "Reminder code overlaps calendar digits")
+    .album_extra 0x07fcb580 : { *(.album.extra) }
+    ASSERT(SIZEOF(.album_extra) <= 0x200, "Album helpers overlap photo digit glyphs")
     .album 0x07fcc8a4 : { *(.album*) }
     ASSERT(SIZEOF(.album) <= 0xa0c, "Album code overlaps native CRC32 table")
     /DISCARD/ : { *(.ARM.exidx*) *(.ARM.extab*) *(.comment*) *(.eh_frame*) }

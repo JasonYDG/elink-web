@@ -38,7 +38,7 @@ class PhotoTransport(unittest.IsolatedAsyncioTestCase):
         from test_firmware import BASE
         import gateway
         machine=PhotoMachine();packets=[]
-        self.assertEqual(machine.meta['firmware_id'],'fde89808','Run against build/firmware-1.5.10')
+        self.assertEqual(machine.meta['firmware_id'],'ff001ff1','Run against build/firmware-1.5.11')
         with tempfile.TemporaryDirectory() as tmp:
             store=Store(Path(tmp)/'elink.sqlite3');address='18:BC:5A:6B:8A:B1';store.register(address)
             item=gallery()[0];ident=store.save_template(item['title'],{'kind':'image','builtin':item['path']},native(item['path']))

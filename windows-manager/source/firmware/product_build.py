@@ -7,7 +7,7 @@ from bitmap_fonts import native_font
 from module_build import load_modules
 
 # The boot title is an asset; no 18px caller uses the former uppercase I glyph.
-REQUIRED='0123456789ABCDEFLNKPRMVWx. :/%-'+'农历闰月年今日天后第周星期一二三四五六七八九十初廿正冬腊小寒大立春雨水惊蛰分清明谷夏满芒种至暑秋处白露霜降雪荷兰甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥鼠牛虎兔龙蛇马羊猴鸡狗猪任务'
+REQUIRED='0123456789BWRx. :/'+'农历闰月年今日天后星期一二三四五六七八九十初廿正冬腊小寒大立春雨水惊蛰分清明谷夏满芒种至暑秋处白露霜降雪荷兰甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥鼠牛虎兔龙蛇马羊猴鸡狗猪任务'
 # Only small-font callers: MAC, version, battery, lunar date and reminder labels.
 SMALL_REQUIRED='0123456789ABCDEFV. :/%-'+'闰月第周一二三四五六七八九十初廿正冬腊今日天后任务提醒无项待已过时另有'
 
@@ -56,6 +56,7 @@ def clock_digits(app):
 
 def bold_font(app):
     raw=native_font(REQUIRED,18)
+    assert len(raw)<=0xb580-0xa48c, '18px glyphs overlap verified application helper section'
     assert len(raw)<=PHOTO_DAYS-0xa48c, f'18px font overlaps photo digits: {len(raw)}'
     photo=photo_digits()
     assert len(photo)<=0xba00-PHOTO_DAYS, f'44px photo digits overlap reminder code: {len(photo)}'
@@ -100,7 +101,7 @@ def compile_product(root,out,leds_off,version='0.0.0'):
     regions={};symbols={};functions={}
     for sec in sections:
         name=strings[sec[0]:].split(b'\0',1)[0].decode()
-        if name in ('.clock','.product','.reminder','.reminder_extra','.album'):regions[name]=(sec[3],raw[sec[4]:sec[4]+sec[5]])
+        if name in ('.clock','.product','.reminder','.reminder_extra','.album','.album_extra'):regions[name]=(sec[3],raw[sec[4]:sec[4]+sec[5]])
         if sec[1]==2:
             st=sections[sec[6]];symstrings=raw[st[4]:st[4]+st[5]]
             for off in range(sec[4],sec[4]+sec[5],sec[9]):
@@ -109,7 +110,7 @@ def compile_product(root,out,leds_off,version='0.0.0'):
                 if symname.startswith('product_'):symbols[symname]=value
                 if info&15==2 and size and 0<index<len(sections) and sections[index][2]&2:
                     functions[symname]={'address':value&~1,'bytes':size}
-    assert set(regions)=={'.clock','.product','.reminder','.reminder_extra','.album'}
+    assert set(regions)=={'.clock','.product','.reminder','.reminder_extra','.album','.album_extra'}
     assert symbols['product_clock']==0x07fc2cc5
     import json
     (out/'product-functions.json').write_text(json.dumps(functions,indent=2),encoding='utf-8')

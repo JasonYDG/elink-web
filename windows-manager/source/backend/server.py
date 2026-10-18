@@ -1,4 +1,4 @@
-"""Elink Manager 1.5.8: loopback API, SQLite, actual BLE worker, no simulated fleet."""
+"""Elink Manager 1.5.13: loopback API, SQLite, actual BLE worker, no simulated fleet."""
 import argparse,asyncio,base64,json,secrets,threading,time,uuid,re,signal,sys,os,webbrowser
 import urllib.request
 import socket
@@ -14,7 +14,7 @@ from ota import validate_package
 from clock_time import settings,dutch_zone
 from builtin_gallery import gallery,native,entry as builtin_entry,resource as builtin_resource
 
-VERSION='1.5.12'
+VERSION='1.5.13'
 SOURCE=Path(sys._MEIPASS)/'source' if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[1]
 UI=SOURCE/'opendesign/mockups/elink-manager'
 TOKENS=SOURCE/'opendesign/design-systems/elink-home/tokens/colors_and_type.css'
@@ -139,7 +139,7 @@ def handler(app):
                         d['preview']=app.store.display_preview(d['address'],d['state'])
                     jobs=app.store.rows("SELECT id,address,action,status,progress,error,receipt,created,updated,attempts,payload,phase FROM jobs WHERE status IN ('queued','waiting','running','awaiting_display') OR id IN (SELECT id FROM jobs ORDER BY created DESC LIMIT 80) ORDER BY (status IN ('queued','waiting','running','awaiting_display')) DESC,created DESC")
                     for j in jobs:
-                        j['receipt']=json.loads(j['receipt']);p=json.loads(j.pop('payload'));j['sha256']=p.get('sha256')
+                        j['receipt']=json.loads(j['receipt']);p=json.loads(j.pop('payload'));j['sha256']=p.get('sha256');j['has_preview']=bool(p.get('display_png') or p.get('png'))
                     return self.reply(200,{'devices':devs,'jobs':jobs,'templates':app.store.rows('SELECT id,title,spec,sha256,created FROM templates ORDER BY created DESC'),'plans':app.store.rows('SELECT * FROM plans'),'reminders':app.store.reminders(),'operation':app.operation_state(),'worker_alive':app.thread.is_alive(),'worker_error':app.worker_error})
                 if path.startswith('/api/templates/') and path.endswith('/preview.png'):
                     row=app.store.template(path.split('/')[3]);return self.reply(200,render(json.loads(row['spec']))['png'],'image/png')

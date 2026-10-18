@@ -126,7 +126,9 @@
         "album_address",
         "album_load",
         "album_save",
-        "album_initialize"
+        "album_initialize",
+        "album_legacy",
+        "album_empty"
       ]
     }
   ]

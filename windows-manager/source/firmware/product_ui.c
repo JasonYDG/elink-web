@@ -14,13 +14,13 @@ static unsigned next_code(const char **ps){
     else if(c>=0xc0){c=((c&31)<<6)|(s[0]&63);s++;}
     *ps=(const char *)s;return c;
 }
-__attribute__((section(".album"),noinline)) static void compressed_ink(u32 table,int x,int y,const char *s,int red);
+__attribute__((section(".album.extra"),noinline)) static void compressed_ink(u32 table,int x,int y,const char *s,int red);
 static const u8 *glyph(u32 table,unsigned code){
     const u8 *b=(const u8 *)table;unsigned n=*(const u16 *)b;
     for(unsigned i=0;i<n;i++){const u16 *e=(const u16 *)(b+2+i*4);if(e[0]==code)return b+e[1];}
     return 0;
 }
-__attribute__((section(".album"),noinline)) static void compressed_ink(u32 table,int x,int y,const char *s,int red){
+__attribute__((section(".album.extra"),noinline)) static void compressed_ink(u32 table,int x,int y,const char *s,int red){
     unsigned n=table==DIGITS?5:4,mask=(1u<<n)-1;
     while(*s){
         const u8 *p=glyph(table,next_code(&s));if(!p)continue;

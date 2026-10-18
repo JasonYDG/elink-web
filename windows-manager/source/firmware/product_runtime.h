@@ -29,7 +29,7 @@ typedef unsigned int u32;
 struct Ui {u32 outside,red,pending_outside,pending_red,date,pending_date;
     u8 valid,pending,partial,hour,pending_hour,count,ticks,view;};
 #define U ((volatile struct Ui *)0x07fca46c)
-__attribute__((used)) const u8 product_caps[8]={'E','L','U','I',1,255,15,0};
+__attribute__((used)) const u8 product_caps[8]={'E','L','U','I',1,255,31,0};
 extern int product_reminder_cmd(const u8 *,unsigned);
 extern int product_reminder_tick(void);
 extern void product_reminder_finish(void);

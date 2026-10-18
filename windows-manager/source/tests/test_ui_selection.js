@@ -6,7 +6,7 @@ const functions=['selected','singleDevice','selectionChanged','selectDevice','qu
 const old='18:BC:5A:6B:86:66',pilot='18:BC:5A:6B:91:A7',dropdown={value:old},sent=[],loaded=[],messages=[];
 const context={state:{devices:[{address:old},{address:pilot}]},targets:new Set([pilot]),$:()=>dropdown,actions:{settings:'应用设置'},api:async(route,body)=>{sent.push({route,...body});return {id:'request-only'};},refresh:async()=>{},message:text=>messages.push(text),displayDevice:()=>{},loadSettings:()=>loaded.push(context.selected().address)};
 vm.createContext(context);vm.runInContext(functions,context);
-context.pending=()=>false;context.albumEnabled=()=>false;
+context.pending=()=>false;context.albumEnabled=()=>false;context.albumSelection=[];
 vm.runInContext(lines.find(line=>line.startsWith('function pageIssue(')),context);
 assert.match(context.pageIssue({state:{protocol:1,firmware_id:'6c3279f4',photo_calendar:true,photo_calendar_commit:true}},'photo_calendar'),/1\.5\.9/);
 assert.match(context.pageIssue({state:{protocol:1,firmware_id:'14271ec2',photo_calendar:true}},'photo_calendar'),/1\.5\.9/);
@@ -15,6 +15,9 @@ assert.equal(context.pageIssue({state:{protocol:1,photo_calendar:true,photo_cale
 assert.match(context.pageIssue({state:{protocol:1,offline_album:true,album:{protocol_version:1}}},'album'),/1\.5\.8/);
 assert.equal(context.pageIssue({state:{protocol:1,offline_album:true,album_minute_tick:true,album:{protocol_version:2}}},'album'),'');
 assert.match(context.pageIssue({state:{protocol:1,offline_album:true,album:{protocol_version:2}}},'album'),/1\.5\.9/);
+context.albumSelection=Array(7).fill('draft');const albumState={protocol:1,offline_album:true,album_minute_tick:true,album:{protocol_version:2}};
+assert.match(context.pageIssue({state:albumState},'album'),/最多 4/);assert.equal(context.pageIssue({state:{...albumState,album_capacity:7}},'album'),'');context.albumEnabled=()=>true;
+assert.equal(context.pageIssue({state:albumState},'album_stop'),'','Stopping an old device must not be blocked by a seven-image draft');context.albumEnabled=()=>false;context.albumSelection=[];
 (async()=>{
     await context.queue('settings',{clock_timezone:'Europe/Amsterdam'});
     assert.equal(sent[0].address,pilot,'Checked pilot must win over the first dropdown device');

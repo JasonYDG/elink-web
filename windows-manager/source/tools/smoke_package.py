@@ -2,9 +2,9 @@
 from pathlib import Path
 import argparse,subprocess,zipfile,json,urllib.request,urllib.error,time,os,hashlib,sys,sqlite3,socket
 ROOT=Path(__file__).resolve().parents[2]
-folder=ROOT/'build/smoke'/time.strftime('%Y%m%d-%H%M%S');folder.mkdir(parents=True)
+folder=ROOT/'backup'/time.strftime('%Y-%m-%d')/('package-smoke-1.5.13-'+time.strftime('%H%M%S'));folder.mkdir(parents=True)
 parser=argparse.ArgumentParser();parser.add_argument('--no-scan',action='store_true');args=parser.parse_args()
-archive=ROOT/'releases/elink-manager-1.5.12-candidate.zip'
+archive=ROOT/'releases/elink-manager-1.5.13-candidate.zip'
 with zipfile.ZipFile(archive) as z:z.extractall(folder/'delivery')
 delivery=folder/'delivery';exe=delivery/'app/ElinkManager.exe'
 manifest=json.loads((delivery/'DELIVERY_MANIFEST.json').read_text())
@@ -28,8 +28,8 @@ try:
         try:config=request('/api/config');break
         except (OSError,urllib.error.URLError):time.sleep(.25)
     else:raise TimeoutError('Packaged start timed out')
-    assert config['version']=='1.5.12'
-    assert manifest['manager_version']=='1.5.12' and manifest['firmware_version']=='1.5.10'
+    assert config['version']=='1.5.13'
+    assert manifest['manager_version']=='1.5.13' and manifest['firmware_version']=='1.5.11'
     assert config['bundled_runtime'] and Path(config['runtime_executable']).resolve()==exe.resolve()
     assert Path(config['data_directory']).resolve()==data.resolve()
     for path in ['/','/app.js','/gallery.js','/operation.js','/style.css','/design-systems/elink-home/tokens/colors_and_type.css']:assert request(path)
@@ -65,8 +65,14 @@ try:
         chosen=request('/api/builtin',{'path':item['path']},token)
         assert chosen==request('/api/builtin',{'path':item['path']},token)
     assert len(request('/api/state')['templates'])==16
-    assert config['firmware_versions']['fde89808']=='1.5.10'
-    update=json.loads((delivery/'firmware/elink-bwr-1.5.10.elink-update.json').read_text())
+    import base64
+    from render import frame_png
+    raw=request('/'+config['gallery'][0]['frame']);native_copy=request('/api/templates',{'title':'Native readback image','spec':{'kind':'image','native_frame':base64.b64encode(raw).decode()}},token)
+    assert request('/api/templates/'+native_copy['id']+'/preview.png')==frame_png(raw)
+    assert request('/api/templates/delete',{'id':native_copy['id']},token)['ok']
+    report['native_readback_image_renderer_verified']=True
+    assert config['firmware_versions']['ff001ff1']=='1.5.11'
+    update=json.loads((delivery/'firmware/elink-bwr-1.5.11.elink-update.json').read_text())
     assert request('/api/ota/validate',{'package':update},token)['firmware_id']==update['firmware_id']
     b=request('/api/backup',{},token)
     with sqlite3.connect(b['path']) as db:assert db.execute('PRAGMA integrity_check').fetchone()[0]=='ok'

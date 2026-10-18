@@ -2,8 +2,8 @@
 from pathlib import Path
 import shutil,hashlib,json,zipfile,datetime,argparse
 ROOT=Path(__file__).resolve().parents[2]
-MANAGER_VERSION='1.5.12'
-FIRMWARE_VERSION='1.5.10'
+MANAGER_VERSION='1.5.13'
+FIRMWARE_VERSION='1.5.11'
 OUT=ROOT/f'releases/{MANAGER_VERSION}-candidate'
 parser=argparse.ArgumentParser();parser.add_argument('--refresh',action='store_true');parser.add_argument('--publish',action='store_true',help='Update CURRENT only after package validation');args=parser.parse_args()
 if OUT.exists() and not args.refresh:raise SystemExit('Delivery directory exists; use --refresh to add current verification evidence')

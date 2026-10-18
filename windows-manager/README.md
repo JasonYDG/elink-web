@@ -1,30 +1,14 @@
-# ELINK Windows Manager 1.5.12
+# ELINK Windows Manager 1.5.13
 
-完整 Windows 蓝牙服务端、配套管理网页及源码。适用 2.13 寸 DA14585 BWR 250×122 标签，配套固件 **1.5.10 / fde89808**。
+[下载完整 Windows 程序与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.13) · [网页1.1.0](https://jasonydg.github.io/elink-web/)
 
-[下载完整 Windows 服务端](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.12)。解压 `elink-manager-1.5.12-windows.zip`，退出旧程序，运行 `Start.cmd`。打开 `http://127.0.0.1:18765/`；无需安装 Python。Windows 包包含程序、全部运行资源及配套应用 OTA 包，原数据继续保存在 `%LOCALAPPDATA%/ElinkManager/data`。
+配套固件1.5.11 / ff001ff1。解压 elink-manager-1.5.13-windows.zip，退出旧程序后运行 Start.cmd，无需安装Python。原数据继续保存在 %LOCALAPPDATA%/ElinkManager/data。
 
-## 功能
+包含完整服务端：扫描/登记、单台/批量控制、状态与像素读回、时钟/时区/刷新策略、月历/图片日历、16张内置图、上传裁切、共用离线图库、原图与配置恢复、离线重复提醒/今日汇总、置顶任务弹窗、队列/历史/备份，以及完整应用OTA读回和重启核对。
 
-| 功能 | 已包含的行为 |
-|---|---|
-| 设备管理 | 扫描、完整 MAC 登记、单台/批量操作、设备状态、电压估算、实际像素读回 |
-| 时钟 | 新版时钟、12/24 小时、刷新间隔与完整刷新策略、本地/荷兰时区、校时 |
-| 日历 | 设备月历、左图右日期主题、农历、节气/倒计时、图片左右取景 |
-| 图片 | 上传、裁切/移动/缩放/旋转、三色预览、电脑保存、16 张原生内置图直接应用 |
-| 离线图库 | 最多四张存入屏幕，1 小时至 7 天轮播；整图与图片日历共用顺序、取景和间隔 |
-| 提醒 | 离线日程、每日/星期重复、持续时间、今日汇总、修改/完成/删除及安装读回 |
-| 任务控制 | 串行队列、置顶操作弹窗、完成回执、等待取消、批量结果、历史记录 |
-| 定时与数据 | 电脑端图片计划、SQLite 持久记录、备份；电脑计划需要后台运行，屏幕离线图库和已写入提醒独立执行 |
-| Windows OTA | 包/型号/哈希校验、非活动区上传、全量读回、提交后重启版本核对 |
+旧1.5.2保留原有读取/控制。7张与未知原图恢复需1.5.11；旧版四张图库可保留升级。图片与图片日历共用顺序、取景和间隔，修改一张可保留其余设置。每天一张可七天一轮。代码使用受限应用区域，低层驱动、启动、OTP/MAC及堆栈边界保持。详见[本版说明](docs/MANAGER_1.5.13.md)及[完整空间表](docs/DEVICE_MEMORY_MAP.md)。旧固件不识别新图库配置，回退前保留照片与管理数据备份。
 
-功能按固件能力开放。1.5.2 保留已有状态/控制兼容，新图库和图片日历需要对应固件。1.5.12 只更新服务端：FF01 缺项时最多三次释放/重发现；无广播时核对 Windows 已连接对象的完整 MAC；手动连接失败三次后停止。固件保持 1.5.10，此项修复无需重刷。
-
-此目录及下载包是 Windows 服务端。GitHub Pages 从 `gh-pages` 发布根目录的独立 Web Bluetooth 网页；GitHub 不代替本机蓝牙适配器或运行这个 Python 服务。根目录静态版的功能与数据存储有自己的范围说明。
-
-## 源码运行与打包
-
-在本目录创建 Windows Python 3.12 环境：
+源码在source/，资源、字体、时区、图库、构建工具和测试均包含。运行Windows服务端：
 
 ```powershell
 py -3.12 -m venv runtime/venv
@@ -32,30 +16,8 @@ runtime/venv/Scripts/python.exe -m pip install -r source/backend/requirements.tx
 runtime/venv/Scripts/python.exe source/backend/server.py --open
 ```
 
-后台、管理网页、字体、时区与内置图库均在 `source/`；没有省略服务端 API 或替换成模拟蓝牙。`source/tools/development-lock.txt` 固定原构建环境依赖。安装 PyInstaller 6.22.3 后执行：
+PyInstaller打包入口 source/tools/build_desktop.py；开发依赖锁见 source/tools/development-lock.txt。固件重建及完整模拟还需哈希固定的原始HMCLOCK夹具、Zig0.13.0及模拟工具，详见docs/PROVENANCE.md；这些原始二进制不作为服务端运行依赖。历史烧录/本机交付工具有各自外部前提。
 
-```powershell
-runtime/venv/Scripts/python.exe source/tools/build_desktop.py
-```
+已验证候选包全新解压、清洁PATH启动、字体与时区、16图、原生读回图片、OTA包解析、SQLite备份及单实例。源码相关HTTP/连接/图库等20项Python、6组JS、网页38项协议/数据测试，以及编译后七图/兼容/边界/保护区验证通过。浏览器在1280与390宽度检查通过，日期字形与主机逐像素匹配。
 
-输出为 `build/desktop/ElinkManager`。上述运行和桌面打包不需要设备 Flash 备份。
-
-基础后台与界面检查：
-
-```powershell
-runtime/venv/Scripts/python.exe -m unittest discover -s source/tests -p test_http.py -v
-runtime/venv/Scripts/python.exe -m unittest discover -s source/tests -p test_operation_lock.py -v
-Get-ChildItem source/tests/test_ui_*.js | ForEach-Object { node $_.FullName }
-```
-
-完整固件/集成测试还需 Unicorn、Keystone、Capstone 及其原始二进制夹具；`source/firmware` 重建还需哈希锁定的 HMCLOCK 基线与 Zig 0.13.0，详见 [来源](docs/PROVENANCE.md)。这些外部原件不作为服务端启动依赖。历史烧录/本机打包工具也会引用本地备份、SDK 或工具安装路径，应先阅读其前提。
-
-## 配套固件与验证
-
-Windows 包 `firmware/elink-bwr-1.5.10.elink-update.json` 与独立固件 ZIP 内容一致。仅通过适配的应用 OTA 通道使用；保留启动、射频、面板、MAC、校准和未知区域。公开包不含本机数据库、设备全片备份、有线编程 helper 或私钥。
-
-本地 1.5.12 已通过 34 项相关 Python、6 组 JS、最终包清洁 PATH 启动；实际冻结程序在 1.5.2 旧屏读取状态和完整 8000B 画面。公开包另行全新解压检查，原生图库/字体/OTA 资源按清单核对。一次读回不能证明长期稳定；Windows/适配器为何偶发返回不完整服务仍未确定。
-
-[1.5.12 连接说明](docs/MANAGER_1.5.12.md) · [图库与回执](docs/MANAGER_1.5.10.md) · [模块说明](docs/FIRMWARE_MODULES.md) · [4.2 寸代码对照](docs/2026-10-19_ble-42-comparison-report.md)
-
-`SOURCE_MANIFEST.json` 记录源码哈希，Release 的 `SHA256SUMS.txt` 记录 ZIP 哈希。字体和第三方组件遵循 `source/fonts`、`legal` 下各自许可证，不宣称整个固件为 MIT。
+这是候选测试发布，本轮没有擦写实体屏；真实蓝牙、光学、掉电时序、续航与长稳仍待验收。公开包不含本机数据库、全片备份、有线helper、原始固件夹具或私钥。保留source/fonts与legal中的第三方许可，不宣称整个固件为MIT。

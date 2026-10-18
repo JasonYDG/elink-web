@@ -1,11 +1,12 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const elements=new Map(),savedSettings=new Map();let replacements=0;
 function element(){return {value:'',checked:false,children:[],attrs:{},setAttribute(k,v){this.attrs[k]=v;},append(...xs){this.children.push(...xs);this.firstElementChild=this.children[0];},replaceChildren(){this.children=[];replacements++;}};}
-const context={$:id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);},state:{templates:['a','b','c','d','e'].map(id=>({id,title:id})),devices:[]},targets:new Set(),batching:false,pending:()=>false,pageAction:()=> 'photo_calendar',document:{createElement:element,querySelectorAll:()=>[]},localStorage:{getItem:key=>savedSettings.get(key)||null,setItem:(key,value)=>savedSettings.set(key,value)}};
+const context={$:id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);},state:{templates:['a','b','c','d','e','f','g','h'].map(id=>({id,title:id})),devices:[{address:'test',state:{album_capacity:4}}]},targets:new Set(['test']),batching:false,pending:()=>false,pageAction:()=> 'photo_calendar',document:{createElement:element,querySelectorAll:()=>[]},localStorage:{getItem:key=>savedSettings.get(key)||null,setItem:(key,value)=>savedSettings.set(key,value)}};
 vm.createContext(context);vm.runInContext(fs.readFileSync('source/opendesign/mockups/elink-manager/gallery.js','utf8'),context);
 context.$('album-save').checked=true;context.$('album-interval').value='1440';context.$('album-hours').value='24';
 for(const id of ['a','b','c','d'])context.toggleAlbum(id);
-assert.throws(()=>context.toggleAlbum('e'),/最多 4/);
+assert.throws(()=>context.toggleAlbum('e'),/图库上限/);
+context.state.devices[0].state.album_capacity=7;for(const id of ['e','f','g'])context.toggleAlbum(id);assert.equal(context.albumPayload().items.length,7);assert.throws(()=>context.toggleAlbum('h'),/图库上限/);for(const id of ['e','f','g'])context.toggleAlbum(id);
 let data=context.albumPayload();assert.equal(data.items.length,4);assert.equal(data.mode,'calendar');assert.equal(data.interval_minutes,1440);
 assert.equal(data.items[0].photo_x,38);context.$('album-interval').value='0';context.$('album-hours').value='1.5';assert.throws(()=>context.albumPayload(),/整数/);
 for(const v of ['0','169','','NaN']){context.$('album-hours').value=v;assert.throws(()=>context.albumPayload());}

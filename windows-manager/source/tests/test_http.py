@@ -20,7 +20,7 @@ class Http(unittest.TestCase):
                 with urllib.request.urlopen(urllib.request.Request(root+path,data=raw,headers=headers),timeout=5) as r:
                     b=r.read();return json.loads(b) if r.headers['Content-Type'].startswith('application/json') else b
             try:
-                c=request('/api/config');token=c['token'];self.assertEqual(c['version'],'1.5.12')
+                c=request('/api/config');token=c['token'];self.assertEqual(c['version'],'1.5.13')
                 app.stop.set();app.thread.join(5) # HTTP schedule CRUD must never trigger real hardware writes.
                 self.assertIn(b'Elink',request('/'));self.assertIn(b'--accent',request('/assets/tokens.css'))
                 page=request('/').decode()

@@ -15,13 +15,34 @@ const ELinkProtocol = (() => {
     }
     function status(b){
         if(b.length!==32||!starts(b,"ELK1")||b[4]!==1)throw Error("当前固件未返回 ELK1 状态；原版仅支持校时");const v=view(b);
-        return {protocol:1,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:hex(b.slice(28,32))};
+        const firmware=hex(b.slice(28,32)),photo=["d78aa415","6c3279f4","14271ec2"].includes(firmware);
+        return {protocol:1,photo_calendar:photo,photo_calendar_commit:["6c3279f4","14271ec2"].includes(firmware),photo_calendar_native_digits:firmware==="14271ec2",max_image_payload:photo?128:17,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:firmware};
     }
     function capabilities(b){
         if(b.length===32&&starts(b,"ELK1")&&b[4]===1)return {};
-        if(b.length!==8||!starts(b,"ELUI")||b[4]!==1||(b[6]&252)||((b[6]&2)&&!(b[6]&1))||b[7])throw Error("显示能力返回无效");
+        if(b.length!==8||!starts(b,"ELUI")||b[4]!==1||(b[6]&224)||((b[6]&2)&&!(b[6]&1))||((b[6]&8)&&!(b[6]&4))||((b[6]&16)&&!(b[6]&8))||b[7])throw Error("显示能力返回无效");
         const names=["embedded_calendar","minute_region_refresh","bold_clock","global_clock_refresh","quiet_sync","default_page","timezone_clock","offline_reminders"];
-        return {...Object.fromEntries(names.map((n,i)=>[n,!!(b[5]&(1<<i))])),reminder_summary:!!(b[6]&1),reminder_large_text:!!(b[6]&2)};
+        return {...Object.fromEntries(names.map((n,i)=>[n,!!(b[5]&(1<<i))])),reminder_summary:!!(b[6]&1),reminder_large_text:!!(b[6]&2),...(b[6]&4?{offline_album:true,photo_calendar:true,photo_calendar_commit:true,photo_calendar_native_digits:true,max_image_payload:128}:{}),...(b[6]&8?{photo_calendar_wide:true,album_minute_tick:true}:{}),...(b[6]&16?{album_capacity:7,album_readback:true}:{})};
+    }
+    function album(b){
+        if(b.length===64&&starts(b,"ELA1")&&b[4]===3){
+            const v=view(b),progress=v.getUint16(10,true),c=b.subarray(12),cv=view(c),count=c[14],flags=c[15],minutes=cv.getUint16(12,true),check=Uint8Array.from([...c.subarray(0,8),...c.subarray(12,51)]);
+            if(b[5]>1||b[6]>1||b[8]>1||b[9]>7||![0,1,2,3,4,5,6,255].includes(b[7])||b[8]&&progress>32||!b[5]&&c.some(x=>x))throw Error("设备未返回有效图库状态");
+            if(b[5]&&(!starts(c,"ELG2")||c[51]!==254||count>7||flags>7||minutes<60||minutes>10080||c.subarray(44,51).some(x=>x>84)||flags&4&&!count||crc32(check)!==cv.getUint32(8,true)))throw Error("图库配置校验失败");
+            return {protocol_version:3,capacity:7,save_step:b[8]?progress:0,has_config:!!b[5],running:!!b[6],index:b[7],writing:!!b[8],staged_count:b[9],elapsed_minutes:b[8]?0:progress,sequence:cv.getUint32(4,true),count,mode:flags&1,interval_minutes:minutes,crc32:Array.from({length:count},(_,i)=>cv.getUint32(16+i*4,true)),photo_x:Array.from(c.subarray(44,44+count)),enabled:!!(flags&4)};
+        }
+        if(b.length!==52||!starts(b,"ELA1")||![1,2].includes(b[4])||b[5]>1||b[6]>1||b[8]>1||b[9]>4||![0,1,2,3,255].includes(b[7]))throw Error("设备未返回有效图库状态");
+        const v=view(b),progress=v.getUint16(10,true),c=b.subarray(12),cv=view(c),count=c[14],minutes=cv.getUint16(12,true);
+        if(b[4]===2&&b[8]&&progress>32)throw Error("图库写入进度无效");
+        if(!b[5]&&c.some(x=>x))throw Error("空图库状态不一致");
+        const check=Uint8Array.from([...c.subarray(0,8),...c.subarray(12,38)]);
+        if(b[5]&&(!starts(c,"ELG1")||c[38]!==254||count>4||c[15]>1||c[36]>1||c[37]>1||minutes<60||minutes>10080||c.subarray(32,36).some(x=>x>84)||(c[37]&&!count)||crc32(check)!==cv.getUint32(8,true)))throw Error("图库配置校验失败");
+        return {protocol_version:b[4],capacity:4,save_step:b[4]===2&&b[8]?progress:0,has_config:!!b[5],running:!!b[6],index:b[7],writing:!!b[8],staged_count:b[9],elapsed_minutes:b[4]===2&&b[8]?0:progress,sequence:cv.getUint32(4,true),count,mode:c[15],interval_minutes:minutes,crc32:Array.from({length:count},(_,i)=>cv.getUint32(16+i*4,true)),photo_x:Array.from(c.subarray(32,32+count)),enabled:!!c[37]};
+    }
+    function photoFrame(frame,x=38){
+        int(x,0,76,"图片取景位置");if(frame.length!==8000)throw Error("图片必须为 8000 字节");
+        const out=new Uint8Array(8000);out.fill(255,0,4000);
+        for(const plane of [0,4000])for(let col=0;col<174;col++){const source=plane+(249-x-col)*16;out.set(frame.subarray(source,source+16),plane+(249-col)*16);}return out;
     }
     function battery(b){
         if(b.length!==2)throw Error("电压特征应为 2 字节");const mv=int(view(b).getUint16(0,true),1500,3600,"电压"),a=Math.floor((mv*128+224)/225);
@@ -73,6 +94,6 @@ const ELinkProtocol = (() => {
         if(b.length!==8000)throw Error("原生画面须为 8000 字节");const a=new Uint8ClampedArray(250*122*4);
         for(let y=0;y<122;y++)for(let x=0;x<250;x++){const pos=(249-x)*16+(y>>3),mask=128>>(y&7),i=(y*250+x)*4,r=b[pos+4000]&mask,w=b[pos]&mask;a[i]=r?190:w?255:0;a[i+1]=a[i+2]=r?0:w?255:0;a[i+3]=255;}return a;
     }
-    return {service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
+    return {service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
 })();
 if(typeof module!=="undefined")module.exports=ELinkProtocol;

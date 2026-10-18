@@ -114,6 +114,28 @@ class Gateway:
             client._elink_caps['offline_album']=False
             return None
 
+    async def restore_album(self,client,job,album,state):
+        if not album or not album['count'] or album['writing']:return album
+        templates=self.store.rows('SELECT id,title,frame FROM templates');items=[];pending=[];used=set()
+        for index,crc in enumerate(album['crc32']):
+            found=next((t for t in templates if t['id'] not in used and len(t['frame'])==8000 and zlib.crc32(t['frame'])==crc),None)
+            if found:used.add(found['id']);items.append({'template_id':found['id'],'title':found['title'],'photo_x':album['photo_x'][index]});continue
+            if not state.get('album_readback'):items.append({'template_id':None,'title':f'屏幕第 {index+1} 张（需1.5.11读回原图）','photo_x':album['photo_x'][index]});continue
+            self.store.update_job(job['id'],phase=f'读回图库第 {index+1}/{album["count"]} 张原图',progress=5+int(35*index/album['count']))
+            frame=bytearray()
+            for off in range(0,8000,128):frame.extend(await self.query(client,b'\xbd\x05'+bytes([index])+struct.pack('<H',off),lambda b:block(b,min(128,8000-off))))
+            if zlib.crc32(frame)!=crc:raise ValueError('图库原图CRC32校验失败，保留原设置')
+            pending.append((len(items),bytes(frame)));items.append({'template_id':None,'title':f'屏幕图库 {index+1}','photo_x':album['photo_x'][index]})
+        after=await self.query_album(client)
+        if after is None or any(after[k]!=album[k] for k in ('sequence','count','crc32','photo_x','mode','interval_minutes','enabled')):raise DeliveryUnknown('读回期间图库配置已变化，请重新读取')
+        for index,frame in pending:
+            from builtin_gallery import gallery
+            digest=hashlib.sha256(frame).hexdigest();known=next((x for x in gallery() if x['sha256']==digest),None)
+            spec={'kind':'image','builtin':known['path']} if known else {'kind':'image','native_frame':base64.b64encode(frame).decode()}
+            title=known['title'] if known else items[index]['title']
+            items[index].update(template_id=self.store.save_template(title,spec,{'frame':frame,'png':frame_png(frame),'sha256':digest}),title=title)
+        return {**after,'items':items,'editable':all(i['template_id'] for i in items)}
+
     async def stop_album(self,client,job,state):
         if not state.get('offline_album'):return state
         if state['busy']:state=await self.wait_idle(client,job,state)
@@ -130,7 +152,7 @@ class Gateway:
         if not state.get('offline_album'):raise ValueError('离线图库需要配套 1.5.8 固件，请先升级并读取状态')
         from render import photo_calendar_frame
         frames=[base64.b64decode(x['frame'],validate=True) for x in payload['items']]
-        if not 1<=len(frames)<=4 or any(len(f)!=8000 for f in frames):raise ValueError('图库必须包含 1–4 张完整的 8000 字节图片')
+        if not 1<=len(frames)<=state.get('album_capacity',4) or any(len(f)!=8000 for f in frames):raise ValueError(f'此固件最多保存 {state.get("album_capacity",4)} 张完整图片，请升级后读取状态')
         if state['busy']:state=await self.wait_idle(client,job,state)
         album=await self.query_album(client)
         if album is None or album['protocol_version']<2:raise ValueError('保存图库需要 1.5.8 固件的分步写入修复；请先升级固件，旧版单图功能仍可使用')
@@ -448,7 +470,8 @@ class Gateway:
                 action=job['action']
                 if action=='probe':
                     if state.get('offline_album') and not state['busy']:
-                        state['album']=await self.query_album(client);state['offline_album']=state['album'] is not None;self.store.state(address,state)
+                        album=await self.restore_album(client,job,await self.query_album(client),state)
+                        state={**await self.status(client),'album':album,'offline_album':album is not None};self.store.state(address,state)
                     if state.get('offline_reminders') and not state['busy']:
                         slots=await self.reminder_slots(client);state['reminder_slots']=slots
                         self.store.reconcile_reminders(address,slots)

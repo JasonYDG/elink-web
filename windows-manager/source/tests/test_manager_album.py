@@ -12,6 +12,39 @@ from protocol import decode_album
 from gateway import Gateway,DeliveryUnknown
 
 class AlbumTransport(unittest.IsolatedAsyncioTestCase):
+    async def test_readonly_restore_keeps_duplicate_slots_and_exact_native_pixels(self):
+        import zlib
+        from render import render,frame_png
+        frames=[bytes((i*17)%256 for i in range(8000))]*2+[bytes((i*13)%256 for i in range(8000))]
+        album={'count':3,'sequence':9,'mode':1,'enabled':True,'running':True,'index':0,'interval_minutes':1440,'writing':False,'photo_x':[0,12,76],'crc32':[zlib.crc32(f) for f in frames]}
+        class Reader(Gateway):
+            corrupt=False;changed=False
+            async def query_album(self,client):return {**album,'sequence':10 if self.changed else 9}
+            async def query(self,client,command,decode):
+                self.commands.append(bytes(command));self.assert_read(command)
+                slot=command[2];off=int.from_bytes(command[3:],'little');data=frames[slot][off:off+128]
+                if self.corrupt:data=bytes([data[0]^1])+data[1:]
+                return decode(data)
+            def assert_read(self,command):
+                if command[:2]!=b'\xbd\x05':raise AssertionError('Only allowlisted gallery reads are allowed')
+        with tempfile.TemporaryDirectory() as tmp:
+            store=Store(Path(tmp)/'db')
+            try:
+                address='18:BC:5A:6B:8A:B1';store.register(address);job={'id':store.queue(address,'probe',{})}
+                first=store.save_template('原图',{'kind':'image','native_frame':base64.b64encode(frames[0]).decode()},{'frame':frames[0],'png':frame_png(frames[0]),'sha256':__import__('hashlib').sha256(frames[0]).hexdigest()})
+                reader=Reader(store);reader.commands=[];result=await reader.restore_album(None,job,album,{'album_readback':True})
+                self.assertTrue(result['editable']);self.assertEqual(result['items'][0]['template_id'],first);self.assertEqual(len({i['template_id'] for i in result['items']}),3)
+                self.assertEqual(len(reader.commands),126)
+                for i,item in enumerate(result['items']):self.assertEqual(render(json.loads(store.template(item['template_id'])['spec']))['frame'],frames[i])
+                store.execute('DELETE FROM templates WHERE id=?',(result['items'][2]['template_id'],));count=len(store.rows('SELECT id FROM templates'))
+                reader.corrupt=True
+                with self.assertRaisesRegex(ValueError,'CRC32'):await reader.restore_album(None,job,album,{'album_readback':True})
+                self.assertEqual(len(store.rows('SELECT id FROM templates')),count)
+                reader.corrupt=False;reader.changed=True
+                with self.assertRaisesRegex(DeliveryUnknown,'配置已变化'):await reader.restore_album(None,job,album,{'album_readback':True})
+                self.assertEqual(len(store.rows('SELECT id FROM templates')),count)
+            finally:store.db.close()
+
     async def test_windows_cancel_is_transport_failure_and_old_album_is_not_written(self):
         class Client:
             is_connected=True
@@ -87,6 +120,10 @@ class AlbumTransport(unittest.IsolatedAsyncioTestCase):
                 # Upload snapshots are independent of later template edits or deletion.
                 store.execute('DELETE FROM templates WHERE id=?',(ids[0],))
                 self.assertEqual(json.loads(store.rows('SELECT payload FROM jobs WHERE id=?',(ident,))[0]['payload'])['items'],saved['items'])
+                restore=store.queue(address,'probe',{});restored=await Gateway(store).execute(store.rows('SELECT * FROM jobs WHERE id=?',(restore,))[0])
+                self.assertTrue(restored['album']['editable']);self.assertEqual(len(restored['album']['items']),2)
+                recovered_template=store.template(restored['album']['items'][0]['template_id'])
+                self.assertEqual(recovered_template['frame'],base64.b64decode(saved['items'][0]['frame']))
                 stop=store.queue(address,'album_stop',{});result=await Gateway(store).execute(store.rows('SELECT * FROM jobs WHERE id=?',(stop,))[0])
                 self.assertFalse(result['album']['enabled']);self.assertFalse(result['album']['running'])
                 changed=store.queue(address,'album',{**saved,'items':list(reversed(saved['items']))})

@@ -7,6 +7,10 @@ from bitmap_fonts import text_mask,status_icon
 def render(spec,battery_percent=None):
     if not isinstance(spec,dict):raise ValueError('模板必须是对象')
     if spec.get('kind')=='image':
+        if 'native_frame' in spec:
+            frame=base64.b64decode(spec['native_frame'],validate=True)
+            if len(frame)!=8000:raise ValueError('原生图片须为8000字节')
+            return {'frame':frame,'png':frame_png(frame),'sha256':hashlib.sha256(frame).hexdigest(),'red_pixels':sum(b.bit_count() for b in frame[4000:])}
         if 'builtin' in spec:
             from builtin_gallery import native
             return native(spec['builtin'])

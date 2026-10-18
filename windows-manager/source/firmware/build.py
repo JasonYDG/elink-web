@@ -291,7 +291,7 @@ def main():
           'led_policy':'P0_2/P2_5/P2_9 active-low; output high in display-open path and before every wake pad latch',
           'leds_off_address':hex(leds_off_address),'wake_pins_address':hex(wake_pins_address),
           'patches':patches,'hardware_tested':False,
-          'offline_album':{'slots':4,'frame_bytes':8000,'flash_start':'0x40000','flash_end':'0x52000','metadata_pages':['0x40000','0x41000'],'image_banks':['0x42000','0x4a000'],'required_native_id':'a112','state_address':'0x07fd2140','state_bytes':100,'state_limit':128,'wire_version':2,'save_steps':32,'save_step_bytes':250,'minutes':[60,10080],'atomic_commit':'inactive image bank and alternating CRC metadata; ready byte last','cold_start':'resume first photo without clock calibration; calendar date waits for sync','cursor_persistence':'RAM only; rotation never programs flash'},'flash_offset':0,
+          'offline_album':{'slots':7,'frame_bytes':8000,'flash_start':'0x40000','flash_end':'0x5e000','metadata_pages':['0x40000','0x41000'],'image_banks':['0x42000','0x4a000'],'extra_image_banks':['0x52000','0x58000'],'required_native_id':'a112','state_address':'0x07fd2140','state_bytes':124,'state_limit':128,'wire_version':3,'save_steps':32,'save_step_bytes':250,'minutes':[60,10080],'atomic_commit':'inactive image bank and alternating CRC metadata; ready byte last','cold_start':'resume first photo without clock calibration; calendar date waits for sync','cursor_persistence':'RAM only; rotation never programs flash'},'flash_offset':0,
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
@@ -312,7 +312,7 @@ def main():
            'extension':{'used':len(code),'limit':STATE-CODE,'free':STATE-CODE-len(code)},
            'runtime':{'used':blob_size,'limit':BASE+0x121c0-RUNTIME,'free':BASE+0x121c0-RUNTIME-blob_size,
                       'free_scope':'Unloaded tail; includes the application-initialized album state below',
-                      'tail_alignment_bytes':24,'album_state_bytes':100,'remaining_tail_bytes':28},
+                      'tail_alignment_bytes':24,'album_state_bytes':124,'remaining_tail_bytes':4},
            'app_bytes':len(app),'spi_bytes':len(spi),'firmware_id':firmware_id,
            'app_sha256':sha(app),'spi_sha256':sha(spi),'hardware_tested':False}
     info['static_modules']={'api_version':modules['api_version'],'ids':[m['id'] for m in modules['modules']],

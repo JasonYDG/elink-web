@@ -1,9 +1,9 @@
 "use strict";
 let albumSettings={};try{albumSettings=JSON.parse(localStorage.getItem("elink-album-settings")||"{}");if(!albumSettings||typeof albumSettings!=="object")albumSettings={};}catch(_){}
-const albumSelection=Array.isArray(albumSettings.items)?[...new Set(albumSettings.items.filter(x=>typeof x==="string"))].slice(0,4):[];let albumListKey="";
+const albumSelection=Array.isArray(albumSettings.items)?[...new Set(albumSettings.items.filter(x=>typeof x==="string"))].slice(0,7):[];let albumListKey="";
 function saveAlbumSettings(){try{localStorage.setItem("elink-album-settings",JSON.stringify({items:albumSelection,enabled:$("album-save").checked,interval:$("album-interval").value,hours:$("album-hours").value}));}catch(_){}}
 function albumEnabled(){return $("album-save").checked&&["publish","photo_calendar"].includes(pageAction());}
-let gallerySelectionSequence=0,previewImage=null,previewDate=null,previewKey="",previewLoad=0,dragPhoto=null;
+let galleryPending=0,galleryQueue=Promise.resolve(),previewImage=null,previewDate=null,previewKey="",previewLoad=0,dragPhoto=null;
 let photoPositions={};try{photoPositions=JSON.parse(localStorage.getItem("elink-photo-positions")||"{}");if(!photoPositions||typeof photoPositions!=="object"||Array.isArray(photoPositions))photoPositions={};}catch(_){photoPositions={};}
 async function builtinTemplate(path){const old=state.templates.find(t=>JSON.parse(t.spec).builtin===path);return old?old.id:(await api("/api/builtin",{path})).id;}
 function initGallery(items){
@@ -17,7 +17,7 @@ function initGallery(items){
             const button=document.createElement("button"),image=document.createElement("img"),title=document.createElement("span");
             button.type="button";button.className="image-choice";button.dataset.path=item.path;button.setAttribute("aria-pressed","false");button.setAttribute("aria-label","选择 "+item.title);
             image.src="/"+item.path;image.alt="";image.loading="lazy";title.textContent=item.title;button.append(image,title);
-            button.onclick=()=>perform(button,async()=>{if(operationBusy())throw Error("请等待屏幕操作完成");const sequence=++gallerySelectionSequence,id=await builtinTemplate(item.path);await refresh();if(sequence!==gallerySelectionSequence)return;$("publish-template").value=id;if(albumEnabled())toggleAlbum(id);showSaved();pageControls();});
+            button.onclick=()=>{galleryPending++;pageControls();return perform(button,()=>{const next=galleryQueue.then(async()=>{if(operationBusy())throw Error("请等待屏幕操作完成");const id=await builtinTemplate(item.path);await refresh();$("publish-template").value=id;if(albumEnabled())toggleAlbum(id);showSaved();pageControls();});galleryQueue=next.catch(()=>{});return next.finally(()=>{galleryPending--;pageControls();});});};
             host.append(button);
         }
     }
@@ -67,12 +67,12 @@ function renderSelection(){
 function toggleAlbum(id){
     const at=albumSelection.indexOf(id);
     if(at>=0)albumSelection.splice(at,1);
-    else {if(albumSelection.length>=4)throw Error("屏幕图库最多 4 张，请先移除一张");albumSelection.push(id);}
+    else {if(albumSelection.length>=albumLimit())throw Error("已达到此固件的图库上限，请先移除一张；7张需1.5.11");albumSelection.push(id);}
     saveAlbumSettings();
 }
 function renderAlbum(){
     for(let i=albumSelection.length-1;i>=0;i--)if(!state.templates.some(t=>t.id===albumSelection[i]))albumSelection.splice(i,1);
-    $("album-options").hidden=!albumEnabled();$("album-count").textContent="已选 "+albumSelection.length+" / 4 张";
+    $("album-options").hidden=!albumEnabled();$("album-count").textContent="已选 "+albumSelection.length+" / "+albumLimit()+" 张";
     const list=$("album-items"),key=JSON.stringify(albumSelection.map(id=>[id,state.templates.find(t=>t.id===id)?.title]));
     if(key!==albumListKey){albumListKey=key;list.replaceChildren();
     for(const [i,id] of albumSelection.entries()){
@@ -87,10 +87,30 @@ function renderAlbum(){
     $("album-stop").disabled=batching||!devices.some(d=>d.state?.offline_album&&!pending(d.address));
 }
 function albumPayload(){
-    if(!albumSelection.length)throw Error("请选择 1–4 张图库图片");
+    if(!albumSelection.length)throw Error("请选择图库图片");
     const hours=Number($("album-hours").value);
     if($("album-interval").value==="0"&&!Number.isInteger(hours))throw Error("请输入 1–168 的整数小时");
     const minutes=Number($("album-interval").value)||hours*60;
     if(!Number.isInteger(minutes)||minutes<60||minutes>10080)throw Error("换图间隔须为 1–168 个整小时");
     return {mode:pageAction()==="photo_calendar"?"calendar":"image",interval_minutes:minutes,items:albumSelection.map(id=>({template_id:id,photo_x:Math.min(photoPositions[id]??38,76)}))};
+}
+
+function albumLimit(){const devices=state.devices.filter(d=>targets.has(d.address));return devices.length?Math.min(...devices.map(d=>d.state?.album_capacity||4)):7;}
+let restoredAlbumKey="";try{restoredAlbumKey=localStorage.getItem("elink-restored-album-key")||"";}catch(_){}
+function restoreDeviceAlbum(){
+    if(targets.size!==1)return;const d=selected(),a=d?.state?.album;if(!d)return;
+    const probe=state.jobs.filter(j=>j.address===d.address&&j.action==="probe"&&j.status==="succeeded").sort((a,b)=>b.updated-a.updated)[0];
+    if(!a||!probe)return;const key=d.address+"|"+probe.id;if(key===restoredAlbumKey)return;
+    if(a.writing){$("album-readback-note").textContent="设备有未提交的上传；已保存播放列表保留，请核对后再修改。";return;}
+    if(!a.count){restoredAlbumKey=key;$("album-readback-note").textContent="设备当前没有已保存图库。";return;}
+    if(!a.items||a.items.some(x=>!x.template_id||!state.templates.some(t=>t.id===x.template_id))){$("album-readback-note").textContent="已读到 "+a.count+" 张、每 "+a.interval_minutes+" 分钟的设备配置；完整恢复原图需升级1.5.11后再读取。";return;}
+    restoredAlbumKey=key;albumSelection.splice(0,albumSelection.length,...a.items.map(x=>x.template_id));
+    for(const item of a.items)photoPositions[item.template_id]=Math.min(item.photo_x,76);
+    $("album-save").checked=a.enabled;const interval=$("album-interval");
+    if(![...interval.options].some(o=>Number(o.value)===a.interval_minutes))interval.add(new Option("已保存：每 "+a.interval_minutes+" 分钟",String(a.interval_minutes)));
+    interval.value=String(a.interval_minutes);$("album-custom").hidden=true;$("album-hours").value=String(a.interval_minutes/60);
+    $("publish-template").value=a.items[Math.min(a.index,a.count-1)]?.template_id||a.items[0].template_id;
+    if([7,8].includes(d.state.display_mode)){document.querySelector('[name="page"][value="'+(a.mode?"calendar":"publish")+'"]').checked=true;if(a.mode)$("calendar-theme").value="photo_calendar";}
+    $("album-readback-note").textContent="已从屏幕恢复 "+a.count+" 张图片、播放顺序、取景及间隔。可移除某张后选入新图，点击应用才保存。";
+    try{localStorage.setItem("elink-photo-positions",JSON.stringify(photoPositions));localStorage.setItem("elink-restored-album-key",key);}catch(_){}saveAlbumSettings();
 }
