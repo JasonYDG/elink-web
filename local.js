@@ -8,7 +8,7 @@ const ELinkLocal = (() => {
     const ready=(async()=>{
         if(!window.isSecureContext)throw Error("请使用 HTTPS 地址或本机 localhost");
         db=await new Promise((resolve,reject)=>{const r=indexedDB.open("elink-web",1);r.onupgradeneeded=()=>r.result.createObjectStore("workspace");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error("数据库正在升级，请关闭其他旧页面后重试"));});
-        data=await read()||empty();configuration=await (await fetch("config.json")).json();
+        data=await read()||empty();configuration=await (await fetch("config.json?v=1.0.1")).json();
         if(navigator.locks){await new Promise((resolve,reject)=>{navigator.locks.request("elink-web-workspace",{ifAvailable:true},async lock=>{owner=!!lock;resolve();if(lock)await new Promise(r=>releaseOwner=r);}).catch(reject);});}
         else throw Error("此浏览器缺少安全的多标签页控制；安卓请使用最新版 Chrome");
         if(owner){data=await read()||empty();for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
@@ -23,6 +23,8 @@ const ELinkLocal = (() => {
     }
     function device(address){const d=data.devices.find(d=>d.address===address);if(!d)throw Error("屏幕尚未登记");return d;}
     function busy(address){return data.jobs.some(j=>j.address===address&&unfinished.includes(j.status));}
+    function operationState(){const jobs=data.jobs.filter(j=>unfinished.includes(j.status)).length,pending=data.reminders.filter(r=>r.status==="pending").length;return {busy:!!(jobs||pending),jobs,pending_reminders:pending};}
+    function requireIdle(){if(operationState().busy)throw Error("屏幕操作尚未完成，请查看顶部执行进度；等待任务可先取消");}
     function job(ident){const j=data.jobs.find(j=>j.id===ident);if(!j)throw Error("任务不存在");return j;}
     function template(ident){const t=data.templates.find(t=>t.id===ident);if(!t)throw Error("图片不存在");return t;}
     function trim(){const protectedIds=new Set(data.reminders.map(r=>r.job_id));const complete=data.jobs.filter(j=>!unfinished.includes(j.status)&&!protectedIds.has(j.id)).sort((a,b)=>b.created-a.created);const keep=new Set(complete.slice(0,100).map(j=>j.id));data.jobs=data.jobs.filter(j=>unfinished.includes(j.status)||protectedIds.has(j.id)||keep.has(j.id));}
@@ -32,12 +34,13 @@ const ELinkLocal = (() => {
         const j={id:id(),address,action,payload:copy(payload),status:"queued",progress:0,error:null,receipt:{},created:now(),updated:now(),due:now(),attempts:0,phase:"等待连接屏幕",committed:false};data.jobs.push(j);trim();return j;
     }
     function snapshot(t){return {template_id:t.id,...ELinkSnapshot(t)};}
+    function queueRequest(address,action,payload){payload=payload||{};if(action==="publish")payload=snapshot(template(payload.template_id));if(action==="settings")payload=P.settings(payload);if(action==="resume"||action==="calendar")payload=P.settings({...device(address).settings,...payload});if(action==="reminder")throw Error("请通过日程页面创建提醒");return enqueue(address,action,payload);}
     function ELinkSnapshot(t){const s=JSON.parse(t.spec);return {kind:s.kind,frame:t.frame,png:t.png,sha256:t.sha256};}
     function reminder(ident){const r=data.reminders.find(r=>r.id===ident);if(!r)throw Error("日程不存在");return r;}
     function randomToken(){let token;do{token=crypto.getRandomValues(new Uint32Array(1))[0];}while(!token||data.reminders.some(r=>r.token===token));return token;}
     function summary(){
-        const jobs=[...data.jobs].sort((a,b)=>Number(unfinished.includes(b.status))-Number(unfinished.includes(a.status))||b.created-a.created).slice(0,100);
-        return {devices:data.devices.map(d=>({...copy(d),browser_connected:typeof portable!=="undefined"&&portable.address===d.address&&!!portable.device?.gatt.connected,preview:preview(d)})),templates:data.templates.map(t=>{const s=JSON.parse(t.spec);delete s.image;return {...t,spec:JSON.stringify(s),frame:undefined,png:undefined};}),jobs:jobs.map(j=>({...copy(j),payload:undefined,sha256:j.payload.sha256})),plans:copy(data.plans),reminders:data.reminders.map(r=>{const j=data.jobs.find(j=>j.id===r.job_id);return {...copy(r),job_status:j?.status,job_error:j?.error};}),worker_alive:owner&&!fatal,worker_error:fatal};
+        const jobs=[...data.jobs.filter(j=>unfinished.includes(j.status)),...data.jobs.filter(j=>!unfinished.includes(j.status)).sort((a,b)=>b.created-a.created).slice(0,100)];
+        return {devices:data.devices.map(d=>({...copy(d),browser_connected:typeof portable!=="undefined"&&portable.address===d.address&&!!portable.device?.gatt.connected,preview:preview(d)})),templates:data.templates.map(t=>{const s=JSON.parse(t.spec);delete s.image;return {...t,spec:JSON.stringify(s),frame:undefined,png:undefined};}),jobs:jobs.map(j=>({...copy(j),payload:undefined,sha256:j.payload.sha256})),plans:copy(data.plans),reminders:data.reminders.map(r=>{const j=data.jobs.find(j=>j.id===r.job_id);return {...copy(r),job_status:j?.status,job_error:j?.error};}),operation:operationState(),worker_alive:owner&&!fatal,worker_error:fatal};
     }
     function preview(d){
         const s=d.state||{};if(s.busy||![2,5].includes(s.display_mode))return null;
@@ -63,8 +66,9 @@ const ELinkLocal = (() => {
         for(const p of value.plans){if(!addresses.has(p.address)||!ids.has(p.template_id))throw Error("备份计划引用无效");P.int(p.interval_minutes,1,10080,"计划间隔");p.enabled=false;}
         return {format:"elink-web",schema:1,...Object.fromEntries(Object.keys(limits).map(k=>[k,value[k]]))};
     }
-    async function importBackup(value){
-        await ready;assertOwner();if(data.jobs.some(j=>unfinished.includes(j.status)))throw Error("请先完成或取消当前队列，再导入备份");const next=await validateImport(copy(value));
+    function importBackup(value){const operation=mutations.then(()=>restoreBackup(value));mutations=operation.catch(()=>{});return operation;}
+    async function restoreBackup(value){
+        await ready;assertOwner();requireIdle();const next=await validateImport(copy(value));requireIdle();
         const t=db.transaction("workspace","readwrite");t.objectStore("workspace").put(copy(data),"before-import");t.objectStore("workspace").put(next,"current");await new Promise((resolve,reject)=>{t.oncomplete=resolve;t.onabort=t.onerror=()=>reject(t.error);});data=next;trim();await persist();
     }
     async function api(path,body){
@@ -73,6 +77,8 @@ const ELinkLocal = (() => {
         const operation=mutations.then(async()=>{assertOwner();const result=await mutate(path,body);await persist();return result;});mutations=operation.catch(()=>{});return operation;
     }
     async function mutate(path,b){
+        if(["/api/unregister","/api/jobs","/api/jobs/batch","/api/reminders","/api/reminders/retry","/api/plans"].includes(path))requireIdle();
+        if(["/api/reminders/delete","/api/reminders/complete"].includes(path)){const r=reminder(b.id);if(r.status!=="pending"||r.previous_token||r.job_id)requireIdle();}
         if(path==="/api/register")return register(b.address,b.name);
         if(path==="/api/unregister"){
             device(b.address);if(data.jobs.some(j=>j.address===b.address&&active.includes(j.status)))throw Error("屏幕仍在执行任务");if(data.reminders.some(r=>r.address===b.address&&!["completed","cancelled"].includes(r.status)))throw Error("请先取消屏幕上的提醒并确认");for(const j of data.jobs)if(j.address===b.address&&unfinished.includes(j.status))j.status="cancelled";data.devices=data.devices.filter(d=>d.address!==b.address);data.plans=data.plans.filter(p=>p.address!==b.address);return {ok:true};
@@ -87,8 +93,13 @@ const ELinkLocal = (() => {
         }
         if(path==="/api/templates/delete"){template(b.id);let stopped=0;for(const p of data.plans)if(p.template_id===b.id&&p.enabled){p.enabled=false;stopped++;}data.templates=data.templates.filter(t=>t.id!==b.id);return {ok:true,stopped_plans:stopped};}
         if(path==="/api/jobs"){
-            let payload=b.payload||{};if(b.action==="publish")payload=snapshot(template(payload.template_id));if(b.action==="settings")payload=P.settings(payload);if(b.action==="resume"||b.action==="calendar")payload=P.settings({...device(b.address).settings,...payload});if(b.action==="reminder")throw Error("请通过日程页面创建提醒");return {id:enqueue(b.address,b.action,payload).id};
+            return {id:queueRequest(b.address,b.action,b.payload).id};
         }
+        if(path==="/api/jobs/batch"){
+            if(!Array.isArray(b.addresses)||!b.addresses.length||b.addresses.length>100||b.addresses.some(a=>typeof a!=="string"))throw Error("请选择 1..100 台屏幕");
+            const results=[];for(const address of new Set(b.addresses)){try{results.push({address,id:queueRequest(address,b.action,b.payload).id});}catch(e){results.push({address,error:e.message});}}return {results};
+        }
+        if(path==="/api/reminders/cancel-pending"){const r=reminder(b.id);if(r.status!=="pending"||r.previous_token||r.job_id)throw Error("只可立即取消尚未派发且不含旧设备记录的提醒");return finishReminder(b.id,true);}
         if(path==="/api/cancel"){const j=job(b.id);if(!["queued","waiting"].includes(j.status))throw Error("已开始的任务不能取消");j.status="cancelled";j.updated=now();return {ok:true};}
         if(path==="/api/reminders")return saveReminders(b);
         if(path==="/api/reminders/delete"||path==="/api/reminders/complete")return finishReminder(b.id,path.endsWith("delete"));
