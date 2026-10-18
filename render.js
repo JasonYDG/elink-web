@@ -37,6 +37,7 @@ const ELinkRenderer = (() => {
     async function render(spec,percent=null){
         if(!spec||typeof spec!=="object")throw Error("模板必须是对象");const c=canvas(),ctx=c.getContext("2d");ctx.fillStyle="white";ctx.fillRect(0,0,250,122);
         if(spec.kind==="image"){
+            if(spec.native_frame){const frame=P.decode64(spec.native_frame);if(frame.length!==8000)throw Error("原生图片须为 8000 字节");return {frame:P.bytes64(frame),png:png(frame),sha256:await P.sha256(frame),red_pixels:frame.subarray(4000).reduce((n,b)=>n+b.toString(2).replaceAll("0","").length,0)};}
             const im=await image(spec.image),crop=spec.crop||{mode:"stretch",rotation:0,zoom:1,x:0,y:0},rotation=crop.rotation??0,zoom=crop.zoom??1,x=crop.x??0,y=crop.y??0;
             if(!["cover","contain","stretch"].includes(crop.mode)||![0,90,180,270].includes(rotation)||![zoom,x,y].every(Number.isFinite)||zoom<1||zoom>4||Math.abs(x)>1||Math.abs(y)>1)throw Error("裁切参数不合法");
             const rotated=canvas(rotation%180?im.height:im.width,rotation%180?im.width:im.height),rc=rotated.getContext("2d");rc.translate(rotated.width/2,rotated.height/2);rc.rotate(rotation*Math.PI/180);rc.drawImage(im,-im.width/2,-im.height/2);
@@ -63,5 +64,19 @@ const ELinkRenderer = (() => {
         for(let y=0;y<height;y++)for(let x=0;x<Math.min(width,m.width);x++)if(m.bits[y*m.width+x])b[8+y*stride+(x>>3)]|=128>>(x&7);P.view(b).setUint32(152,P.crc32(b.subarray(0,152)),true);return b;
     }
     async function noticeBattery(encoded,percent){await font();const c=canvas(),ctx=c.getContext("2d");ctx.drawImage(await image(encoded),0,0);ctx.fillStyle="white";ctx.fillRect(176,8,74,15);statusIcon(ctx,percent);return result(c);}
-    return {render,png,metadata,noticeBattery,font};
+    let calendarGlyphs;
+    async function dateColumn(zone="local",now=new Date()){
+        calendarGlyphs??=fetch("fonts/calendar-glyphs.json?v=1.1.0").then(r=>{if(!r.ok)throw Error("日历字体加载失败");return r.json();}).catch(e=>{calendarGlyphs=null;throw e;});
+        const glyphs=await calendarGlyphs,t=P.wall(zone,now),c=canvas(),ctx=c.getContext("2d");ctx.fillStyle="white";ctx.fillRect(0,0,250,122);
+        function draw(text,size,y,x,red=false){const cells=Array.from(text,ch=>glyphs[size][ch]);if(cells.some(g=>!g))throw Error("日历字符缺失");const width=cells.reduce((n,g)=>n+g.width,0);x??=212-Math.floor(width/2);ctx.fillStyle=red?"#be0000":"black";for(const g of cells){for(let yy=0;yy<size;yy++)for(let xx=0;xx<g.width;xx++)if(g.bits[yy*g.width+xx]==="1")ctx.fillRect(x+xx,y+yy,1,1);x+=g.width;}return width;}
+        draw(t.year+"/"+String(t.month).padStart(2,"0"),12,2);draw(String(t.day).padStart(2,"0"),44,15,185,true);draw("星期"+"日一二三四五六"[t.weekday],18,62,185);
+        const [,m,n]=P.lunar(t.year,t.month,t.day),label=({10:"初十",20:"二十",30:"三十"})[n]||((n<10?"初":n<20?"十":"廿")+"一二三四五六七八九"[n%10-1]);
+        draw((m&128?"闰":"")+"正二三四五六七八九十冬腊"[m&127]+"月"+label,12,84);
+        const terms="小寒 大寒 立春 雨水 惊蛰 春分 清明 谷雨 立夏 小满 芒种 夏至 小暑 大暑 立秋 处暑 白露 秋分 寒露 霜降 立冬 小雪 大雪 冬至".split(" "),seconds=[0,1272283,2547462,3828568,5117483,6416376,7726093,9047327,10379235,11721860,13072410,14428379,15787551,17145937,18501082,19850188,21190911,22520708,23839844,25146961,26443845,27730671,29010666,30284551];
+        const today=Date.UTC(t.year,t.month-1,t.day);let found;
+        for(const year of [t.year,t.year+1]){const yy=year-2020,leap=yy?Math.floor((yy-1)/4)+1:0;for(let i=0;i<24;i++){const day=Math.floor((451804+20950*yy-leap*86400+seconds[i])/86400),days=Math.round((Date.UTC(year,0,1)+day*86400000-today)/86400000);if(days>=0){found=[terms[i],days?days+"天后":"今日"];break;}}if(found)break;}
+        const [name,countdown]=found,width=Array.from(countdown,ch=>glyphs[12][ch].width).reduce((a,b)=>a+b,0),x=212-Math.floor((36+width)/2);draw(name,18,101,x);draw(countdown,12,106,x+36);
+        return P.quantize(ctx.getImageData(0,0,250,122).data).frame;
+    }
+    return {render,png,metadata,noticeBattery,font,dateColumn};
 })();
