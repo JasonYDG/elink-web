@@ -5,7 +5,7 @@ const root=path.join(__dirname,".."),frame=Uint8Array.from(fs.readFileSync(path.
 async function harness(options={}){
     const model={mode:1,every:60,page:2,generation:9,received:0,transfer:0,sum:0,expected:0,time:1,window:0,advertise:1,refresh:5,error:0},commands=[],jobs=[],values=new Map(),device={id:"test-device",name:"ELINK-BWR-EE0001",gatt:{connected:true,disconnect(){this.connected=false;}}};
     const slots=Array.from({length:8},(_,slot)=>({slot,state:255,token:0,due:0,crc:0,received:0,frame:new Uint8Array(8000),metadata:new Uint8Array(156),writing:false}));let currentSlot=0,answer=new Uint8Array(32),commitCount=0;
-    function state(){const b=new Uint8Array(32);b.set([69,76,75,49,1,model.mode,model.every,model.page,0,model.error]);const v=P.view(b);v.setUint16(10,model.received,true);v.setUint16(12,model.transfer,true);v.setUint16(14,model.sum,true);v.setUint16(16,model.expected,true);v.setUint16(18,model.generation,true);b[21]=model.window;b[22]=model.advertise;b[24]=model.refresh;b[27]=model.time;b.set([1,2,3,4],28);return b;}
+    function state(){const busy=model.busyReads>0;if(busy)model.busyReads--;const b=new Uint8Array(32);b.set([69,76,75,49,1,model.mode,model.every,model.page,Number(busy),model.error]);const v=P.view(b);v.setUint16(10,model.received,true);v.setUint16(12,model.transfer,true);v.setUint16(14,model.sum,true);v.setUint16(16,model.expected,true);v.setUint16(18,model.generation,true);b[21]=model.window;b[22]=model.advertise;b[24]=model.refresh;b[27]=model.time;b.set([1,2,3,4],28);return b;}
     function slotData(i){const s=slots[i],b=new Uint8Array(24),v=P.view(b);b.set([69,82,77,49,1,i,s.state,Number(s.writing)]);v.setUint32(8,s.token,true);v.setUint32(12,s.due,true);v.setUint32(16,s.crc,true);v.setUint16(20,s.received,true);b[22]=currentSlot;b[23]=1;return b;}
     function runtime(i){const s=slots[i],b=new Uint8Array(20),v=P.view(b);b.set([69,82,77,50,s.metadata[1]||0,s.metadata[2]||1,s.metadata[3]||5,s.metadata[0]||255]);v.setUint32(8,s.due,true);return b;}
     const characteristic={async writeValueWithResponse(b){
@@ -18,7 +18,7 @@ async function harness(options={}){
         else if(code===0x96){assert.equal(v.getUint16(1,true),model.received);const bytes=b.subarray(3);model.received+=bytes.length;model.sum=(model.sum+bytes.reduce((a,b)=>a+b,0))&65535;if(options.badPosition&&model.received>=544)model.received--;}
         else if(code===0x97){assert.equal(model.received,8000);assert.equal(model.sum,model.expected);model.page=2;model.generation++;commitCount++;if(options.disconnectCommit){device.gatt.connected=false;throw Error("disconnected after device accepted commit");}}
         else if(code===0x9c){model.page={0:0,1:3,2:4}[b[1]];model.generation++;commitCount++;}
-        else if(code===0x91||code===0x9e){model.time=1;if(code===0x91)model.page=0;}
+        else if(code===0x91||code===0x9e){model.time=1;if(code===0x91)model.page=0;model.busyReads=options.busyAfterSync||0;model.error=options.syncError||0;}
         else if(code===0xb4)answer=slotData(b[1]);
         else if(code===0xbb)answer=runtime(b[1]);
         else if(code===0xb0){currentSlot=b[1];const s=slots[currentSlot];s.token=v.getUint32(2,true);s.due=v.getUint32(6,true);s.crc=v.getUint32(10,true);s.received=0;s.writing=true;}
@@ -68,4 +68,15 @@ test("connection timeout stops retries and disconnects a late completion",async(
     const h=await harness({fireConnectTimeout:true});let finish,calls=0;h.device.gatt.connected=false;h.device.gatt.connect=()=>{calls++;return new Promise(resolve=>finish=resolve);};
     await assert.rejects(vm.runInContext('ELinkBLE.connect("",true,false)',h.context),/超时/);assert.equal(calls,1);
     h.device.gatt.connected=true;finish(h.device.gatt);await Promise.resolve();assert.equal(h.device.gatt.connected,false);
+});
+
+test("sync and settings wait for BUSY to finish instead of reporting early completion",async()=>{
+    for(const action of ["sync","settings"]){const h=await harness({busyAfterSync:4});if(action==="settings")h.model.time=0;
+        const {job,promise}=await h.execute(action,action==="settings"?P.settings():{});await promise;
+        assert.equal(h.model.busyReads,0);assert.equal(job.progress,95);assert.equal(job.committed,true);assert.equal(h.values.values().next().value.busy,false);
+    }
+});
+
+test("an immediate post-sync device error keeps the submitted result uncertain",async()=>{
+    const h=await harness({syncError:4}),{job,promise}=await h.execute("sync");await assert.rejects(promise,/设备报错/);assert.equal(job.committed,true);assert.equal(job.status,"awaiting_display");
 });

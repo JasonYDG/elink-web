@@ -14,7 +14,7 @@ const ELinkBLE = (() => {
     }
     async function status(){return {...await query(Uint8Array.of(0x93),P.status),...caps,...battery};}
     function block(size){return b=>{if(b.length!==size)throw Error("像素读回长度不一致");return b;};}
-    async function idle(s,seconds=95){const end=Date.now()+seconds*1000;while(s.busy){if(Date.now()>end)throw Error("屏幕仍忙，请等待后读取状态");await sleep(1000);s=await status();}return s;}
+    async function idle(s,seconds=95){const end=Date.now()+seconds*1000;while(true){if(s.error)throw Error("设备报错："+s.error);if(!s.busy)return s;if(Date.now()>end)throw Error("屏幕仍忙，请等待后读取状态");await sleep(1000);s=await status();}}
     async function committed(j,phase){await L.updateJob(j,{committed:true,status:"awaiting_display",phase});}
     async function configure(c,s){
         c=P.settings({...c,advertise_minutes:1,window_seconds:0});if(c.mode===1&&!s.global_clock_refresh)throw Error("此固件不支持整页快刷，请选择全刷或升级固件");if(c.mode===2&&!s.minute_region_refresh)throw Error("此固件不支持分钟局刷");if(c.clock_timezone!=="local"&&!s.timezone_clock)throw Error("荷兰时钟需要 V1.3.0 固件");
@@ -83,11 +83,11 @@ const ELinkBLE = (() => {
             s={...s,...caps,...battery};await L.updateState(j.address,s);const c=L.device(j.address).settings;
             if(j.action==="probe"){if(s.offline_reminders&&!s.busy){const values=await slots();s.reminder_slots=values;await L.reconcile(j.address,values);await L.updateState(j.address,s);await previewReminder(j,s,values);}return s;}
             if(j.action==="sync"){
-                if(s.protocol===1)s=await configure(c,s);else if(c.clock_timezone!=="local")throw Error("此固件不支持荷兰时间");const quiet=![0,3].includes(s.display_mode);if(!quiet||!s.quiet_sync)await committed(j,"校时已提交，等待读回确认");const packet=await sync(c,s,quiet);if(s.protocol===1){s=await status();if(s.display_mode===5)await overview(j,s);await L.updateState(j.address,await status());if(s.offline_reminders&&!s.busy)await L.reconcile(j.address,await slots());}return {result:"gatt_write_confirmed",packet_hex:P.hex(packet),physical_display_confirmed:false};
+                if(s.protocol===1)s=await configure(c,s);else if(c.clock_timezone!=="local")throw Error("此固件不支持荷兰时间");const quiet=![0,3].includes(s.display_mode);await committed(j,"校时已提交，等待屏幕完成回执");const packet=await sync(c,s,quiet);if(s.protocol===1){await L.updateJob(j,{progress:95});s=await idle(await status(),190);if(s.display_mode===5)s=await overview(j,s);await L.updateState(j.address,s);if(s.offline_reminders)await L.reconcile(j.address,await slots());}return {result:"gatt_write_confirmed",packet_hex:P.hex(packet),physical_display_confirmed:false};
             }
             if(s.protocol!==1)throw Error("此操作需要 ELK1 优化固件，原版仅能校时");
             if(j.action==="settings"){
-                const settings=P.settings(j.payload);let actual=await configure(settings,s);if(!s.time_initialized||s.clock_timezone!==settings.clock_timezone){await sync(settings,actual,![0,3].includes(s.display_mode));actual=await status();if(s.display_mode===5)actual=await overview(j,actual);}await L.saveSettings(j.address,{...settings,advertise_minutes:1,window_seconds:0});await L.updateState(j.address,actual);return actual;
+                const settings=P.settings(j.payload);let actual=await configure(settings,s);if(!s.time_initialized||s.clock_timezone!==settings.clock_timezone){await committed(j,"设置已提交，等待校时和屏幕完成回执");await sync(settings,actual,![0,3].includes(s.display_mode));actual=await status();if(s.display_mode===5)actual=await overview(j,actual);}await L.updateJob(j,{progress:95});actual=await idle(actual,190);await L.saveSettings(j.address,{...settings,advertise_minutes:1,window_seconds:0});await L.updateState(j.address,actual);return actual;
             }
             if(j.action==="overview")return await overview(j,s);if(j.action==="reminder")return await install(j,s);if(j.action==="publish")return await publish(j,s);
             if(["default","resume","calendar"].includes(j.action)){
@@ -100,6 +100,7 @@ const ELinkBLE = (() => {
     }
     async function address(device,manual=""){return manual||"web-"+(await P.sha256(new TextEncoder().encode(device.id))).slice(0,32);}
     async function connect(expected,choose,restore){
+        if(working)throw Error("屏幕操作尚未完成，请查看顶部执行进度");
         L.assertOwner();let dev;
         if(!navigator.bluetooth?.requestDevice)throw Error("此浏览器不支持网页蓝牙；安卓请使用 Chrome");if(!window.isSecureContext)throw Error("网页蓝牙需要 HTTPS");
         const manual=(choose?$("portable-address").value.trim().toUpperCase():"")||(expected&&!expected.startsWith("web-")?expected:"");
@@ -133,7 +134,7 @@ async function ensurePortable(address,choose=false,restore=false){
 }
 async function portableRestore(){const address=localStorage.getItem("elink-last-address");if(portable.paused||!address||!navigator.bluetooth?.getDevices)return;try{await ensurePortable(address,false,true);}catch{$("portable-status").textContent="屏幕未连接 · 点击连接可恢复";}}
 function portableRecover(){if(portable.paused||portable.connecting||ELinkBLE.working()||Date.now()<portable.retryAfter)return;const j=state.jobs.find(j=>["queued","waiting"].includes(j.status)&&(portable.address===j.address||localStorage.getItem("elink-device-"+j.address)));if(!j||(portable.device?.gatt.connected&&portable.address===j.address))return;if(portable.device?.gatt.connected&&pending(portable.address))return;portable.retryAfter=Date.now()+15000;ensurePortable(j.address,false,true).catch(e=>{$("portable-status").textContent="等待连接屏幕 · "+e.message;});}
-$("portable-connect").onclick=async()=>{try{await ELinkLocal.ready;const target=targets.size===1?[...targets][0]:"",address=await ensurePortable(target,true);selectDevice(address);if(!pending(address))await api("/api/jobs",{address,action:"probe"});}catch(e){message(e.message,true);$("portable-status").textContent="屏幕未连接 · "+e.message;$("portable-connect").disabled=false;}};
-$("portable-disconnect").onclick=()=>ELinkBLE.stop(true);$("scan").onclick=()=>$("portable-connect").onclick();$("portable-status").textContent="屏幕未连接 · 选择 ELINK 开头的设备";
+$("portable-connect").onclick=async()=>{try{await ELinkLocal.ready;const current=ELinkLocal.summary(),waiting=current.jobs.find(j=>["queued","waiting"].includes(j.status));if(ELinkBLE.working()||(current.operation?.busy&&!waiting))throw Error("屏幕操作尚未完成，请查看顶部执行进度");const target=waiting?.address||(targets.size===1?[...targets][0]:""),address=await ensurePortable(target,true);selectDevice(address);if(!current.operation?.busy&&!pending(address))await api("/api/jobs",{address,action:"probe"});}catch(e){message(e.message,true);$("portable-status").textContent=e.message;}finally{if(typeof operationLocks==="function")operationLocks();}};
+$("portable-disconnect").onclick=()=>{if(ELinkBLE.working()||ELinkLocal.summary().operation?.busy){message("屏幕操作尚未完成；等待任务请先取消",true);return;}return ELinkBLE.stop(true);};$("scan").onclick=()=>$("portable-connect").onclick();$("portable-status").textContent="屏幕未连接 · 选择 ELINK 开头的设备";
 window.addEventListener("pagehide",()=>ELinkBLE.stop());window.addEventListener("pageshow",e=>{if(e.persisted)location.reload();});
 setInterval(()=>ELinkLocal.tick().catch(e=>message(e.message,true)),1000);

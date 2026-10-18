@@ -43,3 +43,33 @@ test("deleting a reminder while its pixels render does not enqueue a ghost remin
     await h.local.api("/api/reminders/delete",{id:r.ids[0]});finish({frame:P.bytes64(frame),sha256:await P.sha256(frame),png:"canonical-png"});await running;
     assert.equal(h.local.summary().reminders.length,0);assert.equal(h.local.summary().jobs.length,0);
 });
+
+test("all unfinished states reserve the workspace across devices and concurrent submissions",async()=>{
+    const other="AA:BB:CC:DD:EE:02";
+    for(const status of ["queued","waiting","running","awaiting_display"]){
+        const w=workspace();w.devices.push({...w.devices[0],address:other});w.jobs.push({id:ident(300),address,action:"probe",status,payload:{},receipt:{},created:1});
+        const h=await harness(w);if(status==="running"||status==="awaiting_display")await h.local.updateJob(h.local.job(ident(300)),{status,progress:100});
+        assert.equal(h.local.summary().operation.busy,true);
+        await assert.rejects(h.local.api("/api/jobs",{address:other,action:"probe"}),/尚未完成/);
+        await assert.rejects(h.local.importBackup(workspace()),/尚未完成/);
+    }
+    const w=workspace();w.devices.push({...w.devices[0],address:other});const h=await harness(w),results=await Promise.allSettled([address,other].map(address=>h.local.api("/api/jobs",{address,action:"probe"})));
+    assert.equal(results.filter(r=>r.status==="fulfilled").length,1);assert.equal(h.local.summary().operation.jobs,1);
+});
+
+test("batch admits one group, waiting cancellation releases it, and summaries retain every unfinished job",async()=>{
+    const w=workspace(),other="AA:BB:CC:DD:EE:02";w.devices.push({...w.devices[0],address:other});const h=await harness(w);
+    const batch=await h.local.api("/api/jobs/batch",{addresses:[address,other],action:"probe"});assert.equal(batch.results.length,2);assert.ok(batch.results.every(r=>r.id));
+    await assert.rejects(h.local.api("/api/jobs/batch",{addresses:[address],action:"probe"}),/尚未完成/);
+    for(const r of batch.results)await h.local.api("/api/cancel",{id:r.id});assert.equal(h.local.summary().operation.busy,false);
+    const many=workspace();for(let n=1;n<=101;n++)many.jobs.push({id:ident(n),address,action:"probe",payload:{},receipt:{},status:"queued",created:n});
+    const loaded=await harness(many);await loaded.local.updateJob(loaded.local.job(ident(1)),{status:"running"});assert.equal(loaded.local.summary().jobs.length,101);assert.equal(loaded.local.summary().jobs[0].id,ident(1));
+});
+
+test("pending reminders reserve the workspace but only uninstalled ones can be cancelled locally",async()=>{
+    const h=await harness(),r=await h.local.api("/api/reminders",{addresses:[address],title:"test",body:"",due:Math.floor(Date.now()/1000)+3600,options:{}});
+    assert.equal(h.local.summary().operation.pending_reminders,1);await assert.rejects(h.local.api("/api/jobs",{address,action:"probe"}),/尚未完成/);
+    await h.local.api("/api/reminders/cancel-pending",{id:r.ids[0]});assert.equal(h.local.summary().operation.busy,false);
+    const w=workspace();w.reminders.push({id:ident(302),address,title:"old",body:"",status:"pending",previous_token:42,job_id:""});const old=await harness(w);
+    await assert.rejects(old.local.api("/api/reminders/cancel-pending",{id:ident(302)}),/尚未派发/);assert.equal(old.local.summary().reminders.length,1);
+});
