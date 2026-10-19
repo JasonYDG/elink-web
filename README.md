@@ -1,6 +1,6 @@
 # ELINK Web 1.1.1
 
-[打开网页](https://jasonydg.github.io/elink-web/) · [Windows 管理端 1.5.14 与固件 1.5.12](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.14) · [完整服务端源码](windows-manager/README.md)
+[打开网页](https://jasonydg.github.io/elink-web/) · [Windows 管理端 1.5.14 与固件 1.5.12](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.14-r2) · [完整服务端源码](windows-manager/README.md)
 
 2.13 寸 DA14585 红白黑墨水屏，250 × 122 原生像素。网页使用访问者本机 Web Bluetooth，数据保存在当前浏览器 IndexedDB；GitHub 不运行家庭后台或提供蓝牙适配器。
 
