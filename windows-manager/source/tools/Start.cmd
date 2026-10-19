@@ -24,7 +24,7 @@ set "elink_exit=%errorlevel%"
 if "%elink_exit%"=="0" exit /b 0
 echo.
 echo ERROR: Elink Manager stopped with exit code %elink_exit%.
-echo If an older manager is running on port 18765, close its console first.
+echo Run Stop.cmd to close an idle old Elink manager, then run Start.cmd again.
 echo Closing only the browser tab does not stop the old manager.
 echo See the startup log above for the full error.
 echo Press any key to close this window.

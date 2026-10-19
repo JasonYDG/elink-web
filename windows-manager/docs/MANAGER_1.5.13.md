@@ -46,3 +46,7 @@ RAM 状态 124/128 字节，沿用 0x07FD2140 位置。应用层去掉未被现�
 Start.cmd is ASCII only, without BOM. Startup failures keep the window open until a key is pressed and write the full error to %LOCALAPPDATA%/ElinkManager/logs/startup.log. Missing files report that the complete ZIP must be extracted. If an older manager owns port 18765, close its console first; closing only the browser tab does not stop that process. No process is killed automatically.
 
 This revision changes only the launcher, packaging checks and related documentation. Manager executable/resources and firmware1.5.11 are byte-for-byte unchanged; no additional screen update is required for this launcher fix.
+
+## Service controls revision 3
+
+Run Stop.cmd before Start.cmd to close a previous packaged manager. The ASCII PowerShell helper checks the local listener PID, manager API, actual executable path and process start time. Pending/running screen tasks or an unrelated process cause refusal. It does not delete data, reset Bluetooth, change ports or touch screen firmware. Stop.cmd retains its result until a key is pressed. The helper terminates only the verified idle manager process; it is not a task-cancellation command.

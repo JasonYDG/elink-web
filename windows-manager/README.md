@@ -1,8 +1,8 @@
 # ELINK Windows Manager 1.5.13
 
-[下载完整 Windows 程序与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.13-r2) · [网页1.1.0](https://jasonydg.github.io/elink-web/)
+[下载完整 Windows 程序与固件](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.13-r3) · [网页1.1.0](https://jasonydg.github.io/elink-web/)
 
-配套固件1.5.11 / ff001ff1。解压 elink-manager-1.5.13-r2-windows.zip，退出旧程序后运行 Start.cmd，无需安装Python。原数据继续保存在 %LOCALAPPDATA%/ElinkManager/data。
+配套固件1.5.11 / ff001ff1。解压 elink-manager-1.5.13-r3-windows.zip，退出旧程序后运行 Start.cmd，无需安装Python。原数据继续保存在 %LOCALAPPDATA%/ElinkManager/data。
 
 包含完整服务端：扫描/登记、单台/批量控制、状态与像素读回、时钟/时区/刷新策略、月历/图片日历、16张内置图、上传裁切、共用离线图库、原图与配置恢复、离线重复提醒/今日汇总、置顶任务弹窗、队列/历史/备份，以及完整应用OTA读回和重启核对。
 
@@ -25,3 +25,7 @@ PyInstaller打包入口 source/tools/build_desktop.py；开发依赖锁见 sourc
 ## Launcher revision 2
 
 Start.cmd contains ASCII only, without BOM. It keeps errors visible and writes startup.log under %LOCALAPPDATA%/ElinkManager/logs. Close the old manager before starting this package; closing a browser tab is insufficient. If the old console is hidden, find the old ElinkManager.exe in Task Manager / Details. The executable, resources and firmware are unchanged. The small launcher ZIP can also be extracted over an existing1.5.13 package.
+
+## Service controls revision 3
+
+Run Stop.cmd before Start.cmd. The ASCII PowerShell helper closes only an idle packaged Elink manager after verifying its API, listener PID, actual executable and process start time. It refuses pending/running screen tasks and unrelated processes. Data, ports and firmware are not changed. The small controls ZIP supplies Start.cmd, Stop.cmd and tools/Stop-Manager.ps1 for an existing1.5.13 package.

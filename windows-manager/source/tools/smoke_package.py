@@ -108,8 +108,46 @@ try:
     assert b'WinError 10048' in (folder/'launcher-profile/ElinkManager/logs/startup.log').read_bytes()
     report['ascii_launcher_and_visible_port_conflict_verified']=True
     assert request('/api/state')['jobs']==[]
+    ps=Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'
+    stop_script=delivery/'tools/Stop-Manager.ps1'
+    assert stop_script.read_bytes().isascii() and (delivery/'Stop.cmd').read_bytes().isascii()
+    def stop_manager(target_port):
+        return subprocess.run([str(ps),'-NoLogo','-NoProfile','-ExecutionPolicy','Bypass','-File',str(stop_script),'-Port',str(target_port)],cwd=folder,env=env,capture_output=True,timeout=30)
+    # A future private fixture locks controls without causing any Bluetooth work.
+    with sqlite3.connect(data/'elink.sqlite3') as fixture:
+        fixture.execute("INSERT INTO jobs(id,address,action,payload,status,created,updated,due) VALUES(?,?,?,?,?,?,?,?)",('launcher-guard','AA:BB:CC:DD:EE:01','probe','{}','queued',time.time(),time.time(),time.time()+86400))
+    refused=stop_manager(port)
+    assert refused.returncode==3 and b'tasks are still pending' in refused.stdout and process.poll() is None,refused.stdout
+    with sqlite3.connect(data/'elink.sqlite3') as fixture:fixture.execute('DELETE FROM jobs WHERE id=?',('launcher-guard',))
+    from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
+    import threading
+    class Pretender(BaseHTTPRequestHandler):
+        def log_message(self,*args):pass
+        def do_GET(self):
+            raw=json.dumps({'backend':'bleak/windows','bundled_runtime':True,'version':'1.5.13','runtime_executable':str(exe)}).encode()
+            self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
+    other=ThreadingHTTPServer(('127.0.0.1',0),Pretender);other_thread=threading.Thread(target=other.serve_forever,daemon=True);other_thread.start()
+    try:
+        wrong=stop_manager(other.server_port)
+        assert wrong.returncode==2 and b'identity does not match' in wrong.stdout,wrong.stdout
+    finally:other.shutdown();other.server_close();other_thread.join(timeout=5)
+    stopped=stop_manager(port)
+    assert stopped.returncode==0 and b'Port '+str(port).encode()+b' is free' in stopped.stdout,stopped.stdout+stopped.stderr
+    process.wait(timeout=10)
+    with sqlite3.connect(data/'elink.sqlite3') as fixture:assert fixture.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
+    # Prove that the OS data lock and the old port are reusable after stopping.
+    process=subprocess.Popen([str(exe),'--port',str(port),'--data',str(data)],cwd=folder,env=env,stdout=log,stderr=err)
+    for _ in range(40):
+        try:
+            if request('/api/config')['version']=='1.5.13':break
+        except OSError:time.sleep(.25)
+    else:raise TimeoutError('Restart after Stop failed')
+    assert len(request('/api/state')['templates'])==16
+    report['stop_busy_and_identity_guards_verified']=True
+    report['stop_then_restart_same_data_verified']=True
     report.update({'passed':True,'version':config['version'],'runtime_executable':config['runtime_executable'],'required_files_verified':True,'source_and_conda_path_not_required':True,'template_png_verified':True,'backup_integrity':'ok','ota_package_id':update['firmware_id'],'duplicate_start_verified':True,'single_data_writer_verified':True})
 finally:
-    process.terminate();process.wait(timeout=10);log.close();err.close()
+    if process.poll() is None:process.terminate();process.wait(timeout=10)
+    log.close();err.close()
     (folder/'smoke-result.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
 print(json.dumps(report,indent=2))
