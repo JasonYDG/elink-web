@@ -1,10 +1,10 @@
 const assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const source=fs.readFileSync(path.join(__dirname,"../opendesign/mockups/elink-manager/operation.js"),"utf8");
 const elements=Object.fromEntries(["operation-dialog","operation-title","operation-close","operation-error","operation-help","operation-elapsed","operation-note"].map(id=>[id,{hidden:false,open:false,textContent:"",addEventListener:(name,fn)=>elements[id][name]=fn,showModal(){this.open=true;},close(){this.open=false;}}]));
-let busy=false,timerId=0,now=0,tick;const timers=new Map();const ctx={state:{jobs:[]},unfinished:["queued","running","awaiting_display","waiting"],labels:{failed:"失败",delivery_unknown:"待核对"},Date:{now:()=>now},$:id=>elements[id],operationBusy:()=>busy,setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),setInterval:fn=>tick=fn};
+let busy=false,timerId=0,now=0,tick;const timers=new Map();const ctx={actions:{probe:"读取状态"},state:{jobs:[]},unfinished:["queued","running","awaiting_display","waiting"],labels:{failed:"失败",delivery_unknown:"待核对"},Date:{now:()=>now},$:id=>elements[id],operationBusy:()=>busy,setTimeout:fn=>{timers.set(++timerId,fn);return timerId;},clearTimeout:id=>timers.delete(id),setInterval:fn=>tick=fn};
 vm.createContext(ctx);vm.runInContext(source,ctx);ctx.initOperationDialog();const dialog=elements["operation-dialog"];
 busy=true;ctx.updateOperationDialog(true);assert.equal(dialog.open,true);let cancelled=false;dialog.cancel({preventDefault(){cancelled=true;}});assert(cancelled);
-ctx.state.jobs=[{id:"a",status:"awaiting_display",progress:100}];ctx.updateOperationDialog(true);assert(dialog.open);assert(elements["operation-close"].hidden);
+ctx.state.jobs=[{id:"a",action:"probe",status:"awaiting_display",progress:100}];ctx.updateOperationDialog(true);assert(dialog.open);assert(elements["operation-close"].hidden);assert.equal(elements["operation-title"].textContent,"读取状态");assert(elements["operation-help"].hidden);
 busy=false;ctx.state.jobs[0].status="succeeded";ctx.updateOperationDialog(false);assert.equal(timers.size,1);
 // A new operation cancels the pending close; it must still close after its own receipt.
 busy=true;ctx.state.jobs.push({id:"b",status:"running"});ctx.updateOperationDialog(true);assert.equal(timers.size,0);

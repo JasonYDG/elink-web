@@ -44,7 +44,7 @@ async function harness(options={}){
         else if(code===0xba){const off=v.getUint16(2,true);answer=slots[b[1]].metadata.slice(off,Math.min(156,off+128));}
         else if(code===0xb9){model.page=5;model.generation++;commitCount++;}
         else if(code===0xb5){const s=slots[b[1]];assert.equal(s.token,v.getUint32(2,true));s.state=248;}
-        else if(code===0x9a){const off=v.getUint16(1,true);answer=new Uint8Array(128);answer.set(pixels.subarray(off,Math.min(off+128,off<4000?4000:8000)));if(options.changeDuringReadback){model.generation++;options.changeDuringReadback=false;}}
+        else if(code===0x9a){const off=v.getUint16(1,true);answer=new Uint8Array(128);answer.set(pixels.subarray(off,Math.min(off+128,off<4000?4000:8000)));if(options.changeDuringReadback||options.keepChanging){model.generation++;options.changeDuringReadback=false;}}
     },async readValue(){return new DataView(answer.buffer,answer.byteOffset,answer.byteLength);}};
     device.gatt.getPrimaryService=async()=>({getCharacteristic:async id=>id===P.control?characteristic:{readValue:async()=>new DataView(Uint8Array.of(228,11).buffer)}});
     const store={ready:Promise.resolve(),assertOwner(){},summary:()=>({jobs,reminders:[]}),device:()=>({settings:P.settings()}),job:ident=>jobs.find(j=>j.id===ident),async updateJob(j,change){Object.assign(j,change);},async updateState(address,s){values.set(address,s);},async saveSettings(){},async reconcile(){},async persist(){},stopPlans(){},albumMatches:a=>a.crc32.map(()=>null),async restoreAlbum(a,frames){store.restored=frames;return {...a,items:frames.map((f,i)=>({template_id:"read-"+i,photo_x:a.photo_x[i]})),editable:true};},async api(){return {address:"AA:BB:CC:DD:EE:01"};},async tick(){}};
@@ -118,7 +118,10 @@ test("failed Flash step or corrupt retrieved data is never reported as a saved e
 });
 test("lost album commit stays uncertain and a changed framebuffer is never associated with old status",async()=>{
     const h=await harness({album:true,disconnectAlbumCommit:true}),run=await h.execute("album",await albumPayload(1));await assert.rejects(run.promise,/commit disconnected/);assert.equal(run.job.committed,true);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
-    const changed=await harness({changeDuringReadback:true}),probe=await changed.execute("probe"),receipt=await probe.promise;assert.match(receipt.preview_error,/页面已变化/);assert.equal(probe.job.payload.display_png,undefined);
+    const changed=await harness({changeDuringReadback:true}),probe=await changed.execute("probe"),receipt=await probe.promise;assert.equal(receipt.result,"pixel_readback_verified");assert.equal(receipt.generation_after,10);assert.ok(probe.job.payload.display_png);assert.equal(changed.commands.filter(b=>b[0]===0x9a).length,128);assert.ok(changed.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));
+});
+test("a continuously changing screen stops after two pixel reads without claiming success",async()=>{
+    const h=await harness({keepChanging:true}),probe=await h.execute("probe");await assert.rejects(probe.promise,/页面已变化/);assert.equal(probe.job.payload.display_png,undefined);assert.equal(h.commands.filter(b=>b[0]===0x9a).length,128);assert.ok(h.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));
 });
 async function updatePackage(){const raw=new Uint8Array(60028);raw.fill(255);P.view(raw).setUint32(4,0x07fc0111,true);raw.set([121,19,165,249,134,236,90,6,11,0],0x300);raw.set([69,76,75,49,1],0xe2d4);raw.set([17,34,51,68],0xe2d4+28);return {format:"elink-update-1",board:"da14585-5pad-bwr-250x122",version:"1.5.11",application:P.bytes64(raw),sha256:await P.sha256(raw),firmware_id:"11223344"};}
 test("large pixels use 63 packets only after a harmless capacity check; limited connections keep 471",async()=>{

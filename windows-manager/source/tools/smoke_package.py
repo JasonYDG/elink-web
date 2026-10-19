@@ -2,9 +2,9 @@
 from pathlib import Path
 import argparse,subprocess,zipfile,json,urllib.request,urllib.error,time,os,hashlib,sys,sqlite3,socket
 ROOT=Path(__file__).resolve().parents[2]
-folder=ROOT/'backup'/time.strftime('%Y-%m-%d')/('package-smoke-1.5.13-'+time.strftime('%H%M%S'));folder.mkdir(parents=True)
+folder=ROOT/'backup'/time.strftime('%Y-%m-%d')/('package-smoke-1.5.14-'+time.strftime('%H%M%S'));folder.mkdir(parents=True)
 parser=argparse.ArgumentParser();parser.add_argument('--no-scan',action='store_true');args=parser.parse_args()
-archive=ROOT/'releases/elink-manager-1.5.13-candidate.zip'
+archive=ROOT/'releases/elink-manager-1.5.14-candidate.zip'
 with zipfile.ZipFile(archive) as z:z.extractall(folder/'delivery')
 delivery=folder/'delivery';exe=delivery/'app/ElinkManager.exe'
 manifest=json.loads((delivery/'DELIVERY_MANIFEST.json').read_text())
@@ -28,8 +28,8 @@ try:
         try:config=request('/api/config');break
         except (OSError,urllib.error.URLError):time.sleep(.25)
     else:raise TimeoutError('Packaged start timed out')
-    assert config['version']=='1.5.13'
-    assert manifest['manager_version']=='1.5.13' and manifest['firmware_version']=='1.5.11'
+    assert config['version']=='1.5.14'
+    assert manifest['manager_version']=='1.5.14' and manifest['firmware_version']=='1.5.12'
     assert config['bundled_runtime'] and Path(config['runtime_executable']).resolve()==exe.resolve()
     assert Path(config['data_directory']).resolve()==data.resolve()
     for path in ['/','/app.js','/gallery.js','/operation.js','/style.css','/design-systems/elink-home/tokens/colors_and_type.css']:assert request(path)
@@ -71,8 +71,8 @@ try:
     assert request('/api/templates/'+native_copy['id']+'/preview.png')==frame_png(raw)
     assert request('/api/templates/delete',{'id':native_copy['id']},token)['ok']
     report['native_readback_image_renderer_verified']=True
-    assert config['firmware_versions']['ff001ff1']=='1.5.11'
-    update=json.loads((delivery/'firmware/elink-bwr-1.5.11.elink-update.json').read_text())
+    assert config['firmware_versions']['50d9e83d']=='1.5.12'
+    update=json.loads((delivery/'firmware/elink-bwr-1.5.12.elink-update.json').read_text())
     assert request('/api/ota/validate',{'package':update},token)['firmware_id']==update['firmware_id']
     b=request('/api/backup',{},token)
     with sqlite3.connect(b['path']) as db:assert db.execute('PRAGMA integrity_check').fetchone()[0]=='ok'
@@ -124,7 +124,7 @@ try:
     class Pretender(BaseHTTPRequestHandler):
         def log_message(self,*args):pass
         def do_GET(self):
-            raw=json.dumps({'backend':'bleak/windows','bundled_runtime':True,'version':'1.5.13','runtime_executable':str(exe)}).encode()
+            raw=json.dumps({'backend':'bleak/windows','bundled_runtime':True,'version':'1.5.14','runtime_executable':str(exe)}).encode()
             self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
     other=ThreadingHTTPServer(('127.0.0.1',0),Pretender);other_thread=threading.Thread(target=other.serve_forever,daemon=True);other_thread.start()
     try:
@@ -139,7 +139,7 @@ try:
     process=subprocess.Popen([str(exe),'--port',str(port),'--data',str(data)],cwd=folder,env=env,stdout=log,stderr=err)
     for _ in range(40):
         try:
-            if request('/api/config')['version']=='1.5.13':break
+            if request('/api/config')['version']=='1.5.14':break
         except OSError:time.sleep(.25)
     else:raise TimeoutError('Restart after Stop failed')
     assert len(request('/api/state')['templates'])==16

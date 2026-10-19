@@ -9,12 +9,13 @@ function updateOperationDialog(busy){
         if(!operationRun||operationRun.end!==undefined){operationRun={start:Date.now(),previous:new Set(state.jobs.map(j=>j.id)),ids:new Set(),error:""};$("operation-elapsed").textContent="本次已用时 0 秒 · 正在准备操作";}
         delete operationRun.end;
         for(const j of state.jobs)if(unfinished.includes(j.status)||!operationRun.previous.has(j.id))operationRun.ids.add(j.id);
-        $("operation-title").textContent="正在操作屏幕";$("operation-close").hidden=true;$("operation-error").hidden=true;
-        $("operation-help").textContent="请等待设备完成校验和刷新，期间其他屏幕操作已暂停。等待中的任务可在下方取消。";
+        const active=state.jobs.filter(j=>unfinished.includes(j.status));$("operation-title").textContent=active.length===1?(actions[active[0].action]||"正在处理"):active.length>1?"正在处理 "+active.length+" 项任务":"正在处理";$("operation-help").hidden=true;$("operation-close").hidden=true;$("operation-error").hidden=true;
+        $("operation-help").textContent="正在处理，请稍候。排队任务可取消。";
         if(!dialog.open)dialog.showModal();
         return;
     }
     if(!operationRun)return;
+    $("operation-help").hidden=false;
     operationRun.end??=Date.now();updateOperationElapsed();
     for(const j of state.jobs)if(!operationRun.previous.has(j.id))operationRun.ids.add(j.id);
     const jobs=state.jobs.filter(j=>operationRun.ids.has(j.id)),failures=jobs.filter(j=>["failed","delivery_unknown"].includes(j.status));

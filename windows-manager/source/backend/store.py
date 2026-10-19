@@ -201,17 +201,13 @@ class Store:
             # Queued and historical deliveries have independent pixel snapshots.
             return len(plans)
     def display_preview(self,address,state):
+        if state.get('busy') or state.get('error') or state.get('preview_error'):return None
         rows=self.rows("""SELECT id,action FROM jobs WHERE address=? AND action IN ('publish','photo_calendar','reminder','overview','album','probe') AND status='succeeded'
             AND json_extract(receipt,'$.generation_after')=? AND json_extract(receipt,'$.transfer_id')=?
             AND json_extract(receipt,'$.firmware_id')=? AND (json_extract(payload,'$.display_png') IS NOT NULL OR json_extract(payload,'$.png') IS NOT NULL)
-            AND (action!='probe' OR json_extract(receipt,'$.display_mode')=?)
+            AND (action!='probe' OR (json_extract(receipt,'$.display_mode')=? AND json_extract(receipt,'$.pixel_readback_verified')=1))
             ORDER BY created DESC LIMIT 1""",(address,state.get('display_generation'),state.get('transfer_id'),state.get('firmware_id'),state.get('display_mode')))
         if rows:return {'url':'/api/jobs/'+rows[0]['id']+'/preview.png','label':'设备像素读回' if rows[0]['action']=='probe' else '最近确认发送的画面'}
-        if state.get('display_mode') not in (2,5,6,7,8):
-            page={0:'clock',3:'calendar',4:'default'}.get(state.get('display_mode'))
-            return {'url':'/page-'+page+'.png','label':'界面示意 · 以实物为准'} if page else None
-        if state.get('display_mode')==5:return {'url':'/page-reminders.png','label':'任务汇总示意 · 以实物为准'}
-        if state.get('display_mode')==6:return {'url':'/page-photo-calendar.png','label':'图片日历示意 · 日期以实物为准'}
         return None
     def backup(self,target):
         with self.lock:

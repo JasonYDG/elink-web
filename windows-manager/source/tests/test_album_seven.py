@@ -58,7 +58,9 @@ class SevenAlbum(unittest.TestCase):
         before=json.loads((ROOT/'build/firmware-1.5.10/manifest.json').read_text());after=json.loads((FIRMWARE_DIR/'manifest.json').read_text())
         old=(ROOT/'build/firmware-1.5.10/elink-bwr-1.5.10-app.bin').read_bytes();new=(FIRMWARE_DIR/f'elink-bwr-{after["version"]}-app.bin').read_bytes()
         self.assertEqual(hashlib.sha256(old).hexdigest(),'af8942121ecb2b84e2973ae6402c23a2b46c5193cb1af9364a00cd071e826058')
-        regions=[(0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),(0xa48c,0xb780),(0xb780,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4)]
+        initial_page=int(after['state_file_offset'],16)+7
+        self.assertEqual((old[initial_page],new[initial_page]),(0,4))
+        regions=[(0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),(0xa48c,0xb780),(0xb780,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4),(initial_page,initial_page+1)]
         calls={0x2274:'product_boot_battery',0xde26:'product_sync_valid',0xdf16:'product_view',0xdf2c:'product_control',0xe12c:'product_refresh',0xe13e:'product_finish',0xe172:'product_minute_tick'}
         for off,name in calls.items():
             regions.append((off,off+4))

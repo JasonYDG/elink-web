@@ -20,7 +20,7 @@ class Http(unittest.TestCase):
                 with urllib.request.urlopen(urllib.request.Request(root+path,data=raw,headers=headers),timeout=5) as r:
                     b=r.read();return json.loads(b) if r.headers['Content-Type'].startswith('application/json') else b
             try:
-                c=request('/api/config');token=c['token'];self.assertEqual(c['version'],'1.5.13')
+                c=request('/api/config');token=c['token'];self.assertEqual(c['version'],'1.5.14')
                 app.stop.set();app.thread.join(5) # HTTP schedule CRUD must never trigger real hardware writes.
                 self.assertIn(b'Elink',request('/'));self.assertIn(b'--accent',request('/assets/tokens.css'))
                 page=request('/').decode()
@@ -64,7 +64,7 @@ class Http(unittest.TestCase):
                 app.store.state('18:BC:5A:6B:91:A7',{'display_mode':2,'display_generation':8,'transfer_id':42,'firmware_id':'test-id'})
                 self.assertIsNone(request('/api/state')['devices'][0]['preview'],'A stale announcement must not be presented as the confirmed screen')
                 app.store.state('18:BC:5A:6B:91:A7',{'display_mode':0})
-                self.assertEqual(request('/api/state')['devices'][0]['preview']['url'],'/page-clock.png')
+                self.assertIsNone(request('/api/state')['devices'][0]['preview'])
                 read=app.store.queue('18:BC:5A:6B:91:A7','probe',{'display_png':base64.b64encode(frozen).decode()})
                 app.store.update_job(read,status='succeeded',receipt={'display_mode':7,'generation_after':8,'transfer_id':0,'firmware_id':'read-id','pixel_readback_verified':True})
                 app.store.state('18:BC:5A:6B:91:A7',{'display_mode':7,'display_generation':8,'transfer_id':0,'firmware_id':'read-id'})

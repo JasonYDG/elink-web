@@ -229,7 +229,7 @@ def main():
     # Window zero bypasses this stop timer; radio still sleeps between adverts.
     assert struct.unpack_from('<I',app0,0x6b74)[0]==6000
     state_off=STATE-RUNTIME
-    blob[state_off:state_off+32]=bytes.fromhex('45 4c 4b 31 01 00 0a 00')+b'\0'*13+bytes([0,1,0,5])+b'\0'*7
+    blob[state_off:state_off+32]=bytes.fromhex('45 4c 4b 31 01 00 0a 04')+b'\0'*13+bytes([0,1,0,5])+b'\0'*7
     blob[ASSET-RUNTIME:ASSET-RUNTIME+len(asset)]=asset
     helpers=assemble_external(helper_source.replace('ALLOCATE',hex(allocate)).replace('BAD_PACKET',hex(bad)).replace('STATE_ADDRESS',hex(STATE)),helper_address)
     assert len(helpers)-20==helper_size

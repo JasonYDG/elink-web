@@ -56,6 +56,9 @@ class OfflineAlbum(unittest.TestCase):
         self.assertEqual(hashlib.sha256(old).hexdigest(),'c927bf68dc368aed55c2b7ea37cded516636ad9e47781647763b1bfa2bed9464')
         self.assertEqual(len(old),len(new));self.assertEqual(before['runtime_bytes'],after['runtime_bytes']);self.assertEqual(before['labels'],after['labels'])
         allowed=[(0x2cc4,0x31c8),(0x7eb4,0x8500),(0x8600,0x90a4),(0x9300,0xa46c),(0xa48c,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4),(0xe0fc,0xe100)]
+        initial_page=int(after['state_file_offset'],16)+7
+        self.assertEqual((old[initial_page],new[initial_page]),(0,4))
+        allowed.append((initial_page,initial_page+1))
         # test_album_seven independently compares every retained 18px glyph after unused glyph removal.
         calls={0x2274:'product_boot_battery',0xde26:'product_sync_valid',0xdf16:'product_view',0xdf2c:'product_control',0xe12c:'product_refresh',0xe13e:'product_finish',0x2d54:'product_album_tick',0x8e0c:'product_album_restore',0x9978:'product_album_finish',0x99b2:'product_album_finish',0xe172:'product_minute_tick'}
         for off,name in calls.items():

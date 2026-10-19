@@ -469,6 +469,7 @@ class Gateway:
                 self.store.state(address,state)
                 action=job['action']
                 if action=='probe':
+                    if state.get('protocol')==1:state=await self.wait_idle(client,job,state)
                     if state.get('offline_album') and not state['busy']:
                         album=await self.restore_album(client,job,await self.query_album(client),state)
                         state={**await self.status(client),'album':album,'offline_album':album is not None};self.store.state(address,state)
@@ -478,13 +479,23 @@ class Gateway:
                         self.store.state(address,state)
                     if state.get('protocol')==1 and not state['busy'] and not state['error']:
                         self.store.update_job(job['id'],phase='状态已读取，正在读回屏幕像素',progress=50)
-                        try:
-                            frame=await self.read_frame(client,state)
+                        for attempt in range(2):
+                            state={**state,**await self.wait_idle(client,job,await self.status(client))}
+                            try:frame=await self.read_frame(client,state)
+                            except DeliveryUnknown:
+                                if attempt==0:continue
+                                state={**state,**await self.status(client),'preview_error':'画面正在变化，请稍后重试'}
+                                self.store.state(address,state)
+                                raise
+                            except (ConnectionError,BleakError,TimeoutError,OSError) as exc:
+                                self.store.state(address,{**state,'preview_error':'画面未读到，请重试'})
+                                raise ConnectionError('读取中断：'+str(exc)) from exc
+                            except ValueError:
+                                self.store.state(address,{**state,'preview_error':'画面未读到，请重试'})
+                                raise
+                            self.store.state(address,state)
                             self.store.update_job(job['id'],payload={**payload,'display_png':base64.b64encode(frame_png(frame)).decode()})
                             return {**state,'generation_after':state['display_generation'],'pixel_readback_verified':True,'frame_sha256':hashlib.sha256(frame).hexdigest()}
-                        except (ConnectionError,BleakError,TimeoutError,OSError,ValueError,DeliveryUnknown) as exc:
-                            state['preview_error']='状态已读取，画面读回未完成：'+str(exc)
-                            self.store.state(address,state)
                     return state
                 if action=='sync':
                     self.store.update_job(job['id'],phase='校准设备时间并核对状态')
@@ -674,7 +685,7 @@ async def worker(store,gateway,stop):
             payload=json.loads(job['payload']);attempts=job['attempts']+1
             background=job['action']=='reminder' or (isinstance(payload,dict) and payload.get('scheduled') is True)
             if not background and attempts>=3:
-                store.update_job(job['id'],status='failed',attempts=attempts,phase='连接未建立，本次操作已停止',error='3 次连接尝试未完成，操作已停止，可重新读取状态：'+str(exc))
+                store.update_job(job['id'],status='failed',attempts=attempts,phase='蓝牙操作未完成，本次已停止',error='3 次尝试未完成，请稍后重试：'+str(exc))
             elif time.time()-job['created']<86400:
                 store.update_job(job['id'],status='waiting',error=str(exc),attempts=attempts,due=time.time()+10+secrets.randbelow(8000)/1000)
             else:store.update_job(job['id'],status='failed',error='24 小时内未找到可用设备：'+str(exc))

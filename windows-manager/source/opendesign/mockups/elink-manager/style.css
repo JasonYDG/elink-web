@@ -32,3 +32,8 @@ dialog{border:1px solid var(--border);border-radius:8px;padding:24px;max-width:m
 .album-panel{margin-top:24px;padding-top:20px;border-top:1px solid var(--border,#d8cfbf)}.album-items{padding:0;list-style:none;display:grid;gap:8px}.album-items li{display:flex;gap:10px}.album-items li button:first-child{flex:1;text-align:left}.album-items [aria-pressed="true"]{outline:2px solid #686b46;outline-offset:1px}
 
 .album-items li button:first-child{min-width:0;overflow-wrap:anywhere}.album-mode{margin-bottom:20px}
+
+/* Keep task feedback to one heading and one progress row. */
+#operation-dialog{width:min(480px,calc(100% - 32px));max-width:480px}#operation-dialog #live-tasks{margin:12px 0 0;border:0;padding:0}#operation-dialog .live-job{grid-template-columns:1fr;gap:12px}#operation-dialog .live-job:first-child{border:0}#operation-dialog [hidden],#operation-elapsed{display:none!important}
+
+#operation-dialog .live-job progress{display:block}
