@@ -86,6 +86,27 @@ try:
     assert duplicate.returncode==0 and 'already running' in duplicate.stdout
     conflicting=subprocess.run([str(exe),'--port',str(unused_port()),'--data',str(data)],cwd=folder,env=env,capture_output=True,timeout=10)
     assert conflicting.returncode!=0
+    assert (delivery/'Start.cmd').read_bytes().isascii()
+    launcher_env={**env,'LOCALAPPDATA':str(folder/'launcher-profile')}
+    help_run=subprocess.run([os.environ['ComSpec'],'/d','/c','call',str(delivery/'Start.cmd'),'--help'],cwd=folder,env=launcher_env,input=b'',capture_output=True,timeout=10)
+    assert help_run.returncode==0 and b'ERROR:' not in help_run.stdout
+    console_path=folder/'launcher-conflict.txt'
+    with console_path.open('wb') as console:
+        launch=subprocess.Popen([os.environ['ComSpec'],'/d','/c','call',str(delivery/'Start.cmd'),'--port',str(port),'--data',str(folder/'other-data')],cwd=folder,env=launcher_env,stdin=subprocess.PIPE,stdout=console,stderr=subprocess.STDOUT)
+        try:
+            deadline=time.monotonic()+15
+            while b'Press any key' not in console_path.read_bytes():
+                assert launch.poll() is None,'Launcher hid the startup error'
+                if time.monotonic()>deadline:raise TimeoutError('Launcher did not display the startup error')
+                time.sleep(.05)
+            assert launch.poll() is None
+            launch.communicate(b'\r\n',timeout=5)
+            assert launch.returncode!=0
+        finally:
+            if launch.poll() is None:launch.terminate();launch.wait(timeout=5)
+    assert b'Closing only the browser tab' in console_path.read_bytes()
+    assert b'WinError 10048' in (folder/'launcher-profile/ElinkManager/logs/startup.log').read_bytes()
+    report['ascii_launcher_and_visible_port_conflict_verified']=True
     assert request('/api/state')['jobs']==[]
     report.update({'passed':True,'version':config['version'],'runtime_executable':config['runtime_executable'],'required_files_verified':True,'source_and_conda_path_not_required':True,'template_png_verified':True,'backup_integrity':'ok','ota_package_id':update['firmware_id'],'duplicate_start_verified':True,'single_data_writer_verified':True})
 finally:

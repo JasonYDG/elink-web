@@ -40,3 +40,9 @@ RAM 状态 124/128 字节，沿用 0x07FD2140 位置。应用层去掉未被现�
 编译后 Thumb 模拟验证七张循环、旧配置迁移、断电首张恢复、原图读回、边界拒绝和保护区；浏览器验证 1280/390 宽度、共用轮播、读回设置、单张替换、置顶进度及重载保留数据。网页协议测试还覆盖长包回退、全量 OTA 读回、错误版本和提交中断。
 
 交付为候选测试版本。模拟及像素读回不等于物理屏幕光学、续航、射频或真实掉电验证。本次没有对实体屏执行升级、擦写或恢复出厂。
+
+## Launcher revision 2
+
+Start.cmd is ASCII only, without BOM. Startup failures keep the window open until a key is pressed and write the full error to %LOCALAPPDATA%/ElinkManager/logs/startup.log. Missing files report that the complete ZIP must be extracted. If an older manager owns port 18765, close its console first; closing only the browser tab does not stop that process. No process is killed automatically.
+
+This revision changes only the launcher, packaging checks and related documentation. Manager executable/resources and firmware1.5.11 are byte-for-byte unchanged; no additional screen update is required for this launcher fix.
