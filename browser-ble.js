@@ -33,7 +33,7 @@ const ELinkBLE = (() => {
     }
     async function slots(){const values=[];for(let i=0;i<8;i++){const s=await query(Uint8Array.of(0xb4,i),P.slot);if(caps.reminder_summary)Object.assign(s,await query(Uint8Array.of(0xbb,i),P.runtime));values.push(s);}return values;}
     async function ram(){const frame=new Uint8Array(8000);for(const plane of [0,4000])for(let off=0;off<4000;off+=128){const b=await query(P.packet(0x9a,[[2,plane+off]]),block(128));frame.set(b.subarray(0,Math.min(128,4000-off)),plane+off);}return frame;}
-    async function readFrame(s){const frame=await ram(),check=await status();if(check.busy||check.error||["display_mode","display_generation","transfer_id","firmware_id"].some(k=>check[k]!==s[k]))throw Error("读回期间页面已变化，请重新读取状态");return frame;}
+    async function readFrame(s){const frame=await ram(),check=await status();if(check.busy||check.error||["display_mode","display_generation","transfer_id","firmware_id"].some(k=>check[k]!==s[k]))throw Object.assign(Error("读回期间页面已变化，请重新读取状态"),{pageChanged:true});return frame;}
     async function capture(j,s){const frame=await readFrame(s);j.payload={...j.payload,display_png:ELinkRenderer.png(frame)};await L.updateJob(j,{payload:j.payload});return frame;}
     async function albumState(){try{return await query(Uint8Array.of(0xbd,0),P.album);}catch(e){if(e.connection)throw e;const s=await status();if(s.error!==6)throw e;caps.offline_album=false;return null;}}
     async function restoreAlbum(j,s){
@@ -169,7 +169,16 @@ const ELinkBLE = (() => {
             if(j.action==="probe"){
                 s=await idle(s,190);if(s.offline_album){s.album=await albumState();s.offline_album=!!s.album;if(s.album){const album=await restoreAlbum(j,s);s={...await status(),album};}}
                 if(s.offline_reminders){const values=await slots();s.reminder_slots=values;await L.reconcile(j.address,values);}
-                if(s.protocol===1){await L.updateJob(j,{phase:"读回当前屏幕的 8000 字节像素",progress:65});try{await capture(j,s);}catch(e){if(e.connection)throw e;s.preview_error=e.message;}}
+                if(s.protocol===1){
+                    await L.updateJob(j,{phase:"读取屏幕画面…",progress:65});
+                    for(let attempt=0;attempt<2;attempt++){
+                        s={...s,...await idle(await status(),190)};
+                        try{await capture(j,s);break;}catch(e){
+                            if(e.pageChanged&&attempt===0)continue;
+                            await L.updateState(j.address,{...s,preview_error:"画面未读到，请重试"});throw e;
+                        }
+                    }
+                }
                 await L.updateState(j.address,s);return {...s,generation_after:s.display_generation,result:j.payload.display_png?"pixel_readback_verified":"state_read_verified",optical_result_verified:false};
             }
             if(j.action==="sync"){

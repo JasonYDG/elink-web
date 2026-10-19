@@ -8,7 +8,7 @@ const ELinkLocal = (() => {
     const ready=(async()=>{
         if(!window.isSecureContext)throw Error("请使用 HTTPS 地址或本机 localhost");
         db=await new Promise((resolve,reject)=>{const r=indexedDB.open("elink-web",1);r.onupgradeneeded=()=>r.result.createObjectStore("workspace");r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);r.onblocked=()=>reject(Error("数据库正在升级，请关闭其他旧页面后重试"));});
-        data=await read()||empty();configuration=await (await fetch("config.json?v=1.1.0")).json();
+        data=await read()||empty();configuration=await (await fetch("config.json?v=1.1.1")).json();
         if(navigator.locks){await new Promise((resolve,reject)=>{navigator.locks.request("elink-web-workspace",{ifAvailable:true},async lock=>{owner=!!lock;resolve();if(lock)await new Promise(r=>releaseOwner=r);}).catch(reject);});}
         else throw Error("此浏览器缺少安全的多标签页控制；安卓请使用最新版 Chrome");
         if(owner){data=await read()||empty();if(data.app_version!==configuration.version){for(const d of data.devices)d.state={...(d.state||{}),capabilities_stale:true};data.app_version=configuration.version;}for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
@@ -53,8 +53,8 @@ const ELinkLocal = (() => {
         return {devices:data.devices.map(d=>({...copy(d),browser_connected:typeof portable!=="undefined"&&portable.address===d.address&&!!portable.device?.gatt.connected,preview:preview(d)})),templates:data.templates.map(t=>{const s=JSON.parse(t.spec);delete s.image;return {...t,spec:JSON.stringify(s),frame:undefined,png:undefined};}),jobs:jobs.map(j=>({...copy(j),payload:undefined,sha256:j.payload.sha256,has_preview:!!(j.payload.display_png||j.payload.png)})),plans:copy(data.plans),reminders:data.reminders.map(r=>{const j=data.jobs.find(j=>j.id===r.job_id);return {...copy(r),job_status:j?.status,job_error:j?.error};}),operation:operationState(),worker_alive:owner&&!fatal,worker_error:fatal};
     }
     function preview(d){
-        const s=d.state||{};if(s.busy||s.error)return null;
-        const j=[...data.jobs].sort((a,b)=>b.updated-a.updated).find(j=>j.address===d.address&&j.status==="succeeded"&&j.receipt.generation_after===s.display_generation&&j.receipt.firmware_id===s.firmware_id&&(j.payload.display_png||j.receipt.transfer_id===s.transfer_id&&j.payload.png));
+        const s=d.state||{};if(s.busy||s.error||s.preview_error)return null;
+        const j=[...data.jobs].sort((a,b)=>b.updated-a.updated).find(j=>j.address===d.address&&j.status==="succeeded"&&j.receipt.generation_after===s.display_generation&&j.receipt.firmware_id===s.firmware_id&&j.receipt.transfer_id===s.transfer_id&&(j.action!=="probe"||j.receipt.display_mode===s.display_mode&&j.receipt.result==="pixel_readback_verified")&&(j.payload.display_png||j.payload.png));
         return j?{url:"/api/jobs/"+j.id+"/preview.png",label:"已核对设备回执 · 实际画面以屏幕为准"}:null;
     }
     function resource(path){
