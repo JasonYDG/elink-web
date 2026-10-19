@@ -34,6 +34,10 @@ dialog{border:1px solid var(--border);border-radius:8px;padding:24px;max-width:m
 .album-items li button:first-child{min-width:0;overflow-wrap:anywhere}.album-mode{margin-bottom:20px}
 
 /* Keep task feedback to one heading and one progress row. */
-#operation-dialog{width:min(480px,calc(100% - 32px));max-width:480px}#operation-dialog #live-tasks{margin:12px 0 0;border:0;padding:0}#operation-dialog .live-job{grid-template-columns:1fr;gap:12px}#operation-dialog .live-job:first-child{border:0}#operation-dialog [hidden],#operation-elapsed{display:none!important}
+#operation-dialog{width:min(480px,calc(100% - 32px));max-width:480px}#operation-dialog #live-tasks{margin:12px 0 0;border:0;padding:0}#operation-dialog .live-job{grid-template-columns:minmax(0,1fr) auto;gap:8px 12px}#operation-dialog .live-job:first-child{border:0}#operation-dialog [hidden],#operation-elapsed{display:none!important}
 
 #operation-dialog .live-job progress{display:block}
+
+#operation-dialog .live-job strong{grid-column:1/-1;font-family:var(--font-mono);font-size:13px}#operation-dialog .live-job span{grid-row:2;grid-column:1;min-width:0}#operation-dialog .live-job small{grid-row:2;grid-column:2;justify-self:end;font-variant-numeric:tabular-nums}#operation-dialog .live-job progress,#operation-dialog .live-job button{grid-column:1/-1}
+
+.device-card{align-self:start}.device-thumbnail.is-empty{min-height:0;padding:6px 0}.device-thumbnail img[hidden]{display:none}.device-card details>small{display:block;white-space:pre-line;margin-top:6px;overflow-wrap:anywhere}
