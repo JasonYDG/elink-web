@@ -31,7 +31,7 @@ async function harness(options={}){
             else if(b[1]===6){if(options.preflightUnsupported){model.error=1;answer=state();}else answer=Uint8Array.of(69,76,65,80,b[2]+(options.badPreflight?2:1),120,0,0);}
             else if(b[1]===1){if(!album.sequence)album.sequence=1;album.writing=true;album.staged=[];album.stagedPositions=[];album.step=0;}
             else if(b[1]===2){assert.equal(b[2],album.staged.length);assert.equal(b[8],album.step);assert.equal(v.getUint32(4,true),P.crc32(pixels));if(options.badAlbumStep&&album.step===3)throw Error("Flash step failed");album.step++;if(album.step===32){album.staged.push(pixels.slice());album.stagedPositions.push(b[3]);album.step=0;model.page=2;}}
-            else if(b[1]===3){assert.equal(album.step,0);if(album.writing){album.frames=album.staged;album.positions=album.stagedPositions;}album.count=album.frames.length;album.mode=b[2];album.minutes=v.getUint16(3,true);album.sequence++;album.enabled=album.running=true;album.writing=false;album.index=0;pixels.set(album.mode?P.photoFrame(album.frames[0],album.positions[0]):album.frames[0]);model.page=7+album.mode;model.generation++;commitCount++;if(options.disconnectAlbumCommit){device.gatt.connected=false;throw Error("album commit disconnected");}}
+            else if(b[1]===3){assert.equal(album.step,0);if(options.disconnectBeforeAlbumCommit){device.gatt.connected=false;throw Error("album commit never reached device");}if(album.writing){album.frames=album.staged;album.positions=album.stagedPositions;}album.count=album.frames.length;album.mode=b[2];album.minutes=v.getUint16(3,true);album.sequence++;album.enabled=album.running=true;album.writing=false;album.index=0;pixels.set(album.mode?P.photoFrame(album.frames[0],album.positions[0]):album.frames[0]);model.page=7+album.mode;model.generation++;commitCount++;if(options.disconnectAlbumCommit){device.gatt.connected=false;throw Error("album commit disconnected");}}
             else if(b[1]===4){album.enabled=album.running=album.writing=false;album.sequence++;}
             else if(b[1]===5){const off=v.getUint16(3,true);answer=album.frames[b[2]].slice(off,off+128);if(options.corruptAlbumReadback)answer[0]^=1;}
         }
@@ -194,8 +194,20 @@ test("failed Flash step or corrupt retrieved data is never reported as a saved e
     const bad=await harness({album:true,badAlbumStep:true}),r=await bad.execute("album",await albumPayload(1));await assert.rejects(r.promise,/Flash step failed/);assert.equal(bad.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,0);
     const h=await harness({album:true,corruptAlbumReadback:true}),save=await h.execute("album",await albumPayload(1));await save.promise;const probe=await h.execute("probe");await assert.rejects(probe.promise,/CRC32/);assert.equal(h.store.restored,undefined);
 });
-test("lost album commit stays uncertain and a changed framebuffer is never associated with old status",async()=>{
-    const h=await harness({album:true,disconnectAlbumCommit:true}),run=await h.execute("album",await albumPayload(1));await assert.rejects(run.promise,/commit disconnected/);assert.equal(run.job.committed,true);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+test("lost album commit acknowledgement reconnects and verifies using reads without resubmitting",async()=>{
+    const h=await harness({album:true,disconnectAlbumCommit:true}),run=await h.execute("album",await albumPayload(1)),receipt=await run.promise;
+    assert.equal(receipt.result,"album_flash_verified");assert.equal(receipt.recovered_after_disconnect,true);assert.equal(run.job.committed,true);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+    const commit=h.commands.findIndex(b=>b[0]===0xbd&&b[1]===3);assert.ok(h.commands.slice(commit+1).every(b=>b[0]===0x93||b[0]===0x9a||b[0]===0xbd&&b[1]===0));
+});
+test("a commit that never reached the screen stays uncertain without automatic replay",async()=>{
+    const h=await harness({album:true,disconnectBeforeAlbumCommit:true}),run=await h.execute("album",await albumPayload(1));await assert.rejects(run.promise,/配置不一致/);assert.equal(run.job.committed,true);assert.equal(h.commitCount(),0);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+});
+test("gallery verification stops after three reconnect failures or a changed target, without replay",async()=>{
+    const h=await harness({album:true,disconnectAlbumCommit:true});let attempts=0;h.device.gatt.connect=async()=>{attempts++;throw Error("unreachable");};const run=await h.execute("album",await albumPayload(1));
+    await assert.rejects(run.promise,/unreachable/);assert.equal(attempts,3);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+    const changed=await harness({album:true,disconnectAlbumCommit:true});changed.device.gatt.connect=async()=>{changed.device.gatt.connected=true;vm.runInContext('portable.paused=true',changed.context);return changed.device.gatt;};const second=await changed.execute("album",await albumPayload(1));await assert.rejects(second.promise,/目标屏幕已变化/);assert.equal(changed.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+});
+test("a changed framebuffer is never associated with old status",async()=>{
     const changed=await harness({changeDuringReadback:true}),probe=await changed.execute("probe"),receipt=await probe.promise;assert.equal(receipt.result,"pixel_readback_verified");assert.equal(receipt.generation_after,10);assert.ok(probe.job.payload.display_png);assert.equal(changed.commands.filter(b=>b[0]===0x9a).length,128);assert.ok(changed.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));
 });
 test("a continuously changing screen stops after two pixel reads without claiming success",async()=>{
