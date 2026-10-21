@@ -69,7 +69,7 @@ const ELinkBLE = (() => {
     }
     async function installAlbum(j,s){
         if(!s.offline_album||!s.album_minute_tick)throw Error("离线轮播需要 1.5.9 或更新固件，请升级后读取状态");
-        const p=j.payload,frames=p.items.map(x=>P.decode64(x.frame));
+        const p=j.payload,frames=p.items.map(x=>P.decode64(x.frame)),device=portable.device;
         if(!frames.length||frames.length>(s.album_capacity||4)||frames.some(f=>f.length!==8000))throw Error("图库数量超出此固件上限");
         for(let i=0;i<frames.length;i++)if(await P.sha256(frames[i])!==p.items[i].sha256)throw Error("排队图库像素校验失败");
         s=await idle(s,190);let a=await albumState();if(!a||a.protocol_version<2)throw Error("设备不支持分步保存图库");
@@ -93,12 +93,23 @@ const ELinkBLE = (() => {
             }
         }
         const mode=Number(p.mode==="calendar");await committed(j,"提交播放列表，等待首张刷新和读回校验");await L.updateJob(j,{progress:88});
-        await write(P.packet(0xbd,[[1,3],[1,mode],[2,p.interval_minutes]]));let check=await completed(j,generation,7+mode);a=await albumState();
-        if(!a||!a.enabled||!a.running||a.writing||a.index!==0||a.sequence!==sequence||a.count!==frames.length||a.mode!==mode||a.interval_minutes!==p.interval_minutes||!same(a.crc32,crcs)||!same(a.photo_x,positions))throw Error("播放列表提交后的读回配置不一致");
-        const actual=await capture(j,check),expected=mode?P.photoFrame(frames[0],positions[0]):frames[0];
-        if(mode?[0,4000].some(o=>!P.equal(actual.subarray(o+1216,o+4000),expected.subarray(o+1216,o+4000))):!P.equal(actual,expected))throw Error("图库首张像素读回不一致");
+        let recovered=false,check;
+        try{await write(P.packet(0xbd,[[1,3],[1,mode],[2,p.interval_minutes]]));}catch(e){if(!e.connection)throw e;recovered=true;}
+        for(let attempt=0;;attempt++)try{
+            if(recovered){
+                if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，图库结果待核对");
+                await L.updateJob(j,{phase:"提交回执中断，重新连接只读核对图库（不重复保存）",progress:90});
+                try{device.gatt.disconnect();await sleep(1000);await bounded(device.gatt.connect(),"图库提交后重连",15000,device);const service=await device.gatt.getPrimaryService(P.service);control=await service.getCharacteristic(P.control);try{volts=await service.getCharacteristic(P.volts);}catch{volts=null;}}catch(e){e.connection=true;throw e;}
+                if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，图库结果待核对");portable.session=device.id;
+            }
+            check=await idle(await status(),190);a=await albumState();
+            if(check.firmware_id!==s.firmware_id||check.display_mode!==7+mode||check.display_generation===generation||!a||!a.enabled||!a.running||a.writing||a.index!==0||a.sequence!==sequence||a.count!==frames.length||a.mode!==mode||a.interval_minutes!==p.interval_minutes||!same(a.crc32,crcs)||!same(a.photo_x,positions))throw Error("播放列表提交后的读回配置不一致，请读取状态核对");
+            const actual=await capture(j,check),expected=mode?P.photoFrame(frames[0],positions[0]):frames[0];
+            if(mode?[0,4000].some(o=>!P.equal(actual.subarray(o+1216,o+4000),expected.subarray(o+1216,o+4000))):!P.equal(actual,expected))throw Error("图库首张像素读回不一致");
+            break;
+        }catch(e){if(!e.connection||attempt===2)throw e;recovered=true;}
         check={...check,album:a};await L.updateState(j.address,check);L.stopPlans(j.address);
-        return {...check,result:reuse?"album_config_verified":"album_flash_verified",generation_after:check.display_generation,offline:true,reused_gallery:reuse,transmitted_image_bytes:reuse?0:8000*frames.length,optical_result_verified:false};
+        return {...check,result:reuse?"album_config_verified":"album_flash_verified",generation_after:check.display_generation,offline:true,reused_gallery:reuse,recovered_after_disconnect:recovered,transmitted_image_bytes:reuse?0:8000*frames.length,optical_result_verified:false};
     }
     async function upgrade(j,s){
         const meta=await ELinkOTA.validate(j.payload.package),wire=ELinkOTA.image(meta);if(s.firmware_id===meta.firmware_id)throw Error("设备已是此固件版本，尚未擦写");s=await idle(s,190);

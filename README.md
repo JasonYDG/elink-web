@@ -1,4 +1,4 @@
-# ELINK Web 1.1.4
+# ELINK Web 1.1.5
 
 [打开网页](https://jasonydg.github.io/elink-web/) · [Windows 管理端 1.5.14 与固件 1.5.12](https://github.com/JasonYDG/elink-web/releases/tag/manager-v1.5.14-r2) · [完整服务端源码](windows-manager/README.md)
 
@@ -50,3 +50,6 @@ node --test tests/*.test.js
 图像原生帧及哈希保持不变，来源见 ARTWORK.json。通用模板使用 Noto Sans SC Black，许可见 fonts/LICENSE.txt。图片日历使用与固件同源的原生尺寸 Noto Black/Medium 和 Fusion Pixel 字形表，见 fonts/calendar-glyphs.json、fonts/FusionPixel-OFL.txt；未复制 4.2 寸固件的专有字体。
 
 通用 Canvas 模板可能有系统栅格化差异，预制图库和日历字形不依赖系统字体。协议模拟、浏览器界面及编译检查不能代替真实手机蓝牙、实体显示、续航和掉电验收；本次为候选测试发布。
+
+
+Web 1.1.5：实机发现播放列表已提交后 Windows 仍可能中止 BD03 回执。网页此时最多重连 3 次，只读核对固件、播放序号、完整配置和首张像素；不重发 BD03、不重新上传。未提交成功、目标改变、持续断线或读回不符仍保留待核对结果。
