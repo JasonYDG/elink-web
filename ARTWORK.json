@@ -187,7 +187,7 @@
     },
     {
       "name": "26-summit-overlook",
-      "title": "登高望岳",
+      "title": "绝顶凌云",
       "source_filename": "d809e3fa-b194-4395-bdcd-fb7243b810cb.png",
       "renamed_source": "26-summit-overlook.png",
       "source_sha256": "8228d41fb060801d1c1c04efbbf97056bf5f9baaacac21fb94bf79a6258c30ca",
@@ -214,6 +214,262 @@
       "file": "image/27-scholar-sword.png",
       "png_sha256": "6ea36a080f18a871778c7d844375195d61c690c35d47da0bdcf3d8fa8ffcc45a",
       "native_frame_sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "28-higher-horizons",
+      "title": "欲穷千里目",
+      "source_filename": "027.png",
+      "renamed_source": "28-higher-horizons.png",
+      "source_sha256": "cdf22d3a35279d1ff347d358d4b0c2d312b3e2fb39180c2401eeaba97acc2351",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/28-higher-horizons.png",
+      "png_sha256": "3d34a746a1cff2a1c86879041eab308b76b009322ec8712a0d653479a450b0c5",
+      "native_frame_sha256": "1784c8f69117ac1e49acf9f6333e8b6660df47a4a5fe2eab1404a3b464e18d6e",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "29-soaring-eagle",
+      "title": "扶摇九万里",
+      "source_filename": "028.png",
+      "renamed_source": "29-soaring-eagle.png",
+      "source_sha256": "3071c7e527a93d7a44e4e9d871bda26d0cbf947d45cf2f0251d903412d725147",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/29-soaring-eagle.png",
+      "png_sha256": "9aad88250554e64884eb3f5de82411a7bc2c751df1d60307956aa7f2456f6475",
+      "native_frame_sha256": "1e472cead401795460e87c800db5333a08ec4b25084808372cf6475e5c90a98c",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "30-self-renewal",
+      "title": "自强不息",
+      "source_filename": "029.png",
+      "renamed_source": "30-self-renewal.png",
+      "source_sha256": "4cb463febeacb02a3b6cc17c2eead6fa24cb3d303d7cd7b3fd8454ae3a538ebe",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/30-self-renewal.png",
+      "png_sha256": "8615d04fc1f11dbc739413429224ce9349f76ef52a908aa3c43b1a4565e6d8d3",
+      "native_frame_sha256": "463c035844406307fbc363e9a8139b0b15cc3d9e8ce90357895d5de1c839b31f",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "31-endless-quest",
+      "title": "上下求索",
+      "source_filename": "030.png",
+      "renamed_source": "31-endless-quest.png",
+      "source_sha256": "fb62bee3f21cbcb11040191f89cdac1ca6758db4627071ad109f65f647556940",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/31-endless-quest.png",
+      "png_sha256": "700bc2d9af02cfa71962ef87cbfc0e22a99eef0182556c66dbb8f2953cfe0fd7",
+      "native_frame_sha256": "2d9719f78423ef06cf75893a19e5fbb14fe1b990c852e45c984ad40649b397b8",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "32-rainy-riverside",
+      "title": "任平生",
+      "source_filename": "031.png",
+      "renamed_source": "32-rainy-riverside.png",
+      "source_sha256": "eefe919894c1eed23e13a3120bc20790ea320de23097ff39057945e86f0e5412",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/32-rainy-riverside.png",
+      "png_sha256": "4c80e071b0e3244d06c9bace48a64bcb3da011cc08e7f6a142da7e524165a655",
+      "native_frame_sha256": "e879ff4d615ab56fa555ecb816834e860b878f15f2275d2f723c4d3cde565a72",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "33-loulan-sword",
+      "title": "斩楼兰",
+      "source_filename": "032.png",
+      "renamed_source": "33-loulan-sword.png",
+      "source_sha256": "14501b3fb376b12193f216f79bfdd80c8c2a4a652192ea1e04c4bbb8ed186149",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/33-loulan-sword.png",
+      "png_sha256": "a348d4a57e94247354fa831b6474243306a9e6bcf9126ac82818b35c5a2f80d5",
+      "native_frame_sha256": "564854937f2b02f3057b4874bc892fba4203aee748867d56dfb0d291f94be215",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "34-celestial-archer",
+      "title": "射天狼",
+      "source_filename": "033.png",
+      "renamed_source": "34-celestial-archer.png",
+      "source_sha256": "33e09ce08cb516646b4572e058996b6ea01218afeb580fea96516fffe44c6263",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/34-celestial-archer.png",
+      "png_sha256": "ccd451c09857fd8f01a1dbe5552252d33fda5ef08c04659760226fdfeed35fc7",
+      "native_frame_sha256": "1963539eb1b3aa22bd3b0aaa5517ce532ce2df481dd778fa7f7fa1e00f3b3261",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "35-lamplit-sword",
+      "title": "挑灯看剑",
+      "source_filename": "034.png",
+      "renamed_source": "35-lamplit-sword.png",
+      "source_sha256": "770e61388527a02a76761c899aa71341bfd2678097ebd8186d3740cb7ca37345",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/35-lamplit-sword.png",
+      "png_sha256": "5de651353a234dc60a262ab76f159ed1cbe26b36f0e12966bce40302cac97d8f",
+      "native_frame_sha256": "11baa2b0abba8637730b3841411a2d9afe366f1dff8c7833593e422c31ac5dcf",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "36-fearless-road",
+      "title": "莫愁前路",
+      "source_filename": "036.png",
+      "renamed_source": "36-fearless-road.png",
+      "source_sha256": "d14b54230b50beb1cc3c573aa59773bdb0cb74f6ae8a998f651c737742ce9531",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/36-fearless-road.png",
+      "png_sha256": "90244831358261764c7e832564cbab4ab1ee8ae014a95b3175f4710acd8f7969",
+      "native_frame_sha256": "9b96a1df7f2dc0caf97061e8b12c7b085a2e604371db5c7554a10a46ed8c9686",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "37-spring-triumph",
+      "title": "春风得意",
+      "source_filename": "037.png",
+      "renamed_source": "37-spring-triumph.png",
+      "source_sha256": "0f0449d723804b1c44cd59688f1588887fa0afde5feef4c38a8b65a4d40a0362",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/37-spring-triumph.png",
+      "png_sha256": "379c506733be890fa2f771b1dc4cc8654ebca27587cf5d7145fa992935769e6f",
+      "native_frame_sha256": "c498c9da99f5178f7750158639486edc01eefbb9d9cbcd03470dd3edf1608684",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "38-golden-sands",
+      "title": "千淘万漉",
+      "source_filename": "038.png",
+      "renamed_source": "38-golden-sands.png",
+      "source_sha256": "995a107bc687530f63b6b280aabcbb9f49dcbf124fa8314aee42a2ebf8ac49bf",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/38-golden-sands.png",
+      "png_sha256": "a0ea30a878e9d5f42b6449e472e8210ee23470fe97305027d75960da1db3100e",
+      "native_frame_sha256": "36f6b8ef5d0033c4d7c11980f2ae9622b2d59bd0c535bec203ae5f4b481ec34e",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "39-lofty-ambition",
+      "title": "青云之志",
+      "source_filename": "039.png",
+      "renamed_source": "39-lofty-ambition.png",
+      "source_sha256": "29c2f409066ffafeba0bfd9ce43ada00031059712881292cc2c16d9af06b064c",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/39-lofty-ambition.png",
+      "png_sha256": "38642b2ad80cfad77aebbd333960e61d0682b8945eb92043006e3c1dc351501c",
+      "native_frame_sha256": "8d42dcce43dd1880903b4e0a73819ad26941ae7793c26cc0be28de4631e7ec16",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "40-poetry-and-wine",
+      "title": "诗酒年华",
+      "source_filename": "040.png",
+      "renamed_source": "40-poetry-and-wine.png",
+      "source_sha256": "13192f90cbdd201568001b3ebcef4c22958b13076e8758fefd7e378e9e17487f",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/40-poetry-and-wine.png",
+      "png_sha256": "4f818593e5bdbce6a221ba74b53a653b6384150ccb7d312f2c6403f933a5722e",
+      "native_frame_sha256": "3d33da9c9d04d79fb0dd623c3e34769eddc5879179f5470d2bfe508b3961b8f2",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "41-promising-journey",
+      "title": "鹏程万里",
+      "source_filename": "041.png",
+      "renamed_source": "41-promising-journey.png",
+      "source_sha256": "96170cec5eeeb21807309f9260c12772ce9c3c49e9c6daaae99128aa1b67b270",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/41-promising-journey.png",
+      "png_sha256": "ce316386abfab768fc4bed13e393deec61a92b9868376fc96d9da3c1d72d573d",
+      "native_frame_sha256": "4e4c209a7bd4f33522d0e9e1f202a1b1ec4c6eb2f9b40cccbc2bb018a705aeed",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "42-patriotic-heart",
+      "title": "报国丹心",
+      "source_filename": "042.png",
+      "renamed_source": "42-patriotic-heart.png",
+      "source_sha256": "5074c4f15f7d7897d07c97b877e14b5715ce315cd14d81e97a25d9238a984422",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/42-patriotic-heart.png",
+      "png_sha256": "080a974c9ad63daafd124b36d9dc213d605af406a3742670a99fb15eab9e27ab",
+      "native_frame_sha256": "8108219ad7683f551573ca4b8ca8005c10ec23fcbd0695ad42128ed21aa272e9",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "43-youthful-spirit",
+      "title": "少年壮气",
+      "source_filename": "043.png",
+      "renamed_source": "43-youthful-spirit.png",
+      "source_sha256": "39b322bf573049571533f5fd700270c1a443b183add72444c92754c2174d449d",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/43-youthful-spirit.png",
+      "png_sha256": "08a8485a3ade7e4740b036879020732501dd7919cc1b03d05454f4cfdf2bcd3f",
+      "native_frame_sha256": "33cb99936c23ddbfa64c9a57fd6c298d94aca42531da22932753879f479c2019",
       "source": "user-supplied artwork",
       "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
     }

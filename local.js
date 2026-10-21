@@ -11,7 +11,7 @@ const ELinkLocal = (() => {
         data=await read()||empty();configuration=await (await fetch("config.json",{cache:"no-cache"})).json();
         if(navigator.locks){await new Promise((resolve,reject)=>{navigator.locks.request("elink-web-workspace",{ifAvailable:true},async lock=>{owner=!!lock;resolve();if(lock)await new Promise(r=>releaseOwner=r);}).catch(reject);});}
         else throw Error("此浏览器缺少安全的多标签页控制；安卓请使用最新版 Chrome");
-        if(owner){data=await read()||empty();if(data.app_version!==configuration.version){for(const d of data.devices)d.state={...(d.state||{}),capabilities_stale:true};data.app_version=configuration.version;}for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
+        if(owner){data=await read()||empty();if(data.app_version!==configuration.version){for(const d of data.devices)d.state={...(d.state||{}),capabilities_stale:true};for(const t of data.templates){const item=configuration.gallery.find(i=>i.path===JSON.parse(t.spec).builtin);if(item?.previous_title&&t.title===item.previous_title)t.title=item.title;}data.app_version=configuration.version;}for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
         return data;
     })();
     function read(key="current"){return new Promise((resolve,reject)=>{const r=db.transaction("workspace").objectStore("workspace").get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
