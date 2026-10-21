@@ -160,7 +160,20 @@ function clearDraft(){const seq=++previewSequence;clearTimeout(previewTimer);$("
 async function draftPreview(){const seq=previewSequence,example=$("kind").value==="image"&&(!upload||!cropImage),draft=example?{kind:"notice",title:"图片布局",body:"上传你的图片",footer:"支持裁切、缩放与旋转",red:true}:spec();const r=await api("/api/preview",{spec:draft});if(seq!==previewSequence)return;$("draft-preview").src="data:image/png;base64,"+r.png;$("draft-preview").hidden=false;$("draft-empty").hidden=true;$("draft-hash").textContent=example?"布局示意 · 上传图片后显示实际裁切效果":"像素 SHA256："+r.sha256;return r;}
 function kindControls(){drawCrop();clearDraft();}
 $("upload").addEventListener("change",clearDraft);
-$("ota-file").onchange=()=>perform($("ota-file"),async()=>{otaPackage=null;$("ota-package").textContent="尚未验证升级包";const f=$("ota-file").files[0];if(!f)return;if(f.size>200000)throw Error("升级包过大，不能使用完整 SPI 镜像");const candidate=JSON.parse(await f.text());const r=await api("/api/ota/validate",{package:candidate});otaPackage=candidate;$("ota-package").textContent="版本 "+r.version+" · "+r.bytes+" bytes · ID "+r.firmware_id+" · SHA256 "+r.sha256;message("OTA 升级包验证通过，尚未擦写设备。");});
+async function loadOTAPackage(read){
+    otaPackage=null;$("ota-package").textContent="正在加载并验证升级包…";
+    for(const id of ["ota-file","ota-online","ota-install"])$(id).disabled=true;
+    try{
+        const f=await read();if(!f){$("ota-package").textContent="尚未选择升级包";return;}
+        if(f.size>200000)throw Error("升级包过大，不能使用完整 SPI 镜像");
+        const candidate=JSON.parse(await f.text()),r=await api("/api/ota/validate",{package:candidate});
+        otaPackage=candidate;$("ota-package").textContent="版本 "+r.version+" · "+r.bytes+" bytes · ID "+r.firmware_id+" · SHA256 "+r.sha256;
+        message("OTA 升级包验证通过，点击“开始蓝牙 OTA”才会升级设备。");
+    }catch(e){$("ota-package").textContent="升级包未就绪："+e.message;throw e;}
+    finally{for(const id of ["ota-file","ota-online"])$(id).disabled=false;}
+}
+$("ota-file").onchange=()=>perform($("ota-file"),()=>loadOTAPackage(()=>$("ota-file").files[0]));
+$("ota-online").onclick=()=>perform($("ota-online"),()=>loadOTAPackage(async()=>{const r=await fetch($("ota-download").href,{cache:"no-store"});if(!r.ok)throw Error("在线固件下载失败（HTTP "+r.status+"），请稍后重试或选择本地升级包");return r.blob();}));
 $("ota-install").onclick=()=>perform($("ota-install"),async()=>{if(!otaPackage)throw Error("请先选择并验证 .elink-update.json 升级包");await queue("ota",{package:otaPackage});});
 let cropImage=null,cropOriginal=null,cropLoad=0,drag=null;
 function cropValues(){return {rotation:Number($("crop-rotation").value),mode:$("crop-fit").value,zoom:Number($("crop-scale").value)/100,x:Number($("crop-x").value)/100,y:Number($("crop-y").value)/100};}
