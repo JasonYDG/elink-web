@@ -32,3 +32,10 @@ runtime/venv/Scripts/python.exe -m unittest discover -s source/tests -p test_alb
 应用 ID `f1ef98a7`，SHA256 `b6347e11f4a6c305d5b6540e61e71b564bbff2d623d26677205064f6be443c75`。网页只接受专用 `.elink-update.json`；不分发全片 SPI 镜像作为升级包。
 
 升级：在 Web 1.1.4 连接并读取单台屏幕，加载在线固件 1.5.13，核对目标和版本，输入 `UPDATE` 确认。等待 OTA 读回及重启版本核对后，再保存 7 张图片；保持供电、网页前台及连接。
+
+
+## 2026-10-21 单台实机验证
+
+已对本地 6B8D58 屏幕完成 1.5.12 → 1.5.13 应用 OTA、全部固件读回和重启版本核对。该屏此前无图库；120 次只读分区检查全部通过，单次确认最大 0.250 秒，期间没有断线或重启。7 张图片日历以 224 步保存、一次提交，重新连接后用空白本地工作区从 Flash 发出 443 次读取，56,000 字节及 7 个 SHA256 全部匹配。间隔为每天一张。其他屏幕未刷写。
+
+实测传输使用 Windows Bleak/WinRT；Edge 的干净打包和线上页面另行验证。尚未实测 Edge Web Bluetooth 设备选择与传输、光学显示、真实掉电、电流或完整多日轮播，仍为候选测试发布。[完整验证范围](PHYSICAL_VALIDATION.json)。源码 ZIP 和构建 manifest 中的 hardware_tested=false 是构建时记录，此后的单台验证以此补充说明为准。

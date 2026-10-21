@@ -53,3 +53,6 @@ node --test tests/*.test.js
 
 
 Web 1.1.5：实机发现播放列表已提交后 Windows 仍可能中止 BD03 回执。网页此时最多重连 3 次，只读核对固件、播放序号、完整配置和首张像素；不重发 BD03、不重新上传。未提交成功、目标改变、持续断线或读回不符仍保留待核对结果。
+
+
+单台实机验证：本地 6B8D58 已通过 1.5.13 OTA、首次 7 张图库保存及新工作区 56,000 字节 Flash 读回；[验证范围](firmware-updates/1.5.13/PHYSICAL_VALIDATION.json)。实测为 Windows Bleak/WinRT，Edge 原生蓝牙、光学及真实掉电尚待验收。
