@@ -6,10 +6,10 @@ const packagePath=html.match(/id="ota-download" href="([^"]+)"/)[1],raw=fs.readF
 function harness(fetcher=async()=>new Response(raw)){
     const elements=Object.fromEntries(["ota-file","ota-online","ota-install","ota-package","ota-download"].map(id=>[id,{id,disabled:false,textContent:""}]));
     elements["ota-file"].files=[];elements["ota-download"].href=new URL(packagePath,"https://example.test/elink-web/").href;
-    const calls=[],requests=[],messages=[],c={$:id=>elements[id],fetch:async(...args)=>{requests.push(args);return fetcher(...args);},api:async(url,body)=>{calls.push(url);assert.equal(url,"/api/ota/validate");const {raw,...meta}=await OTA.validate(body.package);return meta;},message:(...args)=>messages.push(args),editLabel(){},operationLocks(){}};
+    const calls=[],requests=[],messages=[],queued=[],confirmations=[],c={$:id=>elements[id],currentAddress:"AA:BB:CC:DD:EE:01",singleDevice:()=>({address:c.currentAddress,name:"Test screen"}),confirmAction:async(text,phrase)=>{confirmations.push({text,phrase});return false;},queue:async(action,payload)=>queued.push({action,payload}),fetch:async(...args)=>{requests.push(args);return fetcher(...args);},api:async(url,body)=>{calls.push(url);assert.equal(url,"/api/ota/validate");const {raw,...meta}=await OTA.validate(body.package);return meta;},message:(...args)=>messages.push(args),editLabel(){},operationLocks(){}};
     vm.createContext(c);c.displayDevice=()=>{elements["ota-install"].disabled=!vm.runInContext("otaPackage",c);};
-    vm.runInContext('let otaPackage=null;\n'+source.split(/\r?\n/).find(line=>line.startsWith("async function perform("))+"\n"+source.slice(source.indexOf("async function loadOTAPackage("),source.indexOf('$("ota-install").onclick=')),c);
-    return {c,elements,calls,requests,messages,selected:()=>vm.runInContext("otaPackage",c)};
+    vm.runInContext('let otaPackage=null;\n'+source.split(/\r?\n/).find(line=>line.startsWith("async function perform("))+"\n"+source.slice(source.indexOf("async function loadOTAPackage("),source.indexOf('let cropImage=')),c);
+    return {c,elements,calls,requests,messages,queued,confirmations,selected:()=>vm.runInContext("otaPackage",c)};
 }
 
 test("published firmware is the exact 1.5.12 application and produces a valid OTA image",async()=>{
@@ -43,4 +43,13 @@ test("loading disables selection/install and any download or validation failure 
         await fail.elements["ota-online"].onclick();assert.equal(fail.selected(),null);assert.equal(fail.elements["ota-install"].disabled,true);
         assert.equal(fail.elements["ota-file"].disabled,false);assert.equal(fail.elements["ota-online"].disabled,false);assert.equal(fail.messages.at(-1)[1],true);
     }
+});
+
+test("OTA requires target/version confirmation and rejects a changed target or package",async()=>{
+    const h=harness();await h.elements["ota-online"].onclick();await h.elements["ota-install"].onclick();
+    assert.equal(h.confirmations[0].phrase,"UPDATE");assert.match(h.confirmations[0].text,/AA:BB:CC:DD:EE:01.*1\.5\.12/);assert.equal(h.queued.length,0);
+    h.c.confirmAction=async()=>{h.c.currentAddress="AA:BB:CC:DD:EE:02";return true;};await h.elements["ota-install"].onclick();assert.equal(h.queued.length,0);assert.match(h.messages.at(-1)[0],/已变化/);
+    h.c.confirmAction=async()=>{vm.runInContext("otaPackage=null",h.c);return true;};await h.elements["ota-install"].onclick();assert.equal(h.queued.length,0);
+    await h.elements["ota-online"].onclick();h.c.confirmAction=async()=>true;await h.elements["ota-install"].onclick();
+    assert.equal(h.queued.length,1);assert.equal(h.queued[0].action,"ota");assert.equal(h.queued[0].payload.package.firmware_id,"50d9e83d");
 });

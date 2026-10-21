@@ -12,6 +12,7 @@ async function harness(options={}){
     function runtime(i){const s=slots[i],b=new Uint8Array(20),v=P.view(b);b.set([69,82,77,50,s.metadata[1]||0,s.metadata[2]||1,s.metadata[3]||5,s.metadata[0]||255]);v.setUint32(8,s.due,true);return b;}
     const characteristic={async writeValueWithResponse(b){
         if(b.length>(options.maxWrite||((options.album||options.ota)?136:20)))throw Error("GATT write capacity exceeded");commands.push(Uint8Array.from(b));const v=P.view(b),code=b[0];
+        if(options.beforeWrite)await options.beforeWrite(b,album);
         if(code===0x93){if(b.length!==1)model.error=1;answer=state();}
         else if(code===0x9d)answer=Uint8Array.from([69,76,85,73,1,255,options.album||options.ota?31:3,0]);
         else if(code===0x94){model.mode=b[1];model.every=b[2];model.error=0;}
@@ -45,14 +46,16 @@ async function harness(options={}){
         else if(code===0xb9){model.page=5;model.generation++;commitCount++;}
         else if(code===0xb5){const s=slots[b[1]];assert.equal(s.token,v.getUint32(2,true));s.state=248;}
         else if(code===0x9a){const off=v.getUint16(1,true);answer=new Uint8Array(128);answer.set(pixels.subarray(off,Math.min(off+128,off<4000?4000:8000)));if(options.changeDuringReadback||options.keepChanging){model.generation++;options.changeDuringReadback=false;}}
-    },async readValue(){return new DataView(answer.buffer,answer.byteOffset,answer.byteLength);}};
+    },async readValue(){if(options.beforeRead)await options.beforeRead(album);return new DataView(answer.buffer,answer.byteOffset,answer.byteLength);}};
     device.gatt.getPrimaryService=async()=>({getCharacteristic:async id=>id===P.control?characteristic:{readValue:async()=>new DataView(Uint8Array.of(228,11).buffer)}});
     const store={ready:Promise.resolve(),assertOwner(){},summary:()=>({jobs,reminders:[]}),device:()=>({settings:P.settings()}),job:ident=>jobs.find(j=>j.id===ident),async updateJob(j,change){Object.assign(j,change);},async updateState(address,s){values.set(address,s);},async saveSettings(){},async reconcile(){},async persist(){},stopPlans(){},albumMatches:a=>a.crc32.map(()=>null),async restoreAlbum(a,frames){store.restored=frames;return {...a,items:frames.map((f,i)=>({template_id:"read-"+i,photo_x:a.photo_x[i]})),editable:true};},async api(){return {address:"AA:BB:CC:DD:EE:01"};},async tick(){}};
-    const elements=new Map(),storage=new Map(),context=vm.createContext({ELinkProtocol:P,ELinkLocal:store,ELinkRenderer:{metadata:async()=>{const b=new Uint8Array(156);b.set([166,127,1,5]);P.view(b).setUint32(152,P.crc32(b.subarray(0,152)),true);return b;},png:()=>"preview",noticeBattery:async()=>{throw Error("unexpected notice render");}},console,crypto,Uint8Array,Uint16Array,Uint32Array,DataView,Date,Math,Set,Map,TextEncoder,Promise,Error,Number,Array,String,Object,location:{reload(){}},window:{isSecureContext:true,addEventListener(){}},navigator:{bluetooth:{requestDevice:async()=>device,getDevices:async()=>[device]},userActivation:{isActive:true}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},setInterval(){},setTimeout(fn,ms){if(ms<=1000)queueMicrotask(fn);return 0;},clearTimeout(){},pending:()=>false,refresh:async()=>{},selectDevice(){},message(){},confirmAction:async()=>options.confirmRebind!==false,state:{jobs:[]},targets:new Set(),$:id=>{if(!elements.has(id))elements.set(id,{value:"",disabled:false,textContent:""});return elements.get(id);}});
+    const elements=new Map(),storage=new Map(),context=vm.createContext({ELinkProtocol:P,ELinkLocal:store,ELinkRenderer:{metadata:async()=>{const b=new Uint8Array(156);b.set([166,127,1,5]);P.view(b).setUint32(152,P.crc32(b.subarray(0,152)),true);return b;},png:()=>"preview",noticeBattery:async()=>{throw Error("unexpected notice render");}},console,crypto,Uint8Array,Uint16Array,Uint32Array,DataView,Date:options.clock?class extends Date{static now(){return options.clock();}}:Date,Math,Set,Map,TextEncoder,Promise,Error,Number,Array,String,Object,location:{reload(){}},window:{isSecureContext:true,addEventListener(){}},navigator:{bluetooth:{requestDevice:async()=>device,getDevices:async()=>[device]},userActivation:{isActive:true}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},setInterval(){},setTimeout(fn,ms){if(ms<=1000)queueMicrotask(fn);return 0;},clearTimeout(){},pending:()=>false,refresh:async()=>{},selectDevice(){},message(){},confirmAction:async()=>options.confirmRebind!==false,state:{jobs:[]},targets:new Set(),$:id=>{if(!elements.has(id))elements.set(id,{value:"",disabled:false,textContent:""});return elements.get(id);}});
     if(options.fireConnectTimeout)context.setTimeout=(fn,ms)=>{if(ms<=1000||ms===20000)queueMicrotask(fn);return 0;};
-    const timers=context.setTimeout;context.setTimeout=(fn,ms)=>ms===2000?(queueMicrotask(fn),0):timers(fn,ms);
+    const pendingTimers=new Map(),timers=context.setTimeout;let timerId=0;
+    context.setTimeout=(fn,ms)=>ms===2000?(queueMicrotask(fn),0):ms>2000&&!options.fireConnectTimeout?(pendingTimers.set(++timerId,{fn,ms}),timerId):timers(fn,ms);
+    context.clearTimeout=id=>pendingTimers.delete(id);
     vm.runInContext(fs.readFileSync(path.join(root,"ota.js"),"utf8"),context);vm.runInContext(fs.readFileSync(path.join(root,"browser-ble.js"),"utf8"),context);const actualAddress=await vm.runInContext('ELinkBLE.connect("",true,false)',context);
-    return {context,model,commands,slots,jobs,values,store,storage,device,pixels,album,commitCount:()=>commitCount,async execute(action,payload={}){const j={id:String(jobs.length),address:actualAddress,action,payload,status:"running",committed:false};jobs.push(j);context.nextJob=j;return {job:j,promise:vm.runInContext("ELinkBLE.execute(nextJob)",context)};}};
+    return {context,model,commands,slots,jobs,values,store,storage,device,pixels,album,commitCount:()=>commitCount,expire(ms){for(const [id,t] of pendingTimers)if(t.ms<=ms){pendingTimers.delete(id);t.fn();}},async execute(action,payload={}){const j={id:String(jobs.length),address:actualAddress,action,payload,status:"running",committed:false};jobs.push(j);context.nextJob=j;return {job:j,promise:vm.runInContext("ELinkBLE.execute(nextJob)",context)};}};
 }
 test("publish sends exact native bytes, checks offsets/checksum and generation",async()=>{
     const h=await harness(),{job,promise}=await h.execute("publish",{kind:"image",frame:P.bytes64(frame),sha256:await P.sha256(frame)}),receipt=await promise;
@@ -86,6 +89,39 @@ test("connection timeout stops retries and disconnects a late completion",async(
     h.device.gatt.connected=true;finish(h.device.gatt);await Promise.resolve();assert.equal(h.device.gatt.connected,false);
 });
 
+test("idle disconnection stays idle and the next action reconnects without a probe or chooser; manual stop stays stopped",async()=>{
+    const h=await harness();let connects=0;const before=h.commands.length;
+    h.device.gatt.connect=async()=>{connects++;h.device.gatt.connected=true;return h.device.gatt;};
+    h.context.navigator.bluetooth.requestDevice=async()=>{throw Error("Unexpected chooser during idle recovery");};
+    h.device.gatt.connected=false;h.device.ongattserverdisconnected();await vm.runInContext("portableRecover()",h.context);
+    assert.equal(connects,0);await vm.runInContext("ensurePortable(portable.address)",h.context);
+    assert.equal(connects,1);assert.equal(h.device.gatt.connected,true);assert.equal(vm.runInContext("portable.session",h.context),h.device.id);
+    assert.equal(h.commands.length,before);assert.equal(h.jobs.length,0);
+    await vm.runInContext("ensurePortable(portable.address)",h.context);assert.equal(connects,1);
+    await vm.runInContext("ELinkBLE.stop(true)",h.context);await vm.runInContext("portableRecover()",h.context);assert.equal(connects,1);
+    const failed=await harness();let attempts=0;failed.device.gatt.connected=false;failed.device.ongattserverdisconnected();vm.runInContext('state.jobs=[{address:portable.address,status:"waiting"}]',failed.context);
+    failed.device.gatt.connect=async()=>{attempts++;throw Error("unreachable");};await vm.runInContext("portableRecover()",failed.context);
+    assert.equal(attempts,3);await vm.runInContext("portableRecover()",failed.context);assert.equal(attempts,3);
+});
+test("a delayed disconnect event cannot invalidate an already restored GATT session",async()=>{
+    const h=await harness();h.device.ongattserverdisconnected();
+    assert.equal(vm.runInContext("portable.session",h.context),h.device.id);
+    const probe=await h.execute("probe");assert.equal((await probe.promise).result,"pixel_readback_verified");
+});
+
+test("idle connection releases at three minutes, waits for pending work and renews after an operation",async()=>{
+    let now=1000000;const h=await harness({clock:()=>now});
+    now+=179999;await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,true);
+    now++;h.jobs.push({status:"queued"});await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,true);
+    h.jobs.length=0;h.context.operationBusy=()=>true;await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,true);
+    h.context.operationBusy=()=>false;await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,false);
+    await vm.runInContext("portableRecover()",h.context);assert.equal(h.device.gatt.connected,false);
+    await vm.runInContext("ensurePortable(portable.address)",h.context);assert.equal(h.device.gatt.connected,true);
+    now+=170000;const probe=await h.execute("probe");await probe.promise;probe.job.status="succeeded";
+    now+=179999;await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,true);
+    now++;await vm.runInContext("ELinkBLE.releaseIdle()",h.context);assert.equal(h.device.gatt.connected,false);
+});
+
 test("sync and settings wait for BUSY to finish instead of reporting early completion",async()=>{
     for(const action of ["sync","settings"]){const h=await harness({busyAfterSync:4});if(action==="settings")h.model.time=0;
         const {job,promise}=await h.execute(action,action==="settings"?P.settings():{});await promise;
@@ -98,6 +134,31 @@ test("an immediate post-sync device error keeps the submitted result uncertain",
 });
 
 async function albumPayload(count=7,mode="image"){return {mode,interval_minutes:1440,items:await Promise.all(Array.from({length:count},async(_,i)=>{const b=frame.slice();b[0]=i;return {template_id:String(i),frame:P.bytes64(b),sha256:await P.sha256(b),photo_x:i*10};}))};}
+function pauseTransport(kind){
+    let reached,release,used=false;const entered=new Promise(r=>reached=r),hold=new Promise(r=>release=r);
+    return {entered,release,beforeWrite(b,a){if(!used&&((kind==="begin"&&b[0]===0xbd&&b[1]===1)||(kind==="status"&&a.writing&&b[0]===0x93)||(kind==="pixel"&&b[0]===0x96))){used=true;reached();return hold;}},beforeRead(a){if(!used&&kind==="read"&&a.writing){used=true;reached();return hold;}}};
+}
+test("seven-calendar preparation permits a slow initialization acknowledgement and status response",async()=>{
+    for(const kind of ["begin","status","read"]){
+        const pause=pauseTransport(kind),h=await harness({album:true,...pause}),run=await h.execute("album",await albumPayload(7,"calendar"));let failure;
+        const result=run.promise.catch(e=>{failure=e;});await pause.entered;h.expire(9000);await new Promise(setImmediate);
+        assert.equal(failure,undefined,kind+": initialization must not use the 8-second pixel deadline");assert.equal(h.device.gatt.connected,true);
+        pause.release();const receipt=await result;assert.equal(receipt.album.count,7);assert.equal(h.model.page,8);assert.equal(h.commitCount(),1);
+    }
+});
+test("a stuck album initialization stops at its longer deadline and cannot be automatically replayed",async()=>{
+    const pause=pauseTransport("begin"),h=await harness({album:true,...pause}),run=await h.execute("album",await albumPayload(7,"calendar")),error=run.promise.catch(e=>e);
+    await pause.entered;h.expire(30000);const e=await error;
+    assert.match(e.message,/BD01.*超时/);assert.equal(e.timeout,true);assert.equal(run.job.committed,true);assert.equal(h.device.gatt.connected,false);
+    assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===1).length,1);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,0);
+    h.device.gatt.connected=true;pause.release();await new Promise(setImmediate);assert.equal(h.device.gatt.connected,false);
+});
+test("ordinary pixel writes keep the short deadline after gallery preparation",async()=>{
+    const pause=pauseTransport("pixel"),h=await harness({album:true,...pause}),run=await h.execute("album",await albumPayload(7,"calendar")),error=run.promise.catch(e=>e);
+    await pause.entered;h.expire(9000);const e=await error;assert.match(e.message,/蓝牙写入.*超时/);assert.equal(h.device.gatt.connected,false);
+    assert.equal(h.commitCount(),0);pause.release();await new Promise(setImmediate);
+});
+
 test("seven-image playlist verifies bounded Flash steps and is restored by a fresh probe",async()=>{
     const h=await harness({album:true}),p=await albumPayload(),{promise}=await h.execute("album",p),receipt=await promise;
     assert.equal(receipt.offline,true);assert.equal(receipt.album.count,7);assert.equal(receipt.album.interval_minutes,1440);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===2).length,224);
