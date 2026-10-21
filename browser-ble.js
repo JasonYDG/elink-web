@@ -4,6 +4,7 @@ const ELinkBLE = (() => {
     const P=ELinkProtocol,L=ELinkLocal,sleep=ms=>new Promise(r=>setTimeout(r,ms));
     let control,volts,caps={},battery={},working=false,closing="",imagePayload=null,lastActivity=0;const knownDevices=new Map();
     async function bounded(promise,label,ms=8000,device=portable.device){let timer,expired=false;try{return await Promise.race([promise.then(value=>{if(expired)device?.gatt.disconnect();return value;}),new Promise((_,reject)=>timer=setTimeout(()=>{expired=true;device?.gatt.disconnect();const e=Error(label+"超时，已断开蓝牙以停止旧命令");e.connection=e.timeout=true;reject(e);},ms))]);}finally{clearTimeout(timer);}}
+    async function channels(device){const service=await bounded(device.gatt.getPrimaryService(P.service),"查找屏幕服务",15000,device),nextControl=await bounded(service.getCharacteristic(P.control),"查找屏幕控制通道",15000,device);let nextVolts=null;try{nextVolts=await bounded(service.getCharacteristic(P.volts),"查找屏幕电量通道",15000,device);}catch(e){if(e.timeout)throw e;}control=nextControl;volts=nextVolts;}
     async function write(b,large=false,timeout=8000){
         if(!portable.device?.gatt.connected||!control){const e=Error("屏幕蓝牙已断开");e.connection=true;throw e;}if(!(b instanceof Uint8Array)||!b.length||b.length>(large?136:20))throw Error("蓝牙写入长度不合法");
         lastActivity=Date.now();try{await bounded(control.writeValueWithResponse?control.writeValueWithResponse(b):control.writeValue(b),"蓝牙写入 "+P.hex(b.subarray(0,2)).toUpperCase()+"（"+b.length+" 字节）",timeout);}catch(e){if(!e.timeout){const cause=e;e=Error("蓝牙写入 "+P.hex(b.subarray(0,2)).toUpperCase()+"（"+b.length+" 字节）："+cause.message,{cause});e.name=cause.name;}e.connection=true;throw e;}
@@ -32,9 +33,9 @@ const ELinkBLE = (() => {
         throw Error("190 秒内未取得刷新完成回执，请读取状态并查看屏幕");
     }
     async function slots(){const values=[];for(let i=0;i<8;i++){const s=await query(Uint8Array.of(0xb4,i),P.slot);if(caps.reminder_summary)Object.assign(s,await query(Uint8Array.of(0xbb,i),P.runtime));values.push(s);}return values;}
-    async function ram(){const frame=new Uint8Array(8000);for(const plane of [0,4000])for(let off=0;off<4000;off+=128){const b=await query(P.packet(0x9a,[[2,plane+off]]),block(128));frame.set(b.subarray(0,Math.min(128,4000-off)),plane+off);}return frame;}
-    async function readFrame(s){const frame=await ram(),check=await status();if(check.busy||check.error||["display_mode","display_generation","transfer_id","firmware_id"].some(k=>check[k]!==s[k]))throw Object.assign(Error("读回期间页面已变化，请重新读取状态"),{pageChanged:true});return frame;}
-    async function capture(j,s){const frame=await readFrame(s);j.payload={...j.payload,display_png:ELinkRenderer.png(frame)};await L.updateJob(j,{payload:j.payload});return frame;}
+    async function ram(progress){const frame=new Uint8Array(8000);for(const plane of [0,4000])for(let off=0;off<4000;off+=128){const b=await query(P.packet(0x9a,[[2,plane+off]]),block(128));frame.set(b.subarray(0,Math.min(128,4000-off)),plane+off);if(progress&&((off/128+1)%8===0||off+128>=4000))await progress(plane+Math.min(off+128,4000));}return frame;}
+    async function readFrame(s,progress){const frame=await ram(progress),check=await status();if(check.busy||check.error||["display_mode","display_generation","transfer_id","firmware_id"].some(k=>check[k]!==s[k]))throw Object.assign(Error("读回期间页面已变化，请重新读取状态"),{pageChanged:true});return frame;}
+    async function capture(j,s,progress){const frame=await readFrame(s,progress);j.payload={...j.payload,display_png:ELinkRenderer.png(frame)};await L.updateJob(j,{payload:j.payload});return frame;}
     async function albumState(){try{return await query(Uint8Array.of(0xbd,0),P.album);}catch(e){if(e.connection)throw e;const s=await status();if(s.error!==6)throw e;caps.offline_album=false;return null;}}
     async function albumSlot(j,s){
         s=await idle(s,190);const a=await albumState(),p=j.payload,index=p.index;
@@ -114,13 +115,13 @@ const ELinkBLE = (() => {
         for(let attempt=0;;attempt++)try{
             if(recovered){
                 if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，图库结果待核对");
-                await L.updateJob(j,{phase:"提交回执中断，重新连接只读核对图库（不重复保存）",progress:90});
-                try{device.gatt.disconnect();await sleep(1000);await bounded(device.gatt.connect(),"图库提交后重连",15000,device);const service=await device.gatt.getPrimaryService(P.service);control=await service.getCharacteristic(P.control);try{volts=await service.getCharacteristic(P.volts);}catch{volts=null;}}catch(e){e.connection=true;throw e;}
+                await L.updateJob(j,{phase:"图片已发送，正在恢复连接以确认保存结果（"+(attempt+1)+"/3）",progress:90});
+                try{device.gatt.disconnect();await sleep(1000);await bounded(device.gatt.connect(),"图库提交后重连",15000,device);await channels(device);}catch(e){e.connection=true;throw e;}
                 if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，图库结果待核对");portable.session=device.id;
             }
-            check=await idle(await status(),190);a=await albumState();
+            await L.updateJob(j,{phase:"图片已发送，等待屏幕刷新并核对图库清单",progress:91});check=await idle(await status(),190);a=await albumState();
             if(check.firmware_id!==s.firmware_id||check.display_mode!==7+mode||check.display_generation===generation||!a||!a.enabled||!a.running||a.writing||a.index!==0||a.sequence!==sequence||a.count!==frames.length||a.mode!==mode||a.interval_minutes!==p.interval_minutes||!same(a.crc32,crcs)||!same(a.photo_x,positions))throw Error("播放列表提交后的读回配置不一致，请读取状态核对");
-            const actual=await capture(j,check),expected=mode?P.photoFrame(frames[0],positions[0]):frames[0];
+            const actual=await capture(j,check,bytes=>L.updateJob(j,{phase:"正在核对首张画面 · "+bytes+"/8000 字节",progress:93+Math.floor(4*bytes/8000)})),expected=mode?P.photoFrame(frames[0],positions[0]):frames[0];
             if(mode?[0,4000].some(o=>!P.equal(actual.subarray(o+1216,o+4000),expected.subarray(o+1216,o+4000))):!P.equal(actual,expected))throw Error("图库首张像素读回不一致");
             break;
         }catch(e){if(!e.connection||attempt===2)throw e;recovered=true;}
@@ -143,7 +144,7 @@ const ELinkBLE = (() => {
             receipt.result="ota_readback_verified";await L.updateJob(j,{receipt,phase:"提交启动标记，等待设备重启核对版本",progress:92});finalized=true;
             try{await write(Uint8Array.of(0xa4));}catch(e){if(!e.connection)throw e;}portable.device.gatt.disconnect();
             const end=Date.now()+120000;while(Date.now()<end){await sleep(2000);try{
-                await bounded(portable.device.gatt.connect(),"OTA 重启后重连",15000);const service=await portable.device.gatt.getPrimaryService(P.service);control=await service.getCharacteristic(P.control);volts=await service.getCharacteristic(P.volts);caps={};battery={};imagePayload=null;
+                await bounded(portable.device.gatt.connect(),"OTA 重启后重连",15000);await channels(portable.device);caps={};battery={};imagePayload=null;
                 let check=await status();if(check.firmware_id!==meta.firmware_id)throw Error("重启后版本与升级包不一致，请读取状态核对");caps=await query(Uint8Array.of(0x9d),P.capabilities);check={...check,...caps};check=await configure(L.device(j.address).settings,check);await sync(L.device(j.address).settings,check,true);check=await idle(await status(),190);portable.session=portable.device.id;await L.updateState(j.address,check);return {...receipt,result:"ota_boot_verified",physical_display_confirmed:false};
             }catch(e){if(!e.connection&&!e.timeout)throw e;portable.device.gatt.disconnect();}}
             throw Error("固件已读回校验，提交后未确认新版本启动");
@@ -268,7 +269,7 @@ const ELinkBLE = (() => {
         if(portable.device&&portable.device!==dev){if(working||pending(portable.address))throw Error("当前屏幕任务尚未完成，请先等待或取消队列");await stop();}
         try{
             for(let attempt=0;;attempt++){try{if(!dev.gatt.connected)await bounded(dev.gatt.connect(),"连接屏幕",20000,dev);break;}catch(e){if(e.timeout||attempt===2)throw e;await sleep(500*(attempt+1));}}
-            const service=await dev.gatt.getPrimaryService(P.service);control=await service.getCharacteristic(P.control);imagePayload=null;try{volts=await service.getCharacteristic(P.volts);}catch{volts=null;}
+            await channels(dev);imagePayload=null;
             await L.api("/api/register",{address:actual,name:dev.name});knownDevices.set(actual,dev);portable.device=dev;portable.address=actual;portable.session=dev.id;portable.paused=false;closing="";lastActivity=Date.now();sessionStorage.removeItem("elink-paused");localStorage.setItem("elink-last-address",actual);localStorage.setItem("elink-device-"+actual,dev.id);
             dev.ongattserverdisconnected=()=>{if(portable.device!==dev||dev.gatt.connected)return;portable.session="";control=volts=null;$("portable-status").textContent=closing||"屏幕失联，下一次操作将自动重连 · 未确认提交不会重复发送";if(typeof operationLocks==="function")operationLocks();};
             $("portable-status").textContent="已连接 "+dev.name+" · 本机蓝牙";await refresh();return actual;
