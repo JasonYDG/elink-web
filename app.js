@@ -63,7 +63,12 @@ async function batch(action,payload={}){
     try{const addresses=[];for(const d of devices){const issue=action==="probe"?(pending(d.address)?"已有未完成任务":""):pageIssue(d,action);if(issue)results.push({address:d.address,error:issue});else addresses.push(d.address);}if(addresses.length){try{const reply=await api("/api/jobs/batch",{addresses,action,payload});for(const r of reply.results){results.push(r);if(r.id)submittedIds.push(r.id);}}catch(e){for(const address of addresses)results.push({address,error:e.message});}}batchResults=results;batchProgress();message(submittedIds.length?"已排队 "+submittedIds.length+" 台屏幕；顶部执行动态将显示实际进展，各台提交结果见下方。":"任务未提交；原因见下方。",!submittedIds.length,submittedIds);await refresh();}finally{batching=false;pageControls();operationLocks();}
 }
 function batchProgress(){$("batch-result").textContent=batchResults.map(r=>{const j=state.jobs.find(j=>j.id===r.id);return r.address+"："+(r.error||(j?labels[j.status]+(j.error?" · "+j.error:""):"已提交 · 请查看任务记录"));}).join("\n");}
-function confirmAction(text){return new Promise(resolve=>{const dialog=$("confirm-dialog");$("confirm-text").textContent=text;dialog.returnValue="";dialog.onclose=()=>resolve(dialog.returnValue==="confirm");dialog.showModal();});}
+function confirmAction(text,phrase=""){return new Promise(resolve=>{
+    const dialog=$("confirm-dialog"),input=$("confirm-phrase"),button=dialog.querySelector('[value="confirm"]');
+    $("confirm-title").textContent=phrase?"确认固件升级":"确认操作";$("confirm-text").textContent=text;$("confirm-phrase-label").hidden=!phrase;$("confirm-phrase-instruction").textContent="请输入 "+phrase+" 以继续";
+    input.value="";input.required=!!phrase;input.oninput=()=>button.disabled=!!phrase&&input.value.trim()!==phrase;input.oninput();button.textContent=phrase?"确认升级":"确认";
+    dialog.returnValue="";dialog.onclose=()=>resolve(dialog.returnValue==="confirm"&&(!phrase||input.value.trim()===phrase));dialog.showModal();
+});}
 function message(text,error=false,jobIds=[]){noticeJobIds=jobIds;$("message").hidden=false;$("message").textContent=text;$("message").className=error?"error":"";}
 function clearQueuedMessage(){if(noticeJobIds.length&&!state.jobs.some(j=>noticeJobIds.includes(j.id)&&unfinished.includes(j.status))){$("message").hidden=true;noticeJobIds=[];}}
 async function api(path,body,signal){
@@ -174,7 +179,7 @@ async function loadOTAPackage(read){
 }
 $("ota-file").onchange=()=>perform($("ota-file"),()=>loadOTAPackage(()=>$("ota-file").files[0]));
 $("ota-online").onclick=()=>perform($("ota-online"),()=>loadOTAPackage(async()=>{const r=await fetch($("ota-download").href,{cache:"no-store"});if(!r.ok)throw Error("在线固件下载失败（HTTP "+r.status+"），请稍后重试或选择本地升级包");return r.blob();}));
-$("ota-install").onclick=()=>perform($("ota-install"),async()=>{if(!otaPackage)throw Error("请先选择并验证 .elink-update.json 升级包");await queue("ota",{package:otaPackage});});
+$("ota-install").onclick=()=>perform($("ota-install"),async()=>{const candidate=otaPackage;if(!candidate)throw Error("请先选择并验证 .elink-update.json 升级包");const d=singleDevice();if(!await confirmAction("将为 "+(d.name||d.address)+"（"+d.address+"）安装固件 "+candidate.version+"。请保持屏幕供电、网页前台，并关闭其他蓝牙控制端。","UPDATE"))return;if(singleDevice().address!==d.address||otaPackage!==candidate)throw Error("升级对象或升级包已变化，请重新确认");await queue("ota",{package:candidate});});
 let cropImage=null,cropOriginal=null,cropLoad=0,drag=null;
 function cropValues(){return {rotation:Number($("crop-rotation").value),mode:$("crop-fit").value,zoom:Number($("crop-scale").value)/100,x:Number($("crop-x").value)/100,y:Number($("crop-y").value)/100};}
 function cropGeometry(){const c=cropValues(),scale=(c.mode==="cover"?Math.max:Math.min)(250/cropImage.width,122/cropImage.height)*c.zoom,w=cropImage.width*scale,h=cropImage.height*scale;return {w,h,rx:Math.max(0,(w-250)/2),ry:Math.max(0,(h-122)/2)};}
