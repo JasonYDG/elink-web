@@ -3,7 +3,7 @@
 const test=require("node:test"),assert=require("node:assert/strict"),vm=require("node:vm"),fs=require("node:fs"),path=require("node:path"),P=require("../protocol.js");
 const root=path.join(__dirname,".."),frame=Uint8Array.from(fs.readFileSync(path.join(root,"image/13-space-rabbit.bin")));
 async function harness(options={}){
-    const model={mode:1,every:60,page:2,generation:9,received:0,transfer:0,sum:0,expected:0,time:1,window:0,advertise:1,refresh:5,error:0,firmware:Uint8Array.of(1,2,3,4)},commands=[],jobs=[],values=new Map(),device={id:"test-device",name:"ELINK-BWR-EE0001",gatt:{connected:true,disconnect(){this.connected=false;},async connect(){this.connected=true;return this;}}};
+    const model={mode:1,every:60,page:2,generation:9,received:0,transfer:0,sum:0,expected:0,time:1,window:0,advertise:1,refresh:5,error:0,firmware:Uint8Array.of(1,2,3,4)},commands=[],jobs=[],updates=[],values=new Map(),device={id:"test-device",name:"ELINK-BWR-EE0001",gatt:{connected:true,disconnect(){this.connected=false;},async connect(){this.connected=true;return this;}}};
     const slots=Array.from({length:8},(_,slot)=>({slot,state:255,token:0,due:0,crc:0,received:0,frame:new Uint8Array(8000),metadata:new Uint8Array(156),writing:false}));let currentSlot=0,answer=new Uint8Array(32),commitCount=0;
     const pixels=new Uint8Array(8000),album={sequence:0,count:0,mode:0,minutes:1440,enabled:false,running:false,index:255,writing:false,step:0,staged:[],frames:[],positions:[]};pixels.fill(255,0,4000);
     function albumData(){const b=new Uint8Array(64),v=P.view(b);b.set([69,76,65,49,3,Number(!!album.sequence),Number(album.running),album.index,Number(album.writing),album.staged.length]);v.setUint16(10,album.step,true);if(album.sequence){const c=b.subarray(12),cv=P.view(c);c.set([69,76,71,50]);cv.setUint32(4,album.sequence,true);cv.setUint16(12,album.minutes,true);c[14]=album.count;c[15]=album.mode+Number(album.enabled)*4;album.frames.forEach((f,i)=>cv.setUint32(16+i*4,P.crc32(f),true));c.set(album.positions,44);c[51]=254;cv.setUint32(8,P.crc32(Uint8Array.from([...c.subarray(0,8),...c.subarray(12,51)])),true);}return b;}
@@ -46,17 +46,17 @@ async function harness(options={}){
         else if(code===0xba){const off=v.getUint16(2,true);answer=slots[b[1]].metadata.slice(off,Math.min(156,off+128));}
         else if(code===0xb9){model.page=5;model.generation++;commitCount++;}
         else if(code===0xb5){const s=slots[b[1]];assert.equal(s.token,v.getUint32(2,true));s.state=248;}
-        else if(code===0x9a){const off=v.getUint16(1,true);answer=new Uint8Array(128);answer.set(pixels.subarray(off,Math.min(off+128,off<4000?4000:8000)));if(options.changeDuringReadback||options.keepChanging){model.generation++;options.changeDuringReadback=false;}}
+        else if(code===0x9a){const off=v.getUint16(1,true);answer=new Uint8Array(128);answer.set(pixels.subarray(off,Math.min(off+128,off<4000?4000:8000)));if(options.corruptRAM)answer[0]^=1;if(options.changeDuringReadback||options.keepChanging){model.generation++;options.changeDuringReadback=false;}}
     },async readValue(){if(options.beforeRead)await options.beforeRead(album);return new DataView(answer.buffer,answer.byteOffset,answer.byteLength);}};
     device.gatt.getPrimaryService=async()=>({getCharacteristic:async id=>id===P.control?characteristic:{readValue:async()=>new DataView(Uint8Array.of(228,11).buffer)}});
-    const store={ready:Promise.resolve(),assertOwner(){},summary:()=>({jobs,reminders:[]}),device:()=>({settings:P.settings()}),job:ident=>jobs.find(j=>j.id===ident),async updateJob(j,change){Object.assign(j,change);},async updateState(address,s){values.set(address,s);},async saveSettings(){},async reconcile(){},async persist(){},stopPlans(){},albumMatches:a=>a.crc32.map(()=>null),albumFrame:(a,index)=>options.cachedAlbum?album.frames[index]:null,async restoreAlbum(a,frames){store.restored=frames;return {...a,items:Array.from({length:a.count},(_,i)=>({template_id:frames[i]?"read-"+i:null,photo_x:a.photo_x[i]})),editable:Array.from({length:a.count},(_,i)=>!!frames[i]).every(Boolean)};},async api(){return {address:"AA:BB:CC:DD:EE:01"};},async tick(){}};
+    const store={ready:Promise.resolve(),assertOwner(){},summary:()=>({jobs,reminders:[]}),device:()=>({settings:P.settings()}),job:ident=>jobs.find(j=>j.id===ident),async updateJob(j,change){updates.push({...change});Object.assign(j,change);},async updateState(address,s){values.set(address,s);},async saveSettings(){},async reconcile(){},async persist(){},stopPlans(){},albumMatches:a=>a.crc32.map(()=>null),albumFrame:(a,index)=>options.cachedAlbum?album.frames[index]:null,async restoreAlbum(a,frames){store.restored=frames;return {...a,items:Array.from({length:a.count},(_,i)=>({template_id:frames[i]?"read-"+i:null,photo_x:a.photo_x[i]})),editable:Array.from({length:a.count},(_,i)=>!!frames[i]).every(Boolean)};},async api(){return {address:"AA:BB:CC:DD:EE:01"};},async tick(){}};
     const elements=new Map(),storage=new Map(),context=vm.createContext({ELinkProtocol:P,ELinkLocal:store,ELinkRenderer:{metadata:async()=>{const b=new Uint8Array(156);b.set([166,127,1,5]);P.view(b).setUint32(152,P.crc32(b.subarray(0,152)),true);return b;},png:()=>"preview",noticeBattery:async()=>{throw Error("unexpected notice render");}},console,crypto,Uint8Array,Uint16Array,Uint32Array,DataView,Date:options.clock?class extends Date{static now(){return options.clock();}}:Date,Math,Set,Map,TextEncoder,Promise,Error,Number,Array,String,Object,location:{reload(){}},window:{isSecureContext:true,addEventListener(){}},navigator:{bluetooth:{requestDevice:async()=>device,getDevices:async()=>[device]},userActivation:{isActive:true}},sessionStorage:{getItem:()=>null,setItem(){},removeItem(){}},localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},setInterval(){},setTimeout(fn,ms){if(ms<=1000)queueMicrotask(fn);return 0;},clearTimeout(){},pending:()=>false,refresh:async()=>{},selectDevice(){},message(){},confirmAction:async()=>options.confirmRebind!==false,state:{jobs:[]},targets:new Set(),$:id=>{if(!elements.has(id))elements.set(id,{value:"",disabled:false,textContent:""});return elements.get(id);}});
     if(options.fireConnectTimeout)context.setTimeout=(fn,ms)=>{if(ms<=1000||ms===20000)queueMicrotask(fn);return 0;};
     const pendingTimers=new Map(),timers=context.setTimeout;let timerId=0;
     context.setTimeout=(fn,ms)=>ms===2000?(queueMicrotask(fn),0):ms>2000&&!options.fireConnectTimeout?(pendingTimers.set(++timerId,{fn,ms}),timerId):timers(fn,ms);
     context.clearTimeout=id=>pendingTimers.delete(id);
     vm.runInContext(fs.readFileSync(path.join(root,"ota.js"),"utf8"),context);vm.runInContext(fs.readFileSync(path.join(root,"browser-ble.js"),"utf8"),context);const actualAddress=await vm.runInContext('ELinkBLE.connect("",true,false)',context);
-    return {context,model,commands,slots,jobs,values,store,storage,device,pixels,album,commitCount:()=>commitCount,expire(ms){for(const [id,t] of pendingTimers)if(t.ms<=ms){pendingTimers.delete(id);t.fn();}},async execute(action,payload={}){const j={id:String(jobs.length),address:actualAddress,action,payload,status:"running",committed:false};jobs.push(j);context.nextJob=j;return {job:j,promise:vm.runInContext("ELinkBLE.execute(nextJob)",context)};}};
+    return {context,model,commands,slots,jobs,updates,values,store,storage,device,pixels,album,commitCount:()=>commitCount,expire(ms){for(const [id,t] of pendingTimers)if(t.ms<=ms){pendingTimers.delete(id);t.fn();}},async execute(action,payload={}){const j={id:String(jobs.length),address:actualAddress,action,payload,status:"running",committed:false};jobs.push(j);context.nextJob=j;return {job:j,promise:vm.runInContext("ELinkBLE.execute(nextJob)",context)};}};
 }
 test("publish sends exact native bytes, checks offsets/checksum and generation",async()=>{
     const h=await harness(),{job,promise}=await h.execute("publish",{kind:"image",frame:P.bytes64(frame),sha256:await P.sha256(frame)}),receipt=await promise;
@@ -239,6 +239,31 @@ test("saving defaults to rotation off even after recovering a lost commit acknow
         assert.equal(receipt.album.count,2);assert.equal(receipt.album.enabled,false);assert.equal(receipt.album.running,false);assert.equal(h.model.page,7);assert.equal(h.commitCount(),1);
         assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===4).length,1);
     }
+});
+
+test("album verification advances from received pixel bytes and never reports a corrupt display as saved",async()=>{
+    const h=await harness({album:true,disconnectAlbumCommit:true}),run=await h.execute("album",await albumPayload(1));await run.promise;
+    const read=h.updates.filter(u=>u.phase?.startsWith("正在核对首张画面"));assert.deepEqual(read.map(u=>Number(u.phase.match(/(\d+)\/8000/)[1])),[1024,2048,3072,4000,5024,6048,7072,8000]);assert.equal(read[7].progress,97);
+    assert.ok(h.updates.some(u=>u.phase?.includes("确认保存结果（1/3）")));assert.ok(h.updates.every(u=>!u.phase?.includes("提交回执中断")));assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+    const bad=await harness({album:true,corruptRAM:true}),save=await bad.execute("album",await albumPayload(1));await assert.rejects(save.promise,/首张像素读回不一致/);assert.equal(save.job.committed,true);assert.equal(bad.updates.some(u=>u.status==="succeeded"),false);
+});
+
+test("stalled recovery service and both characteristics have bounded retries without a second commit",{timeout:3000},async()=>{
+    for(const stage of ["service","control","volts"]){
+        const h=await harness({album:true,disconnectAlbumCommit:true}),base=h.device.gatt.getPrimaryService,entered=Array.from({length:3},()=>{let resolve;const promise=new Promise(r=>resolve=r);return {promise,resolve};});let attempts=0;
+        const stall=()=>{entered[attempts++].resolve();return new Promise(()=>{});};
+        h.device.gatt.getPrimaryService=async(...args)=>{if(stage==="service")return stall();const service=await base(...args),get=service.getCharacteristic;service.getCharacteristic=id=>(id===(stage==="control"?P.control:P.volts))?stall():get(id);return service;};
+        const run=await h.execute("album",await albumPayload(1)),result=run.promise.catch(e=>e);
+        for(let i=0;i<3;i++){await entered[i].promise;await new Promise(setImmediate);h.expire(15000);}
+        const error=await result;assert.equal(error.timeout,true);assert.match(error.message,/查找屏幕.*超时/);assert.equal(attempts,3);assert.equal(h.device.gatt.connected,false);assert.equal(run.job.committed,true);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+    }
+});
+
+test("one stalled service lookup can recover on the next read-only attempt",{timeout:3000},async()=>{
+    const h=await harness({album:true,disconnectAlbumCommit:true}),base=h.device.gatt.getPrimaryService;let resolve,attempts=0;const entered=new Promise(r=>resolve=r);
+    h.device.gatt.getPrimaryService=(...args)=>{if(++attempts===1){resolve();return new Promise(()=>{});}return base(...args);};
+    const run=await h.execute("album",await albumPayload(1));await entered;await new Promise(setImmediate);h.expire(15000);const receipt=await run.promise;
+    assert.equal(receipt.result,"album_flash_verified");assert.equal(receipt.recovered_after_disconnect,true);assert.equal(attempts,2);assert.ok(h.updates.some(u=>u.phase?.includes("确认保存结果（2/3）")));assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
 });
 
 test("gallery checkpoints reduce queries while every ordered Flash step is still submitted",async()=>{
