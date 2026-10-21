@@ -36,15 +36,30 @@ const ELinkBLE = (() => {
     async function readFrame(s){const frame=await ram(),check=await status();if(check.busy||check.error||["display_mode","display_generation","transfer_id","firmware_id"].some(k=>check[k]!==s[k]))throw Object.assign(Error("读回期间页面已变化，请重新读取状态"),{pageChanged:true});return frame;}
     async function capture(j,s){const frame=await readFrame(s);j.payload={...j.payload,display_png:ELinkRenderer.png(frame)};await L.updateJob(j,{payload:j.payload});return frame;}
     async function albumState(){try{return await query(Uint8Array.of(0xbd,0),P.album);}catch(e){if(e.connection)throw e;const s=await status();if(s.error!==6)throw e;caps.offline_album=false;return null;}}
-    async function restoreAlbum(j,s){
-        const album=s.album;if(!album?.count||album.writing)return album;const matches=L.albumMatches(album),frames=[];
-        if(s.album_readback)for(let i=0;i<album.count;i++)if(!matches[i]){
-            await L.updateJob(j,{phase:"读回图库第 "+(i+1)+"/"+album.count+" 张原图",progress:5+Math.floor(35*i/album.count)});const frame=new Uint8Array(8000);
-            for(let off=0;off<8000;off+=128)frame.set(await query(P.packet(0xbd,[[1,5],[1,i],[2,off]]),block(Math.min(128,8000-off))),off);
-            if(P.crc32(frame)!==album.crc32[i])throw Error("图库原图CRC32校验失败");frames[i]=frame;
+    async function albumSlot(j,s){
+        s=await idle(s,190);const a=await albumState(),p=j.payload,index=p.index;
+        P.int(index,0,6,"卡槽");P.int(p.sequence,0,4294967295,"图库版本");P.int(p.crc32,0,4294967295,"图片校验值");
+        if(!a||a.writing||index<0||index>=a.count||a.sequence!==p.sequence||a.crc32[index]!==p.crc32)throw Error("图库已变化，请重新读取状态，未切换图片");
+        let frame=L.albumFrame(a,index);
+        if(!frame){
+            if(!s.album_readback)throw Error("读取卡槽原图需要 1.5.11 或更新固件");
+            frame=new Uint8Array(8000);
+            for(let off=0;off<8000;off+=128){
+                await L.updateJob(j,{phase:"读取卡槽 "+(index+1)+" 原图 · "+off+"/8000 字节",progress:5+Math.floor(35*off/8000)});
+                frame.set(await query(P.packet(0xbd,[[1,5],[1,index],[2,off]]),block(Math.min(128,8000-off))),off);
+            }
         }
-        const after=await albumState();if(!after||["sequence","count","crc32","photo_x","mode","interval_minutes","enabled"].some(k=>JSON.stringify(after[k])!==JSON.stringify(album[k])))throw Error("读回期间图库配置已变化，请重新读取");
-        return L.restoreAlbum(after,frames);
+        if(frame.length!==8000||P.crc32(frame)!==a.crc32[index])throw Error("图库原图CRC32校验失败");
+        const after=await albumState();if(!after||["sequence","count","crc32","photo_x","mode","interval_minutes","enabled"].some(k=>JSON.stringify(after[k])!==JSON.stringify(a[k])))throw Error("读回期间图库配置已变化，请重新读取");
+        const frames=[];frames[index]=frame;const album=await L.restoreAlbum(after,frames);s={...s,...await status(),album};await L.updateState(j.address,s);
+        if(j.action==="album_read")return {result:"album_original_verified",album_slot:index,album,optical_result_verified:false};
+        // shortcut: current firmware needs a single-image upload; use native slot selection when the protocol supports it.
+        const display=album.mode?P.photoFrame(frame,album.photo_x[index]):frame;
+        await L.updateJob(j,{payload:{...p,kind:"image",frame:P.bytes64(display),sha256:await P.sha256(display),png:ELinkRenderer.png(display)}});
+        const receipt=await publish(j,s,!!album.mode),check=await albumState();
+        if(!check||check.enabled||check.running||check.writing||["count","crc32","photo_x","mode","interval_minutes"].some(k=>JSON.stringify(check[k])!==JSON.stringify(album[k]))||check.sequence!==((album.sequence+Number(album.enabled||album.writing))>>>0))throw Error("切换后图库配置不一致，请读取状态核对");
+        const state={...await status(),album:await L.restoreAlbum(check,[])};await L.updateState(j.address,state);
+        return {...receipt,result:"album_slot_display_verified",album_slot:index,album:state.album};
     }
     async function stopAlbum(j,s){
         if(!s.offline_album)return s;s=await idle(s,190);let album=await albumState();if(!album)return {...s,offline_album:false};
@@ -87,14 +102,15 @@ const ELinkBLE = (() => {
             const transfer=1+crypto.getRandomValues(new Uint16Array(1))[0]%65535;
             await uploadFrame(j,frames[i],transfer,n=>({phase:"上传第 "+(i+1)+"/"+frames.length+" 张 · "+n+"/8000 字节",progress:5+Math.floor(75*(i+n/16000)/frames.length)}));
             for(let step=0;step<32;step++){
-                await L.updateJob(j,{phase:"保存第 "+(i+1)+" 张 · "+step+"/32 块已校验",progress:5+Math.floor(75*(i+(1+step/32)/2)/frames.length)});
-                await write(P.packet(0xbd,[[1,2],[1,i],[1,positions[i]],[4,crcs[i]],[1,step]]));const check=await status();if(check.error)throw Error("图库块写入或校验失败："+check.error);
-                a=await albumState();if(!a?.writing||a.staged_count!==i+Number(step===31)||a.save_step!==(step+1)%32)throw Error("图库保存进度与设备回执不一致");
+                await write(P.packet(0xbd,[[1,2],[1,i],[1,positions[i]],[4,crcs[i]],[1,step]]));
+                // Firmware checks every ordered write and accumulates read-back CRC; query each four-block checkpoint.
+                if(step%4===3){const check=await status();if(check.error)throw Error("图库块写入或校验失败："+check.error);await L.updateJob(j,{phase:"保存第 "+(i+1)+" 张 · "+(step+1)+"/32 块已校验",progress:5+Math.floor(75*(i+(1+(step+1)/32)/2)/frames.length)});}
             }
+            a=await albumState();if(!a?.writing||a.staged_count!==i+1||a.save_step!==0)throw Error("图库保存进度与设备回执不一致");
         }
         const mode=Number(p.mode==="calendar");await committed(j,"提交播放列表，等待首张刷新和读回校验");await L.updateJob(j,{progress:88});
         let recovered=false,check;
-        try{await write(P.packet(0xbd,[[1,3],[1,mode],[2,p.interval_minutes]]));}catch(e){if(!e.connection)throw e;recovered=true;}
+        try{await write(P.packet(0xbd,[[1,3],[1,mode],[2,p.interval_minutes]]),false,190000);}catch(e){if(!e.connection)throw e;recovered=true;}
         for(let attempt=0;;attempt++)try{
             if(recovered){
                 if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，图库结果待核对");
@@ -108,7 +124,10 @@ const ELinkBLE = (() => {
             if(mode?[0,4000].some(o=>!P.equal(actual.subarray(o+1216,o+4000),expected.subarray(o+1216,o+4000))):!P.equal(actual,expected))throw Error("图库首张像素读回不一致");
             break;
         }catch(e){if(!e.connection||attempt===2)throw e;recovered=true;}
-        check={...check,album:a};await L.updateState(j.address,check);L.stopPlans(j.address);
+        check={...check,album:a};
+        // shortcut: this firmware starts rotation on commit; use a paused commit when firmware supports it.
+        if(p.auto_rotate!==true){await L.updateJob(j,{phase:"保存已核对，关闭自动换图",progress:98});check=await stopAlbum(j,check);a=check.album;}
+        check.album=await L.restoreAlbum(a,[]);await L.updateState(j.address,check);L.stopPlans(j.address);
         return {...check,result:reuse?"album_config_verified":"album_flash_verified",generation_after:check.display_generation,offline:true,reused_gallery:reuse,recovered_after_disconnect:recovered,transmitted_image_bytes:reuse?0:8000*frames.length,optical_result_verified:false};
     }
     async function upgrade(j,s){
@@ -164,15 +183,15 @@ const ELinkBLE = (() => {
         await cancelTokens(j,[p.previous_token],await slots());const summary=await overview(j,await status()),runtime=await query(Uint8Array.of(0xbb,slot),P.runtime);
         return {...summary,...runtime,result:"reminder_flash_verified",slot,token:p.token,due:p.due,crc32:checksum,sha256:p.sha256,bytes:8000,offline:true,slot_state:check.state,optical_result_verified:false};
     }
-    async function publish(j,s){
-        s=await stopAlbum(j,s);const started=Date.now(),photo=j.action==="photo_calendar";
+    async function publish(j,s,photo=j.action==="photo_calendar"){
+        s=await stopAlbum(j,s);const started=Date.now();
         if(photo&&!s.photo_calendar_wide)throw Error("新版图片日历需要 1.5.9 或更新固件");
         let p=j.payload;if(p.kind==="notice"){p={...p,...await ELinkRenderer.noticeBattery(p.png,s.battery_percent),battery};await L.updateJob(j,{payload:p});}
         const frame=P.decode64(p.frame);if(frame.length!==8000||await P.sha256(frame)!==p.sha256)throw Error("排队画面像素校验失败");
         if(p.scheduled){const old=L.summary().jobs.find(old=>old.address===j.address&&old.action==="publish"&&old.status==="succeeded");if(old?.sha256===p.sha256&&s.display_mode===2&&!s.busy&&old.receipt.transfer_id===s.transfer_id&&old.receipt.generation_after===s.display_generation&&old.receipt.firmware_id===s.firmware_id)return {...old.receipt,result:"content_unchanged"};}
         s=await initialized(L.device(j.address).settings,s);if(photo){await sync(L.device(j.address).settings,s,true);s=await idle(await status());}const transfer=1+crypto.getRandomValues(new Uint16Array(1))[0]%65535,generation=s.display_generation,prepared=Date.now();
         const uploaded=await uploadFrame(j,frame,transfer,n=>({phase:"传输已核对 "+n+"/8000 字节",progress:5+Math.floor(85*n/8000)}));
-        const transferred=Date.now(),amount=uploaded.pixel_payload_bytes,receipt={transfer_id:transfer,sha256:p.sha256,generation_before:generation,bytes:8000,firmware_id:s.firmware_id,battery,pixel_payload_bytes:amount,pixel_packets:Math.ceil(8000/amount),transfer_seconds:(transferred-prepared)/1000};await L.updateJob(j,{receipt,progress:92});await committed(j,"图片已接收，等待清屏和刷新回执");await write(photo?Uint8Array.of(0x9c,3):P.packet(0x97,[[2,transfer]]));const after=await completed(j,generation,photo?6:2,transfer),refreshed=Date.now();
+        const transferred=Date.now(),amount=uploaded.pixel_payload_bytes,receipt={transfer_id:transfer,sha256:p.sha256,generation_before:generation,bytes:8000,firmware_id:s.firmware_id,battery,pixel_payload_bytes:amount,pixel_packets:Math.ceil(8000/amount),transfer_seconds:(transferred-prepared)/1000};await L.updateJob(j,{receipt,progress:92});await committed(j,"图片已接收，等待清屏和刷新回执");await write(photo?Uint8Array.of(0x9c,3):P.packet(0x97,[[2,transfer]]),false,190000);const after=await completed(j,generation,photo?6:2,transfer),refreshed=Date.now();
         const actual=await capture(j,after);if(photo?[0,4000].some(o=>!P.equal(actual.subarray(o+1216,o+4000),frame.subarray(o+1216,o+4000))):!P.equal(actual,frame))throw Error("刷新后的像素与发送图片不一致，请读取状态核对");L.stopPlans(j.address);return {...receipt,result:"busy_completed",generation_after:after.display_generation,refresh_seconds:(refreshed-transferred)/1000,readback_seconds:(Date.now()-refreshed)/1000,total_seconds:(Date.now()-started)/1000,optical_result_verified:false};
     }
     async function execute(j){
@@ -184,7 +203,7 @@ const ELinkBLE = (() => {
             try{battery={...P.battery(await read(volts)),battery_read_at:Date.now()/1000};}catch(e){battery={battery_mv:null,battery_percent:null,battery_error:e.message,battery_read_at:Date.now()/1000};if(!portable.device?.gatt.connected)throw e;}
             s={...s,...caps,...battery};await L.updateState(j.address,s);const c=L.device(j.address).settings;
             if(j.action==="probe"){
-                s=await idle(s,190);if(s.offline_album){s.album=await albumState();s.offline_album=!!s.album;if(s.album){const album=await restoreAlbum(j,s);s={...await status(),album};}}
+                s=await idle(s,190);if(s.offline_album){s.album=await albumState();s.offline_album=!!s.album;if(s.album&&!s.album.writing)s.album=await L.restoreAlbum(s.album,[]);}
                 if(s.offline_reminders){const values=await slots();s.reminder_slots=values;await L.reconcile(j.address,values);}
                 if(s.protocol===1){
                     await L.updateJob(j,{phase:"读取屏幕画面…",progress:65});
@@ -207,6 +226,7 @@ const ELinkBLE = (() => {
             }
             if(j.action==="overview")return await overview(j,s);if(j.action==="reminder")return await install(j,s);if(["publish","photo_calendar"].includes(j.action))return await publish(j,s);
             if(j.action==="album")return await installAlbum(j,s);if(j.action==="album_stop")return await stopAlbum(j,s);
+            if(j.action==="album_read"||j.action==="album_show")return await albumSlot(j,s);
             if(j.action==="ota")return await upgrade(j,s);
             if(["default","resume","calendar"].includes(j.action)){
                 s=await stopAlbum(j,s);
