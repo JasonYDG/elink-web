@@ -28,6 +28,7 @@ async function harness(options={}){
         else if(code===0x9c){model.page={0:0,1:3,2:4,3:6}[b[1]];model.generation++;commitCount++;}
         else if(code===0xbd){
             if(b[1]===0)answer=albumData();
+            else if(b[1]===6){if(options.preflightUnsupported){model.error=1;answer=state();}else answer=Uint8Array.of(69,76,65,80,b[2]+(options.badPreflight?2:1),120,0,0);}
             else if(b[1]===1){if(!album.sequence)album.sequence=1;album.writing=true;album.staged=[];album.stagedPositions=[];album.step=0;}
             else if(b[1]===2){assert.equal(b[2],album.staged.length);assert.equal(b[8],album.step);assert.equal(v.getUint32(4,true),P.crc32(pixels));if(options.badAlbumStep&&album.step===3)throw Error("Flash step failed");album.step++;if(album.step===32){album.staged.push(pixels.slice());album.stagedPositions.push(b[3]);album.step=0;model.page=2;}}
             else if(b[1]===3){assert.equal(album.step,0);if(album.writing){album.frames=album.staged;album.positions=album.stagedPositions;}album.count=album.frames.length;album.mode=b[2];album.minutes=v.getUint16(3,true);album.sequence++;album.enabled=album.running=true;album.writing=false;album.index=0;pixels.set(album.mode?P.photoFrame(album.frames[0],album.positions[0]):album.frames[0]);model.page=7+album.mode;model.generation++;commitCount++;if(options.disconnectAlbumCommit){device.gatt.connected=false;throw Error("album commit disconnected");}}
@@ -63,6 +64,13 @@ test("publish sends exact native bytes, checks offsets/checksum and generation",
     const sent=Buffer.concat(h.commands.filter(c=>c[0]===0x96).map(c=>Buffer.from(c.subarray(3))));assert.deepEqual(sent,Buffer.from(frame));assert.equal(h.commands.find(c=>c[0]===0x99)[3],0);
 });
 test("wrong receive offset stops before committing",async()=>{const h=await harness({badPosition:true}),{job,promise}=await h.execute("publish",{kind:"image",frame:P.bytes64(frame),sha256:await P.sha256(frame)});await assert.rejects(promise,/接收位置/);assert.equal(h.commitCount(),0);assert.equal(job.committed,false);});
+
+test("GATT DOMException retains command context without assigning its read-only message",async()=>{
+    const cause=new DOMException("GATT operation failed for unknown reason.","NetworkError");
+    const h=await harness({beforeWrite:async b=>{if(b[0]===0x95)throw cause;}}),r=await h.execute("publish",{kind:"image",frame:P.bytes64(frame),sha256:await P.sha256(frame)});
+    await assert.rejects(r.promise,e=>{assert.match(e.message,/蓝牙写入 95.*GATT operation failed/);assert.equal(e.name,"NetworkError");assert.equal(e.cause,cause);assert.equal(e.connection,true);return true;});
+    assert.equal(h.commitCount(),0);
+});
 test("disconnect after accepted commit remains uncertain and cannot be auto-replayed",async()=>{const h=await harness({disconnectCommit:true}),{job,promise}=await h.execute("publish",{kind:"image",frame:P.bytes64(frame),sha256:await P.sha256(frame)});await assert.rejects(promise,/disconnected/);assert.equal(job.committed,true);assert.equal(job.status,"awaiting_display");assert.equal(h.commitCount(),1);assert.equal(h.commands.filter(c=>c[0]===0x97).length,1);});
 test("page selection waits for the matching display generation",async()=>{const h=await harness(),{promise}=await h.execute("calendar",{}),receipt=await promise;assert.equal(receipt.display_mode,3);assert.equal(receipt.display_generation,10);assert.equal(receipt.result,"busy_completed");});
 test("reminder verifies every Flash pixel and metadata before reporting offline readiness",async()=>{
@@ -163,9 +171,18 @@ test("seven-image playlist verifies bounded Flash steps and is restored by a fre
     const h=await harness({album:true}),p=await albumPayload(),{promise}=await h.execute("album",p),receipt=await promise;
     assert.equal(receipt.offline,true);assert.equal(receipt.album.count,7);assert.equal(receipt.album.interval_minutes,1440);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===2).length,224);
     assert.equal(h.commands.filter(b=>b[0]===0x97).length,0);assert.equal(h.commitCount(),1);
-    const before=h.commands.length,again=await h.execute("album",p),reused=await again.promise;assert.equal(reused.transmitted_image_bytes,0);assert.equal(h.commands.slice(before).filter(b=>b[0]===0x96).length,0);
+    assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===6).length,120);
+    assert.ok(h.commands.findIndex(b=>b[0]===0xbd&&b[1]===6&&b[2]===119)<h.commands.findIndex(b=>b[0]===0xbd&&b[1]===1));
+    const before=h.commands.length,again=await h.execute("album",p),reused=await again.promise;assert.equal(reused.transmitted_image_bytes,0);assert.equal(h.commands.slice(before).filter(b=>b[0]===0x96||b[0]===0xbd&&b[1]===6).length,0);
     const probe=await h.execute("probe"),read=await probe.promise;assert.equal(read.album.count,7);assert.equal(read.album.editable,true);assert.equal(h.store.restored.length,7);for(let i=0;i<7;i++)assert.deepEqual(h.store.restored[i],P.decode64(p.items[i].frame));
     assert.equal(read.result,"pixel_readback_verified");assert.ok(probe.job.payload.display_png);
+});
+
+test("unsupported or mismatched first-use checks stop before any gallery initialization",async()=>{
+    for(const options of [{preflightUnsupported:true},{badPreflight:true}]){
+        const h=await harness({album:true,...options}),run=await h.execute("album",await albumPayload(7,"calendar"));
+        await assert.rejects(run.promise,/1\.5\.13|检查进度/);assert.equal(h.commands.filter(b=>b[0]===0xbd&&[1,2,3].includes(b[1])).length,0);assert.equal(run.job.committed,false);
+    }
 });
 test("calendar album and single photo calendar use the native date commit without an extra refresh",async()=>{
     const h=await harness({album:true}),p=await albumPayload(2,"calendar"),run=await h.execute("album",p);await run.promise;assert.equal(h.model.page,8);

@@ -1,0 +1,22 @@
+{
+  "base_repository": "https://github.com/JasonYDG/elink-web",
+  "base_commit": "bbb6e9761770c2686e04dacae3b2445886fd6b73",
+  "base_directory": "windows-manager",
+  "overlay_files": {
+    "source/firmware/build.py": "b8ed8178787b4618e9aa46f31c2b4e5f0b6c158c8611d7e7faba2e9aa39cf82e",
+    "source/firmware/modules/image/album.c": "c892e5a748deb62fabea8912e362f7724cff4df9f93dc610efe6392a2b473c5c",
+    "source/backend/gateway.py": "d27c402a581ca0cc155176af8f8758c3d2ae846d8c470f9ea9f8d2560e5af04c",
+    "source/backend/protocol.py": "7fc9422099622bf80599661a626a479f3bf49480756a756252d1060110d411e7",
+    "source/tests/test_offline_album.py": "f74b0657cfd1640ad494ac4446277a02e943c1576a5e27e2e0aeac0ff2c19ec7",
+    "source/tests/test_album_preflight.py": "c9ebb0987c65d82090a0835bd7e8c765779ea7a796860105392e75274416bedc"
+  },
+  "firmware_version": "1.5.13",
+  "firmware_id": "f1ef98a7",
+  "app_sha256": "b6347e11f4a6c305d5b6540e61e71b564bbff2d623d26677205064f6be443c75",
+  "hardware_tested": false,
+  "toolchain": "Zig 0.13.0, Python dependencies pinned by windows-manager/source/tools/development-lock.txt",
+  "private_binary_fixtures_required": {
+    "source/reference/hmclock-bwr-baseline-app.bin": "4f8178cfb73fe16209121070a499471f136d2c1e1f1636a3c59adbd3583cfb5f",
+    "source/reference/hmclock-bwr-baseline-spi.bin": "aa3d5913551d29e23e1b7cca23dd767dcbd214d78f4a26c2b4fc952e89bd0b64"
+  }
+}

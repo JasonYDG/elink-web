@@ -24,6 +24,7 @@ const ELinkProtocol = (() => {
         const names=["embedded_calendar","minute_region_refresh","bold_clock","global_clock_refresh","quiet_sync","default_page","timezone_clock","offline_reminders"];
         return {...Object.fromEntries(names.map((n,i)=>[n,!!(b[5]&(1<<i))])),reminder_summary:!!(b[6]&1),reminder_large_text:!!(b[6]&2),...(b[6]&4?{offline_album:true,photo_calendar:true,photo_calendar_commit:true,photo_calendar_native_digits:true,max_image_payload:128}:{}),...(b[6]&8?{photo_calendar_wide:true,album_minute_tick:true}:{}),...(b[6]&16?{album_capacity:7,album_readback:true}:{})};
     }
+    function albumPreflight(b){if(b.length!==8||!starts(b,"ELAP")||b[4]<1||b[4]>120||b[5]!==120||b[6]||b[7])throw Error("设备未返回分段图库检查回执");return b[4];}
     function album(b){
         if(b.length===64&&starts(b,"ELA1")&&b[4]===3){
             const v=view(b),progress=v.getUint16(10,true),c=b.subarray(12),cv=view(c),count=c[14],flags=c[15],minutes=cv.getUint16(12,true),check=Uint8Array.from([...c.subarray(0,8),...c.subarray(12,51)]);
@@ -94,6 +95,6 @@ const ELinkProtocol = (() => {
         if(b.length!==8000)throw Error("原生画面须为 8000 字节");const a=new Uint8ClampedArray(250*122*4);
         for(let y=0;y<122;y++)for(let x=0;x<250;x++){const pos=(249-x)*16+(y>>3),mask=128>>(y&7),i=(y*250+x)*4,r=b[pos+4000]&mask,w=b[pos]&mask;a[i]=r?190:w?255:0;a[i+1]=a[i+2]=r?0:w?255:0;a[i+3]=255;}return a;
     }
-    return {service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
+    return {service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,albumPreflight,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
 })();
 if(typeof module!=="undefined")module.exports=ELinkProtocol;

@@ -6,7 +6,7 @@ const ELinkBLE = (() => {
     async function bounded(promise,label,ms=8000,device=portable.device){let timer,expired=false;try{return await Promise.race([promise.then(value=>{if(expired)device?.gatt.disconnect();return value;}),new Promise((_,reject)=>timer=setTimeout(()=>{expired=true;device?.gatt.disconnect();const e=Error(label+"超时，已断开蓝牙以停止旧命令");e.connection=e.timeout=true;reject(e);},ms))]);}finally{clearTimeout(timer);}}
     async function write(b,large=false,timeout=8000){
         if(!portable.device?.gatt.connected||!control){const e=Error("屏幕蓝牙已断开");e.connection=true;throw e;}if(!(b instanceof Uint8Array)||!b.length||b.length>(large?136:20))throw Error("蓝牙写入长度不合法");
-        lastActivity=Date.now();try{await bounded(control.writeValueWithResponse?control.writeValueWithResponse(b):control.writeValue(b),"蓝牙写入 "+P.hex(b.subarray(0,2)).toUpperCase()+"（"+b.length+" 字节）",timeout);}catch(e){e.connection=true;throw e;}
+        lastActivity=Date.now();try{await bounded(control.writeValueWithResponse?control.writeValueWithResponse(b):control.writeValue(b),"蓝牙写入 "+P.hex(b.subarray(0,2)).toUpperCase()+"（"+b.length+" 字节）",timeout);}catch(e){if(!e.timeout){const cause=e;e=Error("蓝牙写入 "+P.hex(b.subarray(0,2)).toUpperCase()+"（"+b.length+" 字节）："+cause.message,{cause});e.name=cause.name;}e.connection=true;throw e;}
     }
     async function read(characteristic=control,timeout=8000){if(!portable.device?.gatt.connected||!characteristic){const e=Error("屏幕蓝牙已断开");e.connection=true;throw e;}lastActivity=Date.now();try{const v=await bounded(characteristic.readValue(),"蓝牙读取",timeout);return new Uint8Array(v.buffer,v.byteOffset,v.byteLength);}catch(e){e.connection=true;throw e;}}
     async function query(command,decode,timeout=8000){
@@ -74,7 +74,12 @@ const ELinkBLE = (() => {
         for(let i=0;i<frames.length;i++)if(await P.sha256(frames[i])!==p.items[i].sha256)throw Error("排队图库像素校验失败");
         s=await idle(s,190);let a=await albumState();if(!a||a.protocol_version<2)throw Error("设备不支持分步保存图库");
         const crcs=frames.map(P.crc32),positions=p.items.map(x=>x.photo_x),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),reuse=!a.writing&&a.has_config&&a.count===frames.length&&same(a.crc32,crcs)&&same(a.photo_x,positions);
-        // First use scans 120 KiB and may create metadata; a lost response must not replay initialization.
+        if(!reuse&&!a.has_config)for(let part=0;part<120;part++){
+            await L.updateJob(j,{phase:"只读检查图库分区 · "+part+"/120 KiB",progress:3});
+            let checked;try{checked=await query(Uint8Array.of(0xbd,6,part),P.albumPreflight);}catch(e){if(e.connection)throw e;const check=await status();if(check.error===1)throw Error("首次图库初始化需要固件 1.5.13，请升级后重新保存；尚未写入图库");throw e;}
+            if(checked!==part+1)throw Error("图库分区检查进度不一致，尚未初始化图库");
+        }
+        // Only metadata creation can write here; all first-use region checks have already yielded between requests.
         if(!reuse){await L.updateJob(j,{phase:"检查图库分区，准备非活动图像区（首次检查可能较慢，请保持连接）",progress:3,committed:true});await write(Uint8Array.of(0xbd,1),false,30000);const check=await status(30000);if(check.error)throw Error("图库分区拒绝写入："+check.error);}
         if(p.mode==="calendar"){s=await configure(L.device(j.address).settings,s);if(!reuse||!s.time_initialized)await sync(L.device(j.address).settings,s,true);s=await idle(await status(),190);}
         a=await albumState();const sequence=(((a.has_config?a.sequence:1)+1)>>>0),generation=s.display_generation;
