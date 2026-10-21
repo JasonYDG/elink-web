@@ -18,7 +18,7 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.5");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.6");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
 });
 

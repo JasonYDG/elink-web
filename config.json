@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.1.6",
   "firmware_versions": {
     "de05d8d1": "1.0.3",
     "768fcd19": "1.0.4",
@@ -129,6 +129,72 @@
       "path": "image/16-fox-garden.png",
       "frame": "image/16-fox-garden.bin",
       "sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267"
+    },
+    {
+      "title": "绝顶凌云",
+      "path": "image/17-mountain-summit.png",
+      "frame": "image/17-mountain-summit.bin",
+      "sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db"
+    },
+    {
+      "title": "天生我材",
+      "path": "image/18-born-to-shine.png",
+      "frame": "image/18-born-to-shine.bin",
+      "sha256": "91ce8688360c75669b81e481f54c0cf2705ef10f452a61f272aeee66aad86f01"
+    },
+    {
+      "title": "长风破浪",
+      "path": "image/19-wind-and-waves.png",
+      "frame": "image/19-wind-and-waves.bin",
+      "sha256": "3c6ef5b10e1f0871f8c5b3e712c866c988293caa2bb4040d19b89d63d8214720"
+    },
+    {
+      "title": "寒梅傲雪",
+      "path": "image/20-plum-in-snow.png",
+      "frame": "image/20-plum-in-snow.bin",
+      "sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d"
+    },
+    {
+      "title": "黄沙金甲",
+      "path": "image/21-desert-cavalry.png",
+      "frame": "image/21-desert-cavalry.bin",
+      "sha256": "3cc9110b8478cfd2ff1e92170a74996db5ea1ba3e78ede6a681a16447ad80f3c"
+    },
+    {
+      "title": "海内知己",
+      "path": "image/22-distant-friend.png",
+      "frame": "image/22-distant-friend.bin",
+      "sha256": "778f12fecd638c0fbb0d5f98de7a5b717702720a18738e1983f8f20b30272ecc"
+    },
+    {
+      "title": "劲竹凌风",
+      "path": "image/23-bamboo-in-wind.png",
+      "frame": "image/23-bamboo-in-wind.bin",
+      "sha256": "8838c17a44e73ca246ca38acb4d73b9b7805bd1cd2553f64a496e8deaf2f8644"
+    },
+    {
+      "title": "青山绿水",
+      "path": "image/24-rivers-and-mountains.png",
+      "frame": "image/24-rivers-and-mountains.bin",
+      "sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf"
+    },
+    {
+      "title": "浮生若梦",
+      "path": "image/25-maple-pavilion.png",
+      "frame": "image/25-maple-pavilion.bin",
+      "sha256": "b4e6baa1cffcbbc82317fe9e94c98eabe03b7dd27443c40ec3388fb211273a9e"
+    },
+    {
+      "title": "登高望岳",
+      "path": "image/26-summit-overlook.png",
+      "frame": "image/26-summit-overlook.bin",
+      "sha256": "3945e706dcbb5e93372b9f46dfc651585aaf3e0be3892d4b143b87ea822711a8"
+    },
+    {
+      "title": "书剑山河",
+      "path": "image/27-scholar-sword.png",
+      "frame": "image/27-scholar-sword.bin",
+      "sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e"
     }
   ],
   "default_clock": {
