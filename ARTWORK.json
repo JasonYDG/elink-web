@@ -39,5 +39,183 @@
       "png_sha256": "f39994d2744216dbc60478d8ed45bf7f641ae41e88e7d89fd87032970932b90f",
       "native_frame_sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267"
     }
+  ],
+  "imports": [
+    {
+      "name": "17-mountain-summit",
+      "title": "绝顶凌云",
+      "source_filename": "0347e91b-aa7d-4739-84bc-03f9852a82aa.png",
+      "renamed_source": "17-mountain-summit.png",
+      "source_sha256": "af4b5bc831a9c351a79f276d5caabac78f1dc1dd0c67205aa7460572869593be",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/17-mountain-summit.png",
+      "png_sha256": "b52a5de185ee5996b39f085cbc364a2cbf8f0017df9e4e5d5b9b3b3ce90d2acd",
+      "native_frame_sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "18-born-to-shine",
+      "title": "天生我材",
+      "source_filename": "089c342d-0d39-4d15-8a1d-8cabe6711624.png",
+      "renamed_source": "18-born-to-shine.png",
+      "source_sha256": "a43a2314ef3be0649424691e5985db4eb3ff8a25f5e5eb67c72b2790719ab8c7",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/18-born-to-shine.png",
+      "png_sha256": "082a86f139f6ff83ee36b734a43094b02f46a81fe5beb2f9cd6e3c2c6fab4f8d",
+      "native_frame_sha256": "91ce8688360c75669b81e481f54c0cf2705ef10f452a61f272aeee66aad86f01",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "19-wind-and-waves",
+      "title": "长风破浪",
+      "source_filename": "23942629-1b0c-4eb0-af9f-07315de0f24f.png",
+      "renamed_source": "19-wind-and-waves.png",
+      "source_sha256": "ea16b87f5aad471aaa5ab193f9f35130e087c0785f853d7c8f55f05603d3d0b5",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/19-wind-and-waves.png",
+      "png_sha256": "fcc9fdfe48dad89a8970dfa3a8e3f5cdbf258c645f9fa0dbdd2133a52a97866f",
+      "native_frame_sha256": "3c6ef5b10e1f0871f8c5b3e712c866c988293caa2bb4040d19b89d63d8214720",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "20-plum-in-snow",
+      "title": "寒梅傲雪",
+      "source_filename": "493d17c9-30d4-4a8e-becc-d2d6f0837aa0.png",
+      "renamed_source": "20-plum-in-snow.png",
+      "source_sha256": "aae10d191c0cfb3531164979dc6e5c8925f6d9a99eed9fe05d2c3224051edeea",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/20-plum-in-snow.png",
+      "png_sha256": "0905b874aa20d906315191792451d18373514d7235e117506a7770185eeb9d27",
+      "native_frame_sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "21-desert-cavalry",
+      "title": "黄沙金甲",
+      "source_filename": "4c975209-acd1-4b3f-85d8-ed3e31ff6534.png",
+      "renamed_source": "21-desert-cavalry.png",
+      "source_sha256": "bfa0bf79f1a12a41b03bb6297cbd8518af6ca73c956b487f18735069fd16db3f",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/21-desert-cavalry.png",
+      "png_sha256": "9f6fe9b63f2101faa53d243cc2f239d9b43614f0273489e4bc325fc160e24618",
+      "native_frame_sha256": "3cc9110b8478cfd2ff1e92170a74996db5ea1ba3e78ede6a681a16447ad80f3c",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "22-distant-friend",
+      "title": "海内知己",
+      "source_filename": "4ccc1c29-7bd1-4ab8-862a-6611235412ec.png",
+      "renamed_source": "22-distant-friend.png",
+      "source_sha256": "593f3f45b4d07c83ba783dea3176006f38010fc6dc7379487f6f1adfc8ab8ca3",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/22-distant-friend.png",
+      "png_sha256": "5e50b64f6202a1de3ae40e4e020bd0f885d1bf8210edd3845fd12a96a26ac66b",
+      "native_frame_sha256": "778f12fecd638c0fbb0d5f98de7a5b717702720a18738e1983f8f20b30272ecc",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "23-bamboo-in-wind",
+      "title": "劲竹凌风",
+      "source_filename": "68b39a2f-69e0-4adc-b15f-8ab47f111aca.png",
+      "renamed_source": "23-bamboo-in-wind.png",
+      "source_sha256": "7345ce3a51f8118278154e9c183a6373180ace219e13149f4f67223c5e16c554",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/23-bamboo-in-wind.png",
+      "png_sha256": "313b5ab468ff0f3027b3517d53d88502339aa8ee80c1ffcaa6fad1929ef6f519",
+      "native_frame_sha256": "8838c17a44e73ca246ca38acb4d73b9b7805bd1cd2553f64a496e8deaf2f8644",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "24-rivers-and-mountains",
+      "title": "青山绿水",
+      "source_filename": "aaf72ea8-b587-441a-b77c-8f3dae9af774.png",
+      "renamed_source": "24-rivers-and-mountains.png",
+      "source_sha256": "0d14eab12d87b4cef228a9837273dc149b63d1c139942049b0c739e2b058658d",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/24-rivers-and-mountains.png",
+      "png_sha256": "fb2ec35922effcfbb9f1fb35c73d5e981acea8cc37f52296b58a5817ceea7fa9",
+      "native_frame_sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "25-maple-pavilion",
+      "title": "浮生若梦",
+      "source_filename": "be4c1a46-db31-490a-8456-400ee845ca6f.png",
+      "renamed_source": "25-maple-pavilion.png",
+      "source_sha256": "fb973c0af258de8fe3b83aac7bd0f4212780914ba8dde7803382d41e505a20d6",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/25-maple-pavilion.png",
+      "png_sha256": "2714d4ebb6cd8b1f6f1eec26bded2851482ec04ef3d9fbdf1c9926519eb99bed",
+      "native_frame_sha256": "b4e6baa1cffcbbc82317fe9e94c98eabe03b7dd27443c40ec3388fb211273a9e",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "26-summit-overlook",
+      "title": "登高望岳",
+      "source_filename": "d809e3fa-b194-4395-bdcd-fb7243b810cb.png",
+      "renamed_source": "26-summit-overlook.png",
+      "source_sha256": "8228d41fb060801d1c1c04efbbf97056bf5f9baaacac21fb94bf79a6258c30ca",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/26-summit-overlook.png",
+      "png_sha256": "37b3e532e84da8720d1c57fa3cb3a235320a65ecbfcdc07c54ca066d2753e994",
+      "native_frame_sha256": "3945e706dcbb5e93372b9f46dfc651585aaf3e0be3892d4b143b87ea822711a8",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    },
+    {
+      "name": "27-scholar-sword",
+      "title": "书剑山河",
+      "source_filename": "f3985ca0-9c3f-4d04-a167-d154fa615107.png",
+      "renamed_source": "27-scholar-sword.png",
+      "source_sha256": "b11dd66167018f9d7a1c0a64bc0a111c70102c41bd1c908394053028c772195e",
+      "source_dimensions": [
+        1795,
+        876
+      ],
+      "file": "image/27-scholar-sword.png",
+      "png_sha256": "6ea36a080f18a871778c7d844375195d61c690c35d47da0bdcf3d8fa8ffcc45a",
+      "native_frame_sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e",
+      "source": "user-supplied artwork",
+      "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
+    }
   ]
 }
