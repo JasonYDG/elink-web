@@ -91,6 +91,30 @@ test("migration rejects a different screen or declined association",async()=>{
     const declined=await harness({confirmRebind:false});declined.store.device=()=>({name:declined.device.name,settings:P.settings()});declined.context.oldAddress=h.context.oldAddress;
     await assert.rejects(vm.runInContext('ELinkBLE.connect(oldAddress,true,false)',declined.context),/不是当前屏幕/);
 });
+
+test("search registers a new screen without connecting, then its card switches away from the selected old screen",async()=>{
+    const h=await harness(),old=vm.runInContext('portable.address',h.context),registered=[];
+    const other={id:"second-screen",name:"ELINK-BWR-EE0002",gatt:{connected:false,disconnect(){this.connected=false;},async connect(){this.connected=true;return this;},getPrimaryService:h.device.gatt.getPrimaryService}};
+    h.context.navigator.bluetooth={requestDevice:async()=>other};h.context.targets.add(old);h.context.perform=async(button,fn)=>fn();
+    h.store.api=async(path,b)=>{registered.push({path,...b});return {address:b.address};};let selected;h.context.selectDevice=a=>selected=a;
+    await vm.runInContext('$("scan").onclick()',h.context);const next=selected;
+    assert.notEqual(next,old);assert.equal(registered.length,1);assert.equal(registered[0].address,next);assert.equal(h.device.gatt.connected,true);assert.equal(other.gatt.connected,false);assert.equal(h.commands.length,0);assert.equal(h.jobs.length,0);assert.equal(vm.runInContext('portable.address',h.context),old);
+    vm.runInContext('$("portable-address").value="AA:BB:CC:EE:00:01"',h.context);h.context.nextAddress=next;
+    assert.equal(await vm.runInContext('ELinkBLE.connect(nextAddress,false,false)',h.context),next);assert.equal(h.device.gatt.connected,false);assert.equal(other.gatt.connected,true);assert.equal(vm.runInContext('portable.address',h.context),next);assert.equal(h.commands.length,0);
+});
+
+test("cancelled or busy search and a mismatched card preserve the current connection",async()=>{
+    const h=await harness(),old=vm.runInContext('portable.address',h.context);h.context.oldAddress=old;h.store.device=()=>({name:h.device.name,settings:P.settings()});
+    h.context.navigator.bluetooth.requestDevice=async()=>{throw Error("chooser cancelled");};await assert.rejects(vm.runInContext('ELinkBLE.discover()',h.context),/cancelled/);assert.equal(h.device.gatt.connected,true);
+    const base=h.store.summary;h.store.summary=()=>({...base(),operation:{busy:true}});await assert.rejects(vm.runInContext('ELinkBLE.discover()',h.context),/尚未完成/);h.store.summary=base;
+    h.context.navigator.bluetooth.requestDevice=async()=>({id:"wrong-device",name:"ELINK-BWR-EE0002",gatt:{connected:false}});
+    await assert.rejects(vm.runInContext('ELinkBLE.connect(oldAddress,true,false)',h.context),/选择的不是当前屏幕/);assert.equal(h.device.gatt.connected,true);assert.equal(vm.runInContext('portable.address',h.context),old);assert.equal(h.commands.length,0);
+});
+
+test("searching an associated screen reuses its imported identity instead of adding a duplicate",async()=>{
+    const h=await harness(),old="web-"+"ab".repeat(16);h.storage.set("elink-device-"+old,h.device.id);h.store.summary=()=>({devices:[{address:old,name:h.device.name}],jobs:[]});let registered;
+    h.store.api=async(path,b)=>registered=b;assert.equal(await vm.runInContext('ELinkBLE.discover()',h.context),old);assert.equal(registered.address,old);assert.equal(h.device.gatt.connected,true);assert.equal(h.commands.length,0);
+});
 test("connection timeout stops retries and disconnects a late completion",async()=>{
     const h=await harness({fireConnectTimeout:true});let finish,calls=0;h.device.gatt.connected=false;h.device.gatt.connect=()=>{calls++;return new Promise(resolve=>finish=resolve);};
     await assert.rejects(vm.runInContext('ELinkBLE.connect("",true,false)',h.context),/超时/);assert.equal(calls,1);

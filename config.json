@@ -1,5 +1,5 @@
 {
-  "version": "1.1.7",
+  "version": "1.1.8",
   "firmware_versions": {
     "de05d8d1": "1.0.3",
     "768fcd19": "1.0.4",
@@ -119,13 +119,6 @@
       "crc32": 3095430617
     },
     {
-      "title": "绝顶凌云",
-      "path": "image/17-mountain-summit.png",
-      "frame": "image/17-mountain-summit.bin",
-      "sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db",
-      "crc32": 2914971532
-    },
-    {
       "title": "天生我材",
       "path": "image/18-born-to-shine.png",
       "frame": "image/18-born-to-shine.bin",
@@ -138,13 +131,6 @@
       "frame": "image/19-wind-and-waves.bin",
       "sha256": "3c6ef5b10e1f0871f8c5b3e712c866c988293caa2bb4040d19b89d63d8214720",
       "crc32": 1442132807
-    },
-    {
-      "title": "寒梅傲雪",
-      "path": "image/20-plum-in-snow.png",
-      "frame": "image/20-plum-in-snow.bin",
-      "sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d",
-      "crc32": 2553986648
     },
     {
       "title": "黄沙金甲",
@@ -168,13 +154,6 @@
       "crc32": 3603162516
     },
     {
-      "title": "青山绿水",
-      "path": "image/24-rivers-and-mountains.png",
-      "frame": "image/24-rivers-and-mountains.bin",
-      "sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf",
-      "crc32": 3407187604
-    },
-    {
       "title": "浮生若梦",
       "path": "image/25-maple-pavilion.png",
       "frame": "image/25-maple-pavilion.bin",
@@ -182,18 +161,124 @@
       "crc32": 36801766
     },
     {
-      "title": "登高望岳",
+      "title": "绝顶凌云",
       "path": "image/26-summit-overlook.png",
       "frame": "image/26-summit-overlook.bin",
       "sha256": "3945e706dcbb5e93372b9f46dfc651585aaf3e0be3892d4b143b87ea822711a8",
-      "crc32": 2583653807
+      "crc32": 2583653807,
+      "previous_title": "登高望岳"
     },
     {
-      "title": "书剑山河",
-      "path": "image/27-scholar-sword.png",
-      "frame": "image/27-scholar-sword.bin",
-      "sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e",
-      "crc32": 3311197839
+      "title": "欲穷千里目",
+      "path": "image/28-higher-horizons.png",
+      "frame": "image/28-higher-horizons.bin",
+      "sha256": "1784c8f69117ac1e49acf9f6333e8b6660df47a4a5fe2eab1404a3b464e18d6e",
+      "crc32": 2669418212
+    },
+    {
+      "title": "扶摇九万里",
+      "path": "image/29-soaring-eagle.png",
+      "frame": "image/29-soaring-eagle.bin",
+      "sha256": "1e472cead401795460e87c800db5333a08ec4b25084808372cf6475e5c90a98c",
+      "crc32": 678389308
+    },
+    {
+      "title": "自强不息",
+      "path": "image/30-self-renewal.png",
+      "frame": "image/30-self-renewal.bin",
+      "sha256": "463c035844406307fbc363e9a8139b0b15cc3d9e8ce90357895d5de1c839b31f",
+      "crc32": 1923093234
+    },
+    {
+      "title": "上下求索",
+      "path": "image/31-endless-quest.png",
+      "frame": "image/31-endless-quest.bin",
+      "sha256": "2d9719f78423ef06cf75893a19e5fbb14fe1b990c852e45c984ad40649b397b8",
+      "crc32": 917528033
+    },
+    {
+      "title": "任平生",
+      "path": "image/32-rainy-riverside.png",
+      "frame": "image/32-rainy-riverside.bin",
+      "sha256": "e879ff4d615ab56fa555ecb816834e860b878f15f2275d2f723c4d3cde565a72",
+      "crc32": 3080762927
+    },
+    {
+      "title": "斩楼兰",
+      "path": "image/33-loulan-sword.png",
+      "frame": "image/33-loulan-sword.bin",
+      "sha256": "564854937f2b02f3057b4874bc892fba4203aee748867d56dfb0d291f94be215",
+      "crc32": 1804996404
+    },
+    {
+      "title": "射天狼",
+      "path": "image/34-celestial-archer.png",
+      "frame": "image/34-celestial-archer.bin",
+      "sha256": "1963539eb1b3aa22bd3b0aaa5517ce532ce2df481dd778fa7f7fa1e00f3b3261",
+      "crc32": 3567446210
+    },
+    {
+      "title": "挑灯看剑",
+      "path": "image/35-lamplit-sword.png",
+      "frame": "image/35-lamplit-sword.bin",
+      "sha256": "11baa2b0abba8637730b3841411a2d9afe366f1dff8c7833593e422c31ac5dcf",
+      "crc32": 4202562074
+    },
+    {
+      "title": "莫愁前路",
+      "path": "image/36-fearless-road.png",
+      "frame": "image/36-fearless-road.bin",
+      "sha256": "9b96a1df7f2dc0caf97061e8b12c7b085a2e604371db5c7554a10a46ed8c9686",
+      "crc32": 1435043494
+    },
+    {
+      "title": "春风得意",
+      "path": "image/37-spring-triumph.png",
+      "frame": "image/37-spring-triumph.bin",
+      "sha256": "c498c9da99f5178f7750158639486edc01eefbb9d9cbcd03470dd3edf1608684",
+      "crc32": 2877426057
+    },
+    {
+      "title": "千淘万漉",
+      "path": "image/38-golden-sands.png",
+      "frame": "image/38-golden-sands.bin",
+      "sha256": "36f6b8ef5d0033c4d7c11980f2ae9622b2d59bd0c535bec203ae5f4b481ec34e",
+      "crc32": 2468578609
+    },
+    {
+      "title": "青云之志",
+      "path": "image/39-lofty-ambition.png",
+      "frame": "image/39-lofty-ambition.bin",
+      "sha256": "8d42dcce43dd1880903b4e0a73819ad26941ae7793c26cc0be28de4631e7ec16",
+      "crc32": 1617724061
+    },
+    {
+      "title": "诗酒年华",
+      "path": "image/40-poetry-and-wine.png",
+      "frame": "image/40-poetry-and-wine.bin",
+      "sha256": "3d33da9c9d04d79fb0dd623c3e34769eddc5879179f5470d2bfe508b3961b8f2",
+      "crc32": 2610939246
+    },
+    {
+      "title": "鹏程万里",
+      "path": "image/41-promising-journey.png",
+      "frame": "image/41-promising-journey.bin",
+      "sha256": "4e4c209a7bd4f33522d0e9e1f202a1b1ec4c6eb2f9b40cccbc2bb018a705aeed",
+      "crc32": 262490408
+    },
+    {
+      "title": "报国丹心",
+      "path": "image/42-patriotic-heart.png",
+      "frame": "image/42-patriotic-heart.bin",
+      "sha256": "8108219ad7683f551573ca4b8ca8005c10ec23fcbd0695ad42128ed21aa272e9",
+      "crc32": 3162756488
+    },
+    {
+      "title": "少年壮气",
+      "path": "image/43-youthful-spirit.png",
+      "frame": "image/43-youthful-spirit.bin",
+      "sha256": "33cb99936c23ddbfa64c9a57fd6c298d94aca42531da22932753879f479c2019",
+      "crc32": 3628255727
     }
   ],
   "default_clock": {
@@ -232,6 +317,34 @@
       "frame": "image/16-fox-garden.bin",
       "sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267",
       "crc32": 1728049797
+    },
+    {
+      "title": "绝顶凌云",
+      "path": "image/17-mountain-summit.png",
+      "frame": "image/17-mountain-summit.bin",
+      "sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db",
+      "crc32": 2914971532
+    },
+    {
+      "title": "青山绿水",
+      "path": "image/24-rivers-and-mountains.png",
+      "frame": "image/24-rivers-and-mountains.bin",
+      "sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf",
+      "crc32": 3407187604
+    },
+    {
+      "title": "寒梅傲雪",
+      "path": "image/20-plum-in-snow.png",
+      "frame": "image/20-plum-in-snow.bin",
+      "sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d",
+      "crc32": 2553986648
+    },
+    {
+      "title": "书剑山河",
+      "path": "image/27-scholar-sword.png",
+      "frame": "image/27-scholar-sword.bin",
+      "sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e",
+      "crc32": 3311197839
     }
   ]
 }

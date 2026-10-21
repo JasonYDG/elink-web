@@ -2,7 +2,7 @@
 const portable={device:null,address:"",session:"",connecting:null,paused:sessionStorage.getItem("elink-paused")==="1",retryAfter:0};
 const ELinkBLE = (() => {
     const P=ELinkProtocol,L=ELinkLocal,sleep=ms=>new Promise(r=>setTimeout(r,ms));
-    let control,volts,caps={},battery={},working=false,closing="",imagePayload=null,lastActivity=0;
+    let control,volts,caps={},battery={},working=false,closing="",imagePayload=null,lastActivity=0;const knownDevices=new Map();
     async function bounded(promise,label,ms=8000,device=portable.device){let timer,expired=false;try{return await Promise.race([promise.then(value=>{if(expired)device?.gatt.disconnect();return value;}),new Promise((_,reject)=>timer=setTimeout(()=>{expired=true;device?.gatt.disconnect();const e=Error(label+"超时，已断开蓝牙以停止旧命令");e.connection=e.timeout=true;reject(e);},ms))]);}finally{clearTimeout(timer);}}
     async function write(b,large=false,timeout=8000){
         if(!portable.device?.gatt.connected||!control){const e=Error("屏幕蓝牙已断开");e.connection=true;throw e;}if(!(b instanceof Uint8Array)||!b.length||b.length>(large?136:20))throw Error("蓝牙写入长度不合法");
@@ -237,40 +237,52 @@ const ELinkBLE = (() => {
             throw Error("未知设备动作");
         }finally{lastActivity=Date.now();working=false;}
     }
-    async function address(device,manual=""){return manual||"web-"+(await P.sha256(new TextEncoder().encode(device.id))).slice(0,32);}
+    async function address(device,manual=""){
+        if(manual&&!/^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(manual))throw Error("手动 MAC 格式不正确，可留空");
+        if(manual&&device.name?.startsWith("ELINK-BWR-")&&device.name!=="ELINK-BWR-"+manual.replaceAll(":","").slice(-6))throw Error("所选屏幕与 MAC 不一致");
+        return manual||"web-"+(await P.sha256(new TextEncoder().encode(device.id))).slice(0,32);
+    }
+    async function discover(){
+        if(portable.connecting)throw Error("正在搜索或连接屏幕，请稍候");await L.ready;L.assertOwner();if(working||L.summary().operation?.busy)throw Error("屏幕操作尚未完成，请先等待或取消队列");
+        if(!navigator.bluetooth?.requestDevice)throw Error("此浏览器不支持网页蓝牙；安卓请使用 Chrome");if(!window.isSecureContext)throw Error("网页蓝牙需要 HTTPS");
+        const manual=$("portable-address").value.trim().toUpperCase();if(manual&&!/^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(manual))throw Error("手动 MAC 格式不正确，可留空");
+        const dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"ELINK-"},{namePrefix:"DLG-"}],optionalServices:[P.service]}),saved=L.summary().devices?.find(d=>localStorage.getItem("elink-device-"+d.address)===dev.id),actual=manual?await address(dev,manual):saved?.address||await address(dev);
+        await L.api("/api/register",{address:actual,name:dev.name});knownDevices.set(actual,dev);localStorage.setItem("elink-device-"+actual,dev.id);$("portable-address").value="";
+        $("portable-status").textContent="已找到 "+dev.name+" · 请在屏幕卡片点击连接";await refresh();return actual;
+    }
     async function connect(expected,choose,restore){
         if(working)throw Error("屏幕操作尚未完成，请查看顶部执行进度");
         L.assertOwner();let dev;
         if(!navigator.bluetooth?.requestDevice)throw Error("此浏览器不支持网页蓝牙；安卓请使用 Chrome");if(!window.isSecureContext)throw Error("网页蓝牙需要 HTTPS");
-        const manual=(choose?$("portable-address").value.trim().toUpperCase():"")||(expected&&!expected.startsWith("web-")?expected:"");
+        const manual=expected&&!expected.startsWith("web-")?expected:choose&&!expected?$("portable-address").value.trim().toUpperCase():"";
         if(manual&&!/^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(manual))throw Error("手动 MAC 格式不正确，可留空");
-        $("portable-status").textContent="正在连接屏幕…";$("portable-connect").disabled=true;
-        if(!choose){if(portable.address===expected)dev=portable.device;if(!dev&&navigator.bluetooth.getDevices){const known=await navigator.bluetooth.getDevices(),saved=localStorage.getItem("elink-device-"+expected);dev=known.find(d=>d.id===saved);if(!dev)for(const d of known)if(await address(d)===expected){dev=d;break;}}}
-        if(!dev){if(restore||navigator.userActivation?.isActive===false)throw Error("请点击连接，选择 ELINK 开头的设备");dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"ELINK-"},{namePrefix:"DLG-"}],optionalServices:[P.service]});}
-        if(manual&&dev.name?.startsWith("ELINK-BWR-")&&dev.name!=="ELINK-BWR-"+manual.replaceAll(":","").slice(-6))throw Error("所选屏幕与 MAC 不一致");let actual=await address(dev,manual);
+        $("portable-status").textContent="正在连接屏幕…";let prompted=false;
+        if(!choose){if(portable.address===expected)dev=portable.device;if(!dev)dev=knownDevices.get(expected);if(!dev&&navigator.bluetooth.getDevices){const known=await navigator.bluetooth.getDevices(),saved=localStorage.getItem("elink-device-"+expected);dev=known.find(d=>d.id===saved);if(!dev)for(const d of known)if(await address(d)===expected){dev=d;break;}}}
+        if(!dev){if(restore||navigator.userActivation?.isActive===false)throw Error("请在对应屏幕卡片点击连接");dev=await navigator.bluetooth.requestDevice({filters:[{namePrefix:"ELINK-"},{namePrefix:"DLG-"}],optionalServices:[P.service]});prompted=true;}
+        let actual=await address(dev,manual);
         if(expected&&actual!==expected){
             if(localStorage.getItem("elink-device-"+expected)===dev.id)actual=expected;
-            else if(choose&&L.device(expected).name===dev.name&&await confirmAction("将所选的 "+dev.name+" 关联到当前屏幕记录？跨站点迁移后浏览器蓝牙标识会变化，请核对设备名称。"))actual=expected;
+            else if(prompted&&L.device(expected).name===dev.name&&await confirmAction("将所选的 "+dev.name+" 关联到当前屏幕记录？跨站点迁移后浏览器蓝牙标识会变化，请核对设备名称。"))actual=expected;
             else throw Error("选择的不是当前屏幕，请核对设备名称");
         }
         if(portable.device&&portable.device!==dev){if(working||pending(portable.address))throw Error("当前屏幕任务尚未完成，请先等待或取消队列");await stop();}
         try{
             for(let attempt=0;;attempt++){try{if(!dev.gatt.connected)await bounded(dev.gatt.connect(),"连接屏幕",20000,dev);break;}catch(e){if(e.timeout||attempt===2)throw e;await sleep(500*(attempt+1));}}
             const service=await dev.gatt.getPrimaryService(P.service);control=await service.getCharacteristic(P.control);imagePayload=null;try{volts=await service.getCharacteristic(P.volts);}catch{volts=null;}
-            await L.api("/api/register",{address:actual,name:dev.name});portable.device=dev;portable.address=actual;portable.session=dev.id;portable.paused=false;closing="";lastActivity=Date.now();sessionStorage.removeItem("elink-paused");localStorage.setItem("elink-last-address",actual);localStorage.setItem("elink-device-"+actual,dev.id);
-            dev.ongattserverdisconnected=()=>{if(portable.device!==dev||dev.gatt.connected)return;portable.session="";control=volts=null;$("portable-disconnect").disabled=true;$("portable-connect").disabled=false;$("portable-status").textContent=closing||"屏幕失联，下一次操作将自动重连 · 未确认提交不会重复发送";};
-            $("portable-disconnect").disabled=false;$("portable-status").textContent="已连接 "+dev.name+" · 本机蓝牙";await refresh();return actual;
-        }catch(e){if(dev.gatt.connected)dev.gatt.disconnect();throw e;}finally{$("portable-connect").disabled=!!portable.device?.gatt.connected;}
+            await L.api("/api/register",{address:actual,name:dev.name});knownDevices.set(actual,dev);portable.device=dev;portable.address=actual;portable.session=dev.id;portable.paused=false;closing="";lastActivity=Date.now();sessionStorage.removeItem("elink-paused");localStorage.setItem("elink-last-address",actual);localStorage.setItem("elink-device-"+actual,dev.id);
+            dev.ongattserverdisconnected=()=>{if(portable.device!==dev||dev.gatt.connected)return;portable.session="";control=volts=null;$("portable-status").textContent=closing||"屏幕失联，下一次操作将自动重连 · 未确认提交不会重复发送";if(typeof operationLocks==="function")operationLocks();};
+            $("portable-status").textContent="已连接 "+dev.name+" · 本机蓝牙";await refresh();return actual;
+        }catch(e){if(dev.gatt.connected)dev.gatt.disconnect();throw e;}
     }
-    async function stop(forget=false,reason="屏幕已断开 · 下次操作自动重连"){closing=reason;portable.session="";if(forget){portable.paused=true;sessionStorage.setItem("elink-paused","1");}portable.device?.gatt.disconnect();control=volts=null;$("portable-status").textContent=reason;$("portable-connect").disabled=false;$("portable-disconnect").disabled=true;}
+    async function stop(forget=false,reason="屏幕已断开 · 下次操作自动重连"){closing=reason;portable.session="";if(forget){portable.paused=true;sessionStorage.setItem("elink-paused","1");}portable.device?.gatt.disconnect();control=volts=null;$("portable-status").textContent=reason;if(typeof operationLocks==="function")operationLocks();}
     async function releaseIdle(){const s=L.summary();if(working||portable.connecting||!portable.device?.gatt.connected||Date.now()-lastActivity<180000||(typeof operationBusy==="function"&&operationBusy())||s.operation?.busy||s.jobs.some(j=>["queued","waiting","running","awaiting_display"].includes(j.status)))return;await stop(false,"空闲 3 分钟，连接已释放 · 下次操作自动重连");}
-    return {execute,connect,stop,releaseIdle,working:()=>working};
+    return {execute,connect,discover,stop,releaseIdle,working:()=>working};
 })();
 async function ensurePortable(address,choose=false,restore=false){
     if(!restore){portable.paused=false;sessionStorage.removeItem("elink-paused");}
     if(address&&portable.address&&address!==portable.address&&!choose){const deadline=Date.now()+300000;while(ELinkLocal.summary().jobs.some(j=>j.address===portable.address&&["queued","waiting","running","awaiting_display"].includes(j.status))){if(portable.paused||Date.now()>deadline)throw Error("上一台屏幕尚未完成，请查看顶部进度后重试");await new Promise(r=>setTimeout(r,500));}}
     if(portable.connecting)await portable.connecting;if(!choose&&portable.address===address&&portable.session&&portable.device?.gatt.connected)return address;
-    portable.connecting=ELinkBLE.connect(address,choose,restore);try{return await portable.connecting;}finally{portable.connecting=null;}
+    portable.connecting=ELinkBLE.connect(address,choose,restore);try{return await portable.connecting;}catch(e){$("portable-status").textContent=e.message+(portable.device?.gatt.connected?" · 仍连接 "+portable.device.name:" · 屏幕未连接");throw e;}finally{portable.connecting=null;}
 }
 async function portableRestore(){const address=localStorage.getItem("elink-last-address");if(portable.paused||!address||!navigator.bluetooth?.getDevices)return;try{await ensurePortable(address,false,true);}catch{$("portable-status").textContent="屏幕未连接 · 点击连接可恢复";}}
 function portableRecover(){
@@ -280,7 +292,16 @@ function portableRecover(){
     if(portable.device?.gatt.connected&&pending(portable.address))return;
     portable.retryAfter=Date.now()+15000;return ensurePortable(address,false,true).catch(e=>{$("portable-status").textContent="等待连接屏幕 · "+e.message;});
 }
-$("portable-connect").onclick=async()=>{try{await ELinkLocal.ready;const current=ELinkLocal.summary(),waiting=current.jobs.find(j=>["queued","waiting"].includes(j.status));if(ELinkBLE.working()||(current.operation?.busy&&!waiting))throw Error("屏幕操作尚未完成，请查看顶部执行进度");const target=waiting?.address||(targets.size===1?[...targets][0]:""),address=await ensurePortable(target,true);selectDevice(address);if(!current.operation?.busy&&!pending(address))await api("/api/jobs",{address,action:"probe"});}catch(e){message(e.message,true);$("portable-status").textContent=e.message;}finally{if(typeof operationLocks==="function")operationLocks();}};
-$("portable-disconnect").onclick=()=>{if(ELinkBLE.working()||ELinkLocal.summary().operation?.busy){message("屏幕操作尚未完成；等待任务请先取消",true);return;}return ELinkBLE.stop(true);};$("scan").onclick=()=>$("portable-connect").onclick();$("portable-status").textContent="屏幕未连接 · 选择 ELINK 开头的设备";
+async function connectScreen(address){
+    await ELinkLocal.ready;const current=ELinkLocal.summary(),waiting=current.jobs.some(j=>j.address===address&&["queued","waiting"].includes(j.status));
+    if(ELinkBLE.working()||portable.connecting||(current.operation?.busy&&!waiting))throw Error("屏幕操作尚未完成，请先等待或取消队列");
+    const actual=await ensurePortable(address);selectDevice(actual);if(!current.operation?.busy&&!pending(actual))await api("/api/jobs",{address:actual,action:"probe"});await refresh();
+}
+async function disconnectScreen(address){
+    if(ELinkBLE.working()||portable.connecting||ELinkLocal.summary().operation?.busy)throw Error("屏幕操作尚未完成；等待任务请先取消");
+    if(portable.address!==address||!portable.device?.gatt.connected)throw Error("此屏幕未连接");await ELinkBLE.stop(true);await refresh();
+}
+$("scan").onclick=()=>perform($("scan"),async()=>{portable.connecting=ELinkBLE.discover();if(typeof operationLocks==="function")operationLocks();try{const address=await portable.connecting;selectDevice(address);message("已加入屏幕列表，请在对应卡片点击连接。搜索不会切换当前蓝牙连接。");}finally{portable.connecting=null;}});
+$("portable-status").textContent="先搜索附近屏幕，再在对应卡片连接";
 window.addEventListener("pagehide",()=>ELinkBLE.stop());window.addEventListener("pageshow",e=>{if(e.persisted)location.reload();});
 setInterval(()=>ELinkLocal.ready.then(()=>ELinkBLE.releaseIdle()).then(()=>ELinkLocal.tick()).catch(e=>message(e.message,true)),1000);

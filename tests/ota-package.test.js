@@ -2,11 +2,11 @@
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
 const P=require("../protocol.js");global.ELinkProtocol=P;const OTA=require("../ota.js");
 const root=path.join(__dirname,".."),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),source=fs.readFileSync(path.join(root,"app.js"),"utf8");
-const packagePath=html.match(/id="ota-download" href="([^"]+)"/)[1],raw=fs.readFileSync(path.join(root,packagePath)),packageData=JSON.parse(raw);
+const packagePath=html.match(/id="ota-online"[^>]*data-package="([^"]+)"/)[1],raw=fs.readFileSync(path.join(root,packagePath)),packageData=JSON.parse(raw);
 function harness(fetcher=async()=>new Response(raw)){
-    const elements=Object.fromEntries(["ota-file","ota-online","ota-install","ota-package","ota-download"].map(id=>[id,{id,disabled:false,textContent:""}]));
-    elements["ota-file"].files=[];elements["ota-download"].href=new URL(packagePath,"https://example.test/elink-web/").href;
-    const calls=[],requests=[],messages=[],queued=[],confirmations=[],c={$:id=>elements[id],currentAddress:"AA:BB:CC:DD:EE:01",singleDevice:()=>({address:c.currentAddress,name:"Test screen"}),confirmAction:async(text,phrase)=>{confirmations.push({text,phrase});return false;},queue:async(action,payload)=>queued.push({action,payload}),fetch:async(...args)=>{requests.push(args);return fetcher(...args);},api:async(url,body)=>{calls.push(url);assert.equal(url,"/api/ota/validate");const {raw,...meta}=await OTA.validate(body.package);return meta;},message:(...args)=>messages.push(args),editLabel(){},operationLocks(){}};
+    const elements=Object.fromEntries(["ota-file","ota-online","ota-install","ota-package"].map(id=>[id,{id,disabled:false,textContent:""}]));
+    elements["ota-file"].files=[];elements["ota-online"].dataset={package:packagePath};
+    const calls=[],requests=[],messages=[],queued=[],confirmations=[],c={$:id=>elements[id],URL,location:{href:"https://example.test/elink-web/"},currentAddress:"AA:BB:CC:DD:EE:01",singleDevice:()=>({address:c.currentAddress,name:"Test screen"}),confirmAction:async(text,phrase)=>{confirmations.push({text,phrase});return false;},queue:async(action,payload)=>queued.push({action,payload}),fetch:async(...args)=>{requests.push(args);return fetcher(...args);},api:async(url,body)=>{calls.push(url);assert.equal(url,"/api/ota/validate");const {raw,...meta}=await OTA.validate(body.package);return meta;},message:(...args)=>messages.push(args),editLabel(){},operationLocks(){}};
     vm.createContext(c);c.displayDevice=()=>{elements["ota-install"].disabled=!vm.runInContext("otaPackage",c);};
     vm.runInContext('let otaPackage=null;\n'+source.split(/\r?\n/).find(line=>line.startsWith("async function perform("))+"\n"+source.slice(source.indexOf("async function loadOTAPackage("),source.indexOf('let cropImage=')),c);
     return {c,elements,calls,requests,messages,queued,confirmations,selected:()=>vm.runInContext("otaPackage",c)};
@@ -22,6 +22,7 @@ test("published firmware is the exact 1.5.13 application and produces a valid OT
 });
 
 test("online and local selection share validation, use the Pages subpath and never queue a device write",async()=>{
+    assert.doesNotMatch(html,/id="ota-download"/);assert.doesNotMatch(html,/<a[^>]+href="firmware\//);
     const h=harness();await h.elements["ota-online"].onclick();
     assert.equal(h.requests[0][0],"https://example.test/elink-web/firmware/elink-bwr-1.5.13.elink-update.json");
     assert.equal(h.requests[0][1].cache,"no-store");assert.equal(h.selected().firmware_id,"f1ef98a7");

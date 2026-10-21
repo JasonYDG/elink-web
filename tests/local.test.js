@@ -18,7 +18,7 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.7");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.8");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
 });
 
@@ -33,6 +33,14 @@ test("readback restores native originals and duplicate pictures to distinct edit
     await h.local.api("/api/templates/delete",{id:copy.items[1].template_id});assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
     await h.local.api("/api/cancel",{id:result.id});const photo=await h.local.api("/api/jobs",{address,action:"photo_calendar",payload:{template_id:copy.items[0].template_id,photo_x:10}});assert.deepEqual(P.decode64(h.local.job(photo.id).payload.frame),P.photoFrame(frame,10));
     const backup=structuredClone(h.saved.get("current"));backup.templates[0].spec=JSON.stringify({...JSON.parse(backup.templates[0].spec),native_frame:P.bytes64(other)});await assert.rejects(h.local.validateImport(backup),/像素校验/);
+});
+
+test("gallery rename updates only the previous default title and preserves retired pictures and aliases",async()=>{
+    const w=workspace(),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),item=config.gallery.find(i=>i.path==="image/26-summit-overlook.png"),old=config.retired_gallery.find(i=>i.path==="image/17-mountain-summit.png");w.app_version="1.1.7";
+    for(const [i,title,picture] of [[1,"登高望岳",item],[2,"我的山景",item],[3,"绝顶凌云",old]]){const bytes=fs.readFileSync(path.join(root,picture.frame));w.templates.push({id:ident(i),title,spec:JSON.stringify({kind:"image",builtin:picture.path}),frame:P.bytes64(bytes),sha256:picture.sha256,png:"original",created:1});}
+    const {local,saved}=await harness(w),templates=local.summary().templates;assert.deepEqual(Array.from(templates,t=>t.title),["绝顶凌云","我的山景","绝顶凌云"]);
+    for(let i=0;i<3;i++)assert.deepEqual({...saved.get("current").templates[i],title:w.templates[i].title},w.templates[i]);
+    for(const picture of config.retired_gallery)await assert.rejects(local.api("/api/builtin",{path:picture.path}),/内置图片不存在/);
 });
 
 test("inventory names use metadata without loading originals, and slot requests reject stale or malformed targets",async()=>{
