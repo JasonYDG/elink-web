@@ -8,8 +8,7 @@ let photoPositions={};try{photoPositions=JSON.parse(localStorage.getItem("elink-
 async function builtinTemplate(path){const old=state.templates.find(t=>JSON.parse(t.spec).builtin===path);return old?old.id:(await api("/api/builtin",{path})).id;}
 function initGallery(items){
     $("album-save").checked=albumSettings.enabled===true;
-    if(["60","120","360","720","1440","2880","10080","0"].includes(albumSettings.interval))$("album-interval").value=albumSettings.interval;
-    if(Number.isInteger(Number(albumSettings.hours))&&Number(albumSettings.hours)>=1&&Number(albumSettings.hours)<=168)$("album-hours").value=albumSettings.hours;
+    $("album-auto").checked=false;$("album-interval").value="1440";$("album-hours").value="24";
     $("album-custom").hidden=$("album-interval").value!=="0";
     for(const host of document.querySelectorAll('[data-native-gallery]')){
         host.replaceChildren();
@@ -22,6 +21,7 @@ function initGallery(items){
         }
     }
     $("album-save").onchange=()=>{if(albumEnabled()&&!albumSelection.length&&$("publish-template").value)toggleAlbum($("publish-template").value);saveAlbumSettings();pageControls();};
+    $("album-auto").onchange=pageControls;
     $("album-add").onclick=()=>perform($("album-add"),async()=>{const id=$("publish-template").value;if(!id)throw Error("请先选择图片");if(!albumSelection.includes(id))toggleAlbum(id);pageControls();});
     $("album-interval").onchange=()=>{$("album-custom").hidden=$("album-interval").value!=="0";saveAlbumSettings();};
     $("album-hours").oninput=saveAlbumSettings;
@@ -73,6 +73,7 @@ function toggleAlbum(id){
 function renderAlbum(){
     for(let i=albumSelection.length-1;i>=0;i--)if(!state.templates.some(t=>t.id===albumSelection[i]))albumSelection.splice(i,1);
     $("album-options").hidden=!albumEnabled();$("album-count").textContent="已选 "+albumSelection.length+" / "+albumLimit()+" 张";
+    $("album-interval").disabled=$("album-hours").disabled=!$("album-auto").checked;
     const list=$("album-items"),key=JSON.stringify(albumSelection.map(id=>[id,state.templates.find(t=>t.id===id)?.title]));
     if(key!==albumListKey){albumListKey=key;list.replaceChildren();
     for(const [i,id] of albumSelection.entries()){
@@ -83,17 +84,36 @@ function renderAlbum(){
     }
     for(const [i,li] of [...list.children].entries())li.firstElementChild.setAttribute("aria-pressed",String($("publish-template").value===albumSelection[i]));
     const devices=state.devices.filter(d=>targets.has(d.address));
-    $("album-device-status").textContent=devices.map(d=>{const a=d.state?.album;return d.name+"："+(!d.state?.offline_album?"需升级 1.5.9 并读取状态":!a?"读取状态可查看设备图库":a.protocol_version<2||!d.state?.album_minute_tick?"离线轮播需升级 1.5.9":!a.count?"尚未保存图片":a.count+" 张 · "+(a.enabled?(!a.running&&!a.writing?"已暂停，需核对":a.count===1?"保存显示":"每 "+a.interval_minutes/60+" 小时轮播"):"已停止")+(a.index<a.count?" · 当前第 "+(a.index+1)+" 张":""));}).join("；");
+    $("album-device-status").textContent=devices.map(d=>{const a=d.state?.album,index=displayedAlbumSlot(d);return d.name+"："+(!d.state?.offline_album?"需升级 1.5.9 并读取状态":!a?"读取状态可查看设备图库":a.protocol_version<2||!d.state?.album_minute_tick?"离线轮播需升级 1.5.9":!a.count?"尚未保存图片":a.count+" 张 · "+(a.enabled?(!a.running&&!a.writing?"已暂停，需核对":a.count===1?"保存显示":"每 "+a.interval_minutes/60+" 小时轮播"):"自动换图关闭")+(index>=0&&index<a.count?" · 当前第 "+(index+1)+" 张":""));}).join("；");
     const slots=$("album-device-slot-list");slots.replaceChildren();
-    for(const d of devices)for(const text of deviceAlbumSlots(d)){const li=document.createElement("li");li.textContent=text;slots.append(li);}
+    for(const d of devices){
+        const a=d.state?.album;
+        for(const [i,text] of deviceAlbumSlots(d,displayedAlbumSlot(d)).entries()){
+            const li=document.createElement("li"),label=document.createElement("span");label.textContent=text;li.append(label);
+            if(i<a.count){
+                const actions=document.createElement("div");actions.className="actions";
+                for(const [action,title] of [["album_show","显示此图"],["album_read","读取原图"]]){
+                    const button=document.createElement("button");button.type="button";button.textContent=title;button.setAttribute("aria-label",title+" · "+d.name+" · 卡槽 "+(i+1));button.disabled=batching||pending(d.address)||a.writing||!!d.state.capabilities_stale;
+                    button.onclick=()=>perform(button,async()=>{const result=await api("/api/jobs",{address:d.address,action,payload:{index:i,sequence:a.sequence,crc32:a.crc32[i]}});message(action==="album_show"?"已排队显示此卡槽；自动轮播会停止，其余卡槽保留。":"已排队读取此卡槽原图，完成后可在已保存图片中选择。",false,[result.id]);await refresh();});actions.append(button);
+                }
+                li.append(actions);
+            }
+            slots.append(li);
+        }
+    }
     $("album-device-slots").hidden=!slots.children.length;
     $("album-stop").disabled=batching||!devices.some(d=>d.state?.offline_album&&!pending(d.address));
 }
-function deviceAlbumSlots(d){
+function deviceAlbumSlots(d,current=d.state?.album?.index){
     const a=d.state?.album;if(!a)return [];
-    const rows=Array.from({length:Math.min(d.state.album_capacity||4,7)},(_,i)=>d.name+" · 播放槽 "+(i+1)+" · "+(i<a.count?"已保存 · CRC32 "+(Number.isInteger(a.crc32?.[i])?(a.crc32[i]>>>0).toString(16).padStart(8,"0"):"待读取")+(a.index===i?" · 当前槽位":""):"未加入已保存列表"));
+    const rows=Array.from({length:Math.min(d.state.album_capacity||4,7)},(_,i)=>d.name+" · 播放槽 "+(i+1)+" · "+(i<a.count?"已保存 · "+(a.items?.[i]?.title?a.items[i].title+" · ":"")+"CRC32 "+(Number.isInteger(a.crc32?.[i])?(a.crc32[i]>>>0).toString(16).padStart(8,"0"):"待读取")+(current===i?" · 当前槽位":""):"未加入已保存列表"));
     if(a.writing)rows.push(d.name+" · 新图库尚未提交 · 已校验 "+a.staged_count+" 张 · 当前图片 "+a.save_step+"/32 块；原播放列表保留");
     return rows;
+}
+function displayedAlbumSlot(d){
+    const s=d.state||{};if([7,8].includes(s.display_mode))return s.album?.index??-1;
+    const last=state.jobs.find(j=>j.address===d.address&&j.action==="album_show"&&j.status==="succeeded"&&j.receipt?.firmware_id===s.firmware_id&&j.receipt.generation_after===s.display_generation&&j.receipt.transfer_id===s.transfer_id);
+    return last?.receipt.album_slot??-1;
 }
 function albumPayload(){
     if(!albumSelection.length)throw Error("请选择图库图片");
@@ -101,7 +121,7 @@ function albumPayload(){
     if($("album-interval").value==="0"&&!Number.isInteger(hours))throw Error("请输入 1–168 的整数小时");
     const minutes=Number($("album-interval").value)||hours*60;
     if(!Number.isInteger(minutes)||minutes<60||minutes>10080)throw Error("换图间隔须为 1–168 个整小时");
-    return {mode:pageAction()==="photo_calendar"?"calendar":"image",interval_minutes:minutes,items:albumSelection.map(id=>({template_id:id,photo_x:Math.min(photoPositions[id]??38,76)}))};
+    return {mode:pageAction()==="photo_calendar"?"calendar":"image",auto_rotate:$("album-auto").checked,interval_minutes:minutes,items:albumSelection.map(id=>({template_id:id,photo_x:Math.min(photoPositions[id]??38,76)}))};
 }
 
 function albumLimit(){const devices=state.devices.filter(d=>targets.has(d.address));return devices.length?Math.min(...devices.map(d=>d.state?.album_capacity||4)):7;}
@@ -112,14 +132,12 @@ function restoreDeviceAlbum(){
     if(!a||!probe)return;const key=d.address+"|"+probe.id;if(key===restoredAlbumKey)return;
     if(a.writing){$("album-readback-note").textContent="设备有未提交的上传；已保存播放列表保留，请核对后再修改。";return;}
     if(!a.count){restoredAlbumKey=key;$("album-readback-note").textContent="设备当前没有已保存图库。";return;}
-    if(!a.items||a.items.some(x=>!x.template_id||!state.templates.some(t=>t.id===x.template_id))){$("album-readback-note").textContent="已读到 "+a.count+" 张、每 "+a.interval_minutes+" 分钟的设备配置；完整恢复原图需升级1.5.11后再读取。";return;}
+    if(!a.items||a.items.some(x=>!x.template_id||!state.templates.some(t=>t.id===x.template_id))){$("album-readback-note").textContent="已读取 "+a.count+" 个卡槽和换图设置，未下载各槽原图。可直接显示某槽，或点“读取原图”载入单张；未知自定义图名未保存在旧固件中。";return;}
     restoredAlbumKey=key;albumSelection.splice(0,albumSelection.length,...a.items.map(x=>x.template_id));
     for(const item of a.items)photoPositions[item.template_id]=Math.min(item.photo_x,76);
-    $("album-save").checked=a.enabled;const interval=$("album-interval");
-    if(![...interval.options].some(o=>Number(o.value)===a.interval_minutes))interval.add(new Option("已保存：每 "+a.interval_minutes+" 分钟",String(a.interval_minutes)));
-    interval.value=String(a.interval_minutes);$("album-custom").hidden=true;$("album-hours").value=String(a.interval_minutes/60);
+    $("album-save").checked=true;
     $("publish-template").value=a.items[Math.min(a.index,a.count-1)]?.template_id||a.items[0].template_id;
     if([7,8].includes(d.state.display_mode)){document.querySelector('[name="page"][value="'+(a.mode?"calendar":"publish")+'"]').checked=true;if(a.mode)$("calendar-theme").value="photo_calendar";}
-    $("album-readback-note").textContent="已从屏幕恢复 "+a.count+" 张图片、播放顺序、取景及间隔。可移除某张后选入新图，点击应用才保存。";
+    $("album-readback-note").textContent="已读取 "+a.count+" 个卡槽，图片名称和原图复用此浏览器记录。新保存默认关闭自动换图；设备当前设置见下方状态，点击应用才更改。";
     try{localStorage.setItem("elink-photo-positions",JSON.stringify(photoPositions));localStorage.setItem("elink-restored-album-key",key);}catch(_){}saveAlbumSettings();
 }

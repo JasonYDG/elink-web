@@ -1,5 +1,5 @@
 {
-  "version": "1.1.6",
+  "version": "1.1.7",
   "firmware_versions": {
     "de05d8d1": "1.0.3",
     "768fcd19": "1.0.4",
@@ -38,163 +38,162 @@
       "title": "日出山水",
       "path": "image/01-sunrise-lake.png",
       "frame": "image/01-sunrise-lake.bin",
-      "sha256": "9b5e3bac1369c486a8b342eb63df2347962f80bf52ef7b390ce11202a5b0afa0"
+      "sha256": "9b5e3bac1369c486a8b342eb63df2347962f80bf52ef7b390ce11202a5b0afa0",
+      "crc32": 4114025383
     },
     {
       "title": "荷兰风车",
       "path": "image/02-dutch-windmill.png",
       "frame": "image/02-dutch-windmill.bin",
-      "sha256": "e684357cde1c315891ebca40c874fb5fd01222424c42487816926c8628a6a609"
-    },
-    {
-      "title": "晚安睡猫",
-      "path": "image/03-sleeping-cat.png",
-      "frame": "image/03-sleeping-cat.bin",
-      "sha256": "6ae8558f939decaa8f1cad0567c0c77071b59140a8aa225ef2d78310deff797a"
+      "sha256": "e684357cde1c315891ebca40c874fb5fd01222424c42487816926c8628a6a609",
+      "crc32": 3991993369
     },
     {
       "title": "咖啡与书",
       "path": "image/04-coffee-book.png",
       "frame": "image/04-coffee-book.bin",
-      "sha256": "2d657b09f5022ac9e7d570e038d33e296e69f3e13b3aaa37f7570ea66ccb1109"
+      "sha256": "2d657b09f5022ac9e7d570e038d33e296e69f3e13b3aaa37f7570ea66ccb1109",
+      "crc32": 3634561093
     },
     {
       "title": "海边灯塔",
       "path": "image/05-seaside-lighthouse.png",
       "frame": "image/05-seaside-lighthouse.bin",
-      "sha256": "e40a1d208c8b3014ce6d3fbaa7bf739941b7f33d5d33a4d5466b19bd72351524"
+      "sha256": "e40a1d208c8b3014ce6d3fbaa7bf739941b7f33d5d33a4d5466b19bd72351524",
+      "crc32": 3532603306
     },
     {
       "title": "窗边小猫",
       "path": "image/06-window-cat.png",
       "frame": "image/06-window-cat.bin",
-      "sha256": "3a739f0cb8295739c08e8b84c27028ea7e138c1a78b16d8870854989125acfc5"
-    },
-    {
-      "title": "山间列车",
-      "path": "image/07-mountain-train.png",
-      "frame": "image/07-mountain-train.bin",
-      "sha256": "7505b416bc52ae7753f40262bf14c47459fc50a7843138d2d5cccb94ee2196d0"
+      "sha256": "3a739f0cb8295739c08e8b84c27028ea7e138c1a78b16d8870854989125acfc5",
+      "crc32": 733783027
     },
     {
       "title": "荷兰运河",
       "path": "image/08-dutch-canal.png",
       "frame": "image/08-dutch-canal.bin",
-      "sha256": "6f68e17daf74066a8c53e54db8151b5432fc1e684891c8fb5342aa89a696f920"
+      "sha256": "6f68e17daf74066a8c53e54db8151b5432fc1e684891c8fb5342aa89a696f920",
+      "crc32": 3665624397
     },
     {
       "title": "水墨山居",
       "path": "image/09-chinese-mountain-retreat.png",
       "frame": "image/09-chinese-mountain-retreat.bin",
-      "sha256": "dcab981f15b23656f7a8fe24d8293ec3df3f0bf884fab0381722b3c0fdb6fe6d"
+      "sha256": "dcab981f15b23656f7a8fe24d8293ec3df3f0bf884fab0381722b3c0fdb6fe6d",
+      "crc32": 1380162895
     },
     {
       "title": "熊猫竹林",
       "path": "image/10-panda-bamboo.png",
       "frame": "image/10-panda-bamboo.bin",
-      "sha256": "3cc32acc46c7bde10440752cdcb5bc00135355e1da5c607c1e836aea2725130f"
+      "sha256": "3cc32acc46c7bde10440752cdcb5bc00135355e1da5c607c1e836aea2725130f",
+      "crc32": 3361872326
     },
     {
       "title": "江南水乡",
       "path": "image/11-jiangnan-water-town.png",
       "frame": "image/11-jiangnan-water-town.bin",
-      "sha256": "69f428821a4765d5803a8570615169573362abf38255f55622b3f9ac1128aab8"
+      "sha256": "69f428821a4765d5803a8570615169573362abf38255f55622b3f9ac1128aab8",
+      "crc32": 1444330933
     },
     {
       "title": "红梅喜鹊",
       "path": "image/12-plum-magpie.png",
       "frame": "image/12-plum-magpie.bin",
-      "sha256": "b10e9075a7cf7bc80a23fef5b2718add49206290fd12f16467e1c288f7c2b622"
-    },
-    {
-      "title": "月球小兔",
-      "path": "image/13-space-rabbit.png",
-      "frame": "image/13-space-rabbit.bin",
-      "sha256": "405661543a2829da80151ce6bfa15241d3152304e60343dc55cbc8f704298c8e"
+      "sha256": "b10e9075a7cf7bc80a23fef5b2718add49206290fd12f16467e1c288f7c2b622",
+      "crc32": 3997309181
     },
     {
       "title": "湖畔鸟居",
       "path": "image/14-japanese-gate.png",
       "frame": "image/14-japanese-gate.bin",
-      "sha256": "493ea8d569e5f9869415ebae9ea0a0fe59da80619a30ef332cdaa3321286dfe2"
+      "sha256": "493ea8d569e5f9869415ebae9ea0a0fe59da80619a30ef332cdaa3321286dfe2",
+      "crc32": 578739408
     },
     {
       "title": "鲸跃海面",
       "path": "image/15-whale-ocean.png",
       "frame": "image/15-whale-ocean.bin",
-      "sha256": "97346fe63e263feee8907896b0efc4c1742f7f27a8ecfc4d9b34d7f5b5a20e10"
-    },
-    {
-      "title": "林间睡狐",
-      "path": "image/16-fox-garden.png",
-      "frame": "image/16-fox-garden.bin",
-      "sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267"
+      "sha256": "97346fe63e263feee8907896b0efc4c1742f7f27a8ecfc4d9b34d7f5b5a20e10",
+      "crc32": 3095430617
     },
     {
       "title": "绝顶凌云",
       "path": "image/17-mountain-summit.png",
       "frame": "image/17-mountain-summit.bin",
-      "sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db"
+      "sha256": "8ce6f347a607b6d916d030b20a0e7d81d731986f852852942f0a5fe665dfa6db",
+      "crc32": 2914971532
     },
     {
       "title": "天生我材",
       "path": "image/18-born-to-shine.png",
       "frame": "image/18-born-to-shine.bin",
-      "sha256": "91ce8688360c75669b81e481f54c0cf2705ef10f452a61f272aeee66aad86f01"
+      "sha256": "91ce8688360c75669b81e481f54c0cf2705ef10f452a61f272aeee66aad86f01",
+      "crc32": 518779910
     },
     {
       "title": "长风破浪",
       "path": "image/19-wind-and-waves.png",
       "frame": "image/19-wind-and-waves.bin",
-      "sha256": "3c6ef5b10e1f0871f8c5b3e712c866c988293caa2bb4040d19b89d63d8214720"
+      "sha256": "3c6ef5b10e1f0871f8c5b3e712c866c988293caa2bb4040d19b89d63d8214720",
+      "crc32": 1442132807
     },
     {
       "title": "寒梅傲雪",
       "path": "image/20-plum-in-snow.png",
       "frame": "image/20-plum-in-snow.bin",
-      "sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d"
+      "sha256": "478f41d4e6836a130629d18d7e4afd097866057182f293d72dbc59b1ba64603d",
+      "crc32": 2553986648
     },
     {
       "title": "黄沙金甲",
       "path": "image/21-desert-cavalry.png",
       "frame": "image/21-desert-cavalry.bin",
-      "sha256": "3cc9110b8478cfd2ff1e92170a74996db5ea1ba3e78ede6a681a16447ad80f3c"
+      "sha256": "3cc9110b8478cfd2ff1e92170a74996db5ea1ba3e78ede6a681a16447ad80f3c",
+      "crc32": 997802095
     },
     {
       "title": "海内知己",
       "path": "image/22-distant-friend.png",
       "frame": "image/22-distant-friend.bin",
-      "sha256": "778f12fecd638c0fbb0d5f98de7a5b717702720a18738e1983f8f20b30272ecc"
+      "sha256": "778f12fecd638c0fbb0d5f98de7a5b717702720a18738e1983f8f20b30272ecc",
+      "crc32": 2388678789
     },
     {
       "title": "劲竹凌风",
       "path": "image/23-bamboo-in-wind.png",
       "frame": "image/23-bamboo-in-wind.bin",
-      "sha256": "8838c17a44e73ca246ca38acb4d73b9b7805bd1cd2553f64a496e8deaf2f8644"
+      "sha256": "8838c17a44e73ca246ca38acb4d73b9b7805bd1cd2553f64a496e8deaf2f8644",
+      "crc32": 3603162516
     },
     {
       "title": "青山绿水",
       "path": "image/24-rivers-and-mountains.png",
       "frame": "image/24-rivers-and-mountains.bin",
-      "sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf"
+      "sha256": "24cd72b7a40b9c59a64dee46deb88160e0c3ac444f9b8928f16e03bfe73fc0cf",
+      "crc32": 3407187604
     },
     {
       "title": "浮生若梦",
       "path": "image/25-maple-pavilion.png",
       "frame": "image/25-maple-pavilion.bin",
-      "sha256": "b4e6baa1cffcbbc82317fe9e94c98eabe03b7dd27443c40ec3388fb211273a9e"
+      "sha256": "b4e6baa1cffcbbc82317fe9e94c98eabe03b7dd27443c40ec3388fb211273a9e",
+      "crc32": 36801766
     },
     {
       "title": "登高望岳",
       "path": "image/26-summit-overlook.png",
       "frame": "image/26-summit-overlook.bin",
-      "sha256": "3945e706dcbb5e93372b9f46dfc651585aaf3e0be3892d4b143b87ea822711a8"
+      "sha256": "3945e706dcbb5e93372b9f46dfc651585aaf3e0be3892d4b143b87ea822711a8",
+      "crc32": 2583653807
     },
     {
       "title": "书剑山河",
       "path": "image/27-scholar-sword.png",
       "frame": "image/27-scholar-sword.bin",
-      "sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e"
+      "sha256": "97571c09f3ef8315ce8287b2e3c27b32c03936a0f8e123b2e7867660c285005e",
+      "crc32": 3311197839
     }
   ],
   "default_clock": {
@@ -204,5 +203,35 @@
   },
   "browser_only": true,
   "storage": "IndexedDB",
-  "ota": true
+  "ota": true,
+  "retired_gallery": [
+    {
+      "title": "晚安睡猫",
+      "path": "image/03-sleeping-cat.png",
+      "frame": "image/03-sleeping-cat.bin",
+      "sha256": "6ae8558f939decaa8f1cad0567c0c77071b59140a8aa225ef2d78310deff797a",
+      "crc32": 3755596020
+    },
+    {
+      "title": "山间列车",
+      "path": "image/07-mountain-train.png",
+      "frame": "image/07-mountain-train.bin",
+      "sha256": "7505b416bc52ae7753f40262bf14c47459fc50a7843138d2d5cccb94ee2196d0",
+      "crc32": 2922757595
+    },
+    {
+      "title": "月球小兔",
+      "path": "image/13-space-rabbit.png",
+      "frame": "image/13-space-rabbit.bin",
+      "sha256": "405661543a2829da80151ce6bfa15241d3152304e60343dc55cbc8f704298c8e",
+      "crc32": 763232818
+    },
+    {
+      "title": "林间睡狐",
+      "path": "image/16-fox-garden.png",
+      "frame": "image/16-fox-garden.bin",
+      "sha256": "0178ac35161f0562aa8382b61c2e5872d66dbf572bb899ff1c5ac118aa12e267",
+      "crc32": 1728049797
+    }
+  ]
 }
