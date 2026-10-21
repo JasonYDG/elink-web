@@ -84,7 +84,16 @@ function renderAlbum(){
     for(const [i,li] of [...list.children].entries())li.firstElementChild.setAttribute("aria-pressed",String($("publish-template").value===albumSelection[i]));
     const devices=state.devices.filter(d=>targets.has(d.address));
     $("album-device-status").textContent=devices.map(d=>{const a=d.state?.album;return d.name+"："+(!d.state?.offline_album?"需升级 1.5.9 并读取状态":!a?"读取状态可查看设备图库":a.protocol_version<2||!d.state?.album_minute_tick?"离线轮播需升级 1.5.9":!a.count?"尚未保存图片":a.count+" 张 · "+(a.enabled?(!a.running&&!a.writing?"已暂停，需核对":a.count===1?"保存显示":"每 "+a.interval_minutes/60+" 小时轮播"):"已停止")+(a.index<a.count?" · 当前第 "+(a.index+1)+" 张":""));}).join("；");
+    const slots=$("album-device-slot-list");slots.replaceChildren();
+    for(const d of devices)for(const text of deviceAlbumSlots(d)){const li=document.createElement("li");li.textContent=text;slots.append(li);}
+    $("album-device-slots").hidden=!slots.children.length;
     $("album-stop").disabled=batching||!devices.some(d=>d.state?.offline_album&&!pending(d.address));
+}
+function deviceAlbumSlots(d){
+    const a=d.state?.album;if(!a)return [];
+    const rows=Array.from({length:Math.min(d.state.album_capacity||4,7)},(_,i)=>d.name+" · 播放槽 "+(i+1)+" · "+(i<a.count?"已保存 · CRC32 "+(Number.isInteger(a.crc32?.[i])?(a.crc32[i]>>>0).toString(16).padStart(8,"0"):"待读取")+(a.index===i?" · 当前槽位":""):"未加入已保存列表"));
+    if(a.writing)rows.push(d.name+" · 新图库尚未提交 · 已校验 "+a.staged_count+" 张 · 当前图片 "+a.save_step+"/32 块；原播放列表保留");
+    return rows;
 }
 function albumPayload(){
     if(!albumSelection.length)throw Error("请选择图库图片");
