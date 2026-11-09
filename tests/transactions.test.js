@@ -295,6 +295,35 @@ test("a changed slot inventory is refused before reading an original or mutating
     const before=h.commands.length,run=await h.execute("album_show",{index:0,sequence:h.album.sequence-1,crc32:P.crc32(h.album.frames[0])});await assert.rejects(run.promise,/图库已变化/);
     assert.ok(h.commands.slice(before).every(b=>[0x93,0x9d].includes(b[0])||b[0]===0xbd&&b[1]===0));assert.equal(run.job.committed,false);
 });
+
+test("read original always queries physical Flash even if the browser has a matching cached image",async()=>{
+    const h=await harness({album:true,cachedAlbum:true}),save=await h.execute("album",await albumPayload(7));await save.promise;
+    const before=h.commands.length,run=await h.execute("album_read",{index:4,sequence:h.album.sequence,crc32:P.crc32(h.album.frames[4])});await run.promise;
+    assert.equal(h.commands.slice(before).filter(b=>b[0]===0xbd&&b[1]===5).length,63);assert.deepEqual(h.store.restored[4],h.album.frames[4]);
+});
+test("rotation-only settings preserve all seven images and send zero image or Flash-block writes",async()=>{
+    for(const disconnect of [false,true]){
+        const options={album:true},h=await harness(options),save=await h.execute("album",await albumPayload(7)),saved=await save.promise;
+        options.disconnectAlbumCommit=disconnect;const originals=h.album.frames.map(f=>f.slice()),before=h.commands.length;
+        const run=await h.execute("album_rotation",{sequence:h.album.sequence,expected_album:saved.album,auto_rotate:true,interval_minutes:60}),result=await run.promise,commands=h.commands.slice(before);
+        assert.equal(result.result,"album_rotation_verified");assert.equal(result.transmitted_image_bytes,0);assert.equal(result.album.interval_minutes,60);assert.equal(result.album.enabled,true);assert.deepEqual(h.album.frames,originals);
+        assert.equal(commands.filter(b=>b[0]===0x95||b[0]===0x96||b[0]===0xbd&&[1,2,5,6].includes(b[1])).length,0);assert.equal(commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+        const stop=await h.execute("album_rotation",{sequence:h.album.sequence,expected_album:result.album,auto_rotate:false,interval_minutes:60}),stopped=await stop.promise;assert.equal(stopped.album.enabled,false);assert.deepEqual(h.album.frames,originals);
+    }
+});
+test("stale rotation and stale or under-confirmed whole albums stop before any storage or display commit",async()=>{
+    const h=await harness({album:true}),p=await albumPayload(7),save=await h.execute("album",p),saved=await save.promise;
+    const before=h.commands.length,rotation=await h.execute("album_rotation",{sequence:h.album.sequence-1,expected_album:saved.album,auto_rotate:true,interval_minutes:60});await assert.rejects(rotation.promise,/图库已变化/);
+    const changed=await albumPayload(7);changed.items.reverse();changed.expected_sequence=h.album.sequence;changed.max_image_writes=0;const run=await h.execute("album",changed);await assert.rejects(run.promise,/写图数量已变化/);
+    assert.equal(h.commands.slice(before).filter(b=>b[0]===0x95||b[0]===0x96||b[0]===0xbd&&b[1]>0).length,0);
+});
+
+test("rotation acknowledgement loss has three bounded read-only reconnect attempts and never resubmits",async()=>{
+    const options={album:true},h=await harness(options),save=await h.execute("album",await albumPayload(7)),saved=await save.promise;
+    options.disconnectAlbumCommit=true;let attempts=0;h.device.gatt.connect=async()=>{attempts++;throw Error("unreachable");};
+    const before=h.commands.length,run=await h.execute("album_rotation",{sequence:h.album.sequence,expected_album:saved.album,auto_rotate:true,interval_minutes:60});await assert.rejects(run.promise,/unreachable/);
+    assert.equal(attempts,3);assert.equal(run.job.committed,true);assert.equal(h.commands.slice(before).filter(b=>b[0]===0xbd&&b[1]===3).length,1);
+});
 test("a commit that never reached the screen stays uncertain without automatic replay",async()=>{
     const h=await harness({album:true,disconnectBeforeAlbumCommit:true}),run=await h.execute("album",await albumPayload(1));await assert.rejects(run.promise,/配置不一致/);assert.equal(run.job.committed,true);assert.equal(h.commitCount(),0);assert.equal(h.commands.filter(b=>b[0]===0xbd&&b[1]===3).length,1);
 });

@@ -18,7 +18,7 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.9");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.10");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
 });
 
@@ -28,7 +28,7 @@ test("readback restores native originals and duplicate pictures to distinct edit
     const restored=await h.local.restoreAlbum(a,[frame,other]);assert.equal(restored.editable,true);assert.equal(restored.items[0].title,"月球小兔");assert.deepEqual(Array.from(h.local.albumMatches(restored)),Array.from(restored.items,i=>i.template_id));
     const copy=await h.local.restoreAlbum({...a,crc32:[P.crc32(frame),P.crc32(frame)]},[null,frame]);assert.notEqual(copy.items[0].template_id,copy.items[1].template_id);
     await h.local.updateState(address,{album_capacity:7,display_mode:8,album:copy});const payload={mode:"calendar",interval_minutes:1440,items:copy.items.map(i=>({template_id:i.template_id,photo_x:i.photo_x}))};
-    const result=await h.local.api("/api/jobs",{address,action:"album",payload});const queued=h.local.job(result.id);assert.equal(queued.payload.items.length,2);assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
+    const result=await h.local.api("/api/jobs",{address,action:"album",payload:{...payload,expected_sequence:3,max_image_writes:2}});const queued=h.local.job(result.id);assert.equal(queued.payload.items.length,2);assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
     assert.equal(queued.payload.auto_rotate,false);
     await h.local.api("/api/templates/delete",{id:copy.items[1].template_id});assert.deepEqual(P.decode64(queued.payload.items[1].frame),frame);
     await h.local.api("/api/cancel",{id:result.id});const photo=await h.local.api("/api/jobs",{address,action:"photo_calendar",payload:{template_id:copy.items[0].template_id,photo_x:10}});assert.deepEqual(P.decode64(h.local.job(photo.id).payload.frame),P.photoFrame(frame,10));
@@ -41,6 +41,15 @@ test("gallery rename updates only the previous default title and preserves retir
     const {local,saved}=await harness(w),templates=local.summary().templates;assert.deepEqual(Array.from(templates,t=>t.title),["绝顶凌云","我的山景","绝顶凌云"]);
     for(let i=0;i<3;i++)assert.deepEqual({...saved.get("current").templates[i],title:w.templates[i].title},w.templates[i]);
     for(const picture of config.retired_gallery)await assert.rejects(local.api("/api/builtin",{path:picture.path}),/内置图片不存在/);
+});
+
+test("rotation requests validate metadata, bind an immutable inventory and never attach image payloads",async()=>{
+    const h=await harness(),a={sequence:4,count:7,crc32:[1,2,3,4,5,6,7],photo_x:[0,0,0,0,0,0,0],mode:0,interval_minutes:1440,enabled:false};
+    await h.local.updateState(address,{album:a,album_minute_tick:true});
+    const valid={sequence:4,auto_rotate:true,interval_minutes:60};
+    for(const payload of [{...valid,sequence:3},{...valid,auto_rotate:1},{...valid,interval_minutes:59},{...valid,items:[]}])await assert.rejects(h.local.api("/api/jobs",{address,action:"album_rotation",payload}));
+    const result=await h.local.api("/api/jobs",{address,action:"album_rotation",payload:valid}),job=h.local.job(result.id);a.crc32[0]=999;
+    assert.equal(job.payload.expected_album.crc32[0],1);assert.equal(job.payload.items,undefined);assert.equal(job.payload.frame,undefined);
 });
 
 test("inventory names use metadata without loading originals, and slot requests reject stale or malformed targets",async()=>{

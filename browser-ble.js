@@ -41,7 +41,7 @@ const ELinkBLE = (() => {
         s=await idle(s,190);const a=await albumState(),p=j.payload,index=p.index;
         P.int(index,0,6,"卡槽");P.int(p.sequence,0,4294967295,"图库版本");P.int(p.crc32,0,4294967295,"图片校验值");
         if(!a||a.writing||index<0||index>=a.count||a.sequence!==p.sequence||a.crc32[index]!==p.crc32)throw Error("图库已变化，请重新读取状态，未切换图片");
-        let frame=L.albumFrame(a,index);
+        let frame=j.action==="album_read"?null:L.albumFrame(a,index);
         if(!frame){
             if(!s.album_readback)throw Error("读取卡槽原图需要 1.5.11 或更新固件");
             frame=new Uint8Array(8000);
@@ -90,6 +90,7 @@ const ELinkBLE = (() => {
         for(let i=0;i<frames.length;i++)if(await P.sha256(frames[i])!==p.items[i].sha256)throw Error("排队图库像素校验失败");
         s=await idle(s,190);let a=await albumState();if(!a||a.protocol_version<2)throw Error("设备不支持分步保存图库");
         const crcs=frames.map(P.crc32),positions=p.items.map(x=>x.photo_x),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),reuse=!a.writing&&a.has_config&&a.count===frames.length&&same(a.crc32,crcs)&&same(a.photo_x,positions);
+        if(p.expected_sequence!==undefined&&(a.sequence!==p.expected_sequence||(!reuse&&frames.length>p.max_image_writes)))throw Error("设备图库或写图数量已变化，请重新读取并确认；尚未写入图片");
         if(!reuse&&!a.has_config)for(let part=0;part<120;part++){
             await L.updateJob(j,{phase:"只读检查图库分区 · "+part+"/120 KiB",progress:3});
             let checked;try{checked=await query(Uint8Array.of(0xbd,6,part),P.albumPreflight);}catch(e){if(e.connection)throw e;const check=await status();if(check.error===1)throw Error("首次图库初始化需要固件 1.5.13，请升级后重新保存；尚未写入图库");throw e;}
@@ -130,6 +131,26 @@ const ELinkBLE = (() => {
         if(p.auto_rotate!==true){await L.updateJob(j,{phase:"保存已核对，关闭自动换图",progress:98});check=await stopAlbum(j,check);a=check.album;}
         check.album=await L.restoreAlbum(a,[]);await L.updateState(j.address,check);L.stopPlans(j.address);
         return {...check,result:reuse?"album_config_verified":"album_flash_verified",generation_after:check.display_generation,offline:true,reused_gallery:reuse,recovered_after_disconnect:recovered,transmitted_image_bytes:reuse?0:8000*frames.length,optical_result_verified:false};
+    }
+    async function rotateAlbum(j,s){
+        if(!s.offline_album||!s.album_minute_tick)throw Error("自动换图需要 1.5.9 或更新固件");
+        P.int(j.payload.sequence,0,4294967295,"图库版本");P.int(j.payload.interval_minutes,60,10080,"轮播间隔");if(typeof j.payload.auto_rotate!=="boolean")throw Error("自动换图开关无效");
+        s=await idle(s,190);const p=j.payload,a=await albumState(),same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),keys=["sequence","count","crc32","photo_x","mode","interval_minutes","enabled"];
+        if(!a?.count||a.writing||keys.some(k=>!same(a[k],p.expected_album?.[k]))||a.sequence!==p.sequence)throw Error("设备图库已变化，请重新读取设置；尚未提交");
+        if(!p.auto_rotate){const stopped=await stopAlbum(j,{...s,album:a});stopped.album=await L.restoreAlbum(stopped.album,[]);await L.updateState(j.address,stopped);return {...stopped,result:"album_rotation_stopped",transmitted_image_bytes:0};}
+        const device=portable.device;let recovered=false,check,after;
+        await committed(j,"仅保存自动换图设置，不上传图片");
+        try{await write(P.packet(0xbd,[[1,3],[1,a.mode],[2,p.interval_minutes]]),false,190000);}catch(e){if(!e.connection)throw e;recovered=true;}
+        for(let attempt=0;;attempt++)try{
+            if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，自动换图结果待核对");
+            if(recovered){try{device.gatt.disconnect();await sleep(1000);await bounded(device.gatt.connect(),"自动换图设置后重连",15000,device);await channels(device);}catch(e){e.connection=true;throw e;}}
+            if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，自动换图结果待核对");
+            check=await idle(await status(),190);after=await albumState();
+            if(check.firmware_id!==s.firmware_id||check.display_mode!==7+a.mode||!after?.enabled||!after.running||after.writing||after.sequence!==((a.sequence+1)>>>0)||after.interval_minutes!==p.interval_minutes||["count","crc32","photo_x","mode"].some(k=>!same(after[k],a[k])))throw Error("自动换图设置读回不一致，请读取状态核对");
+            break;
+        }catch(e){if(!e.connection||attempt===2)throw e;recovered=true;}
+        check.album=await L.restoreAlbum(after,[]);await L.updateState(j.address,check);L.stopPlans(j.address);
+        return {...check,result:"album_rotation_verified",transmitted_image_bytes:0,recovered_after_disconnect:recovered,optical_result_verified:false};
     }
     async function upgrade(j,s){
         const meta=await ELinkOTA.validate(j.payload.package),wire=ELinkOTA.image(meta);if(s.firmware_id===meta.firmware_id)throw Error("设备已是此固件版本，尚未擦写");s=await idle(s,190);
@@ -226,7 +247,7 @@ const ELinkBLE = (() => {
                 const settings=P.settings(j.payload);let actual=await configure(settings,s);if(!s.time_initialized||s.clock_timezone!==settings.clock_timezone){await committed(j,"设置已提交，等待校时和屏幕完成回执");await sync(settings,actual,![0,3].includes(s.display_mode));actual=await status();if(s.display_mode===5)actual=await overview(j,actual);}await L.updateJob(j,{progress:95});actual=await idle(actual,190);await L.saveSettings(j.address,{...settings,advertise_minutes:1,window_seconds:0});await L.updateState(j.address,actual);return actual;
             }
             if(j.action==="overview")return await overview(j,s);if(j.action==="reminder")return await install(j,s);if(["publish","photo_calendar"].includes(j.action))return await publish(j,s);
-            if(j.action==="album")return await installAlbum(j,s);if(j.action==="album_stop")return await stopAlbum(j,s);
+            if(j.action==="album")return await installAlbum(j,s);if(j.action==="album_stop")return await stopAlbum(j,s);if(j.action==="album_rotation")return await rotateAlbum(j,s);
             if(j.action==="album_read"||j.action==="album_show")return await albumSlot(j,s);
             if(j.action==="ota")return await upgrade(j,s);
             if(["default","resume","calendar"].includes(j.action)){

@@ -30,7 +30,7 @@ const ELinkLocal = (() => {
     function trim(){const protectedIds=new Set(data.reminders.map(r=>r.job_id));const complete=data.jobs.filter(j=>!unfinished.includes(j.status)&&!protectedIds.has(j.id)).sort((a,b)=>b.created-a.created);const keep=new Set(complete.slice(0,100).map(j=>j.id));data.jobs=data.jobs.filter(j=>unfinished.includes(j.status)||protectedIds.has(j.id)||keep.has(j.id));}
     function enqueue(address,action,payload={}){
         device(address);if(busy(address))throw Error("此屏幕已有未完成任务，请等待或取消");
-        if(!["probe","sync","settings","default","resume","calendar","publish","photo_calendar","album","album_stop","album_read","album_show","overview","reminder","ota"].includes(action))throw Error("不支持此操作");
+        if(!["probe","sync","settings","default","resume","calendar","publish","photo_calendar","album","album_rotation","album_stop","album_read","album_show","overview","reminder","ota"].includes(action))throw Error("不支持此操作");
         const j={id:id(),address,action,payload:copy(payload),status:"queued",progress:0,error:null,receipt:{},created:now(),updated:now(),due:now(),attempts:0,phase:"等待连接屏幕",committed:false};data.jobs.push(j);trim();return j;
     }
     function snapshot(t){return {template_id:t.id,...ELinkSnapshot(t)};}
@@ -38,9 +38,17 @@ const ELinkLocal = (() => {
         payload=payload||{};
         if(["publish","photo_calendar"].includes(action)){const t=template(payload.template_id),x=payload.photo_x??38;payload=snapshot(t);if(action==="photo_calendar"){if(payload.kind!=="image")throw Error("图片日历只能选择图片");const frame=P.photoFrame(P.decode64(payload.frame),x);payload={...payload,photo_x:x,frame:P.bytes64(frame),png:ELinkRenderer.png(frame),sha256:await P.sha256(frame)};}}
         if(action==="album"){
-            const {auto_rotate=false,...content}=payload;
+            const {auto_rotate=false,expected_sequence,max_image_writes,...content}=payload;
             if(typeof auto_rotate!=="boolean"||Object.keys(content).sort().join(",")!=="interval_minutes,items,mode"||!["image","calendar"].includes(payload.mode)||!Array.isArray(payload.items)||!payload.items.length||payload.items.length>Math.min(7,device(address).state?.album_capacity||4))throw Error("图库数量超出上限或设置无效，7张需1.5.11并读取状态");P.int(payload.interval_minutes,60,10080,"轮播间隔");const seen=new Set();
+            P.int(expected_sequence,0,4294967295,"已确认图库版本");P.int(max_image_writes,0,payload.items.length,"已确认写图数量");
+            if(expected_sequence!==device(address).state?.album?.sequence)throw Error("图库已变化，请重新读取并确认");
             payload={...payload,auto_rotate,items:payload.items.map(item=>{if(!item||Object.keys(item).sort().join(",")!=="photo_x,template_id"||seen.has(item.template_id))throw Error("图库图片不能重复");seen.add(item.template_id);P.int(item.photo_x,0,76,"取景位置");const t=template(item.template_id),frame=snapshot(t);if(frame.kind!=="image")throw Error("图库仅接受图片");return {...frame,photo_x:item.photo_x};})};
+        }
+        if(action==="album_rotation"){
+            if(Object.keys(payload).sort().join(",")!=="auto_rotate,interval_minutes,sequence"||typeof payload.auto_rotate!=="boolean")throw Error("自动换图设置无效");
+            P.int(payload.sequence,0,4294967295,"图库版本");P.int(payload.interval_minutes,60,10080,"轮播间隔");
+            const a=device(address).state?.album;if(!a?.count||a.writing||a.sequence!==payload.sequence||!device(address).state.album_minute_tick)throw Error("请先读取支持离线轮换的设备图库");
+            payload={...payload,expected_album:copy(a)};
         }
         if(["album_read","album_show"].includes(action)){
             if(Object.keys(payload).sort().join(",")!=="crc32,index,sequence")throw Error("卡槽设置无效");
