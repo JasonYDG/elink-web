@@ -11,7 +11,7 @@ const ELinkLocal = (() => {
         data=await read()||empty();configuration=await (await fetch("config.json",{cache:"no-cache"})).json();
         if(navigator.locks){await new Promise((resolve,reject)=>{navigator.locks.request("elink-web-workspace",{ifAvailable:true},async lock=>{owner=!!lock;resolve();if(lock)await new Promise(r=>releaseOwner=r);}).catch(reject);});}
         else throw Error("此浏览器缺少安全的多标签页控制；安卓请使用最新版 Chrome");
-        if(owner){data=await read()||empty();if(data.app_version!==configuration.version){for(const d of data.devices)d.state={...(d.state||{}),capabilities_stale:true};for(const t of data.templates){const item=configuration.gallery.find(i=>i.path===JSON.parse(t.spec).builtin);if(item?.previous_title&&t.title===item.previous_title)t.title=item.title;}data.app_version=configuration.version;}for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
+        if(owner){data=await read()||empty();if(data.app_version!==configuration.version){for(const d of data.devices)d.state={...(d.state||{}),capabilities_stale:true};for(const t of data.templates){const item=galleryEntries().find(i=>i.path===JSON.parse(t.spec).builtin);if(item?.previous_title&&t.title===item.previous_title)t.title=item.title;}data.app_version=configuration.version;}for(const j of data.jobs)if(active.includes(j.status)){j.status="delivery_unknown";j.error="页面关闭时任务未取得完成回执，请连接屏幕后核对";j.updated=now();}await persist();}
         return data;
     })();
     function read(key="current"){return new Promise((resolve,reject)=>{const r=db.transaction("workspace").objectStore("workspace").get(key);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
@@ -34,15 +34,17 @@ const ELinkLocal = (() => {
         const j={id:id(),address,action,payload:copy(payload),status:"queued",progress:0,error:null,receipt:{},created:now(),updated:now(),due:now(),attempts:0,phase:"等待连接屏幕",committed:false};data.jobs.push(j);trim();return j;
     }
     function snapshot(t){return {template_id:t.id,...ELinkSnapshot(t)};}
+    function galleryEntries(){return [...configuration.gallery,...configuration.retired_gallery||[],...configuration.legacy_gallery||[]];}
+    function imageLayout(t,layout){const kind=JSON.parse(t.spec).builtin_layout;if(kind&&kind!==layout)throw Error(layout==="calendar"?"请选用日历专用图，避免裁切全屏图":"此图为日历专用，请选择全屏版或切换图片日历");}
     async function queueRequest(address,action,payload){
         payload=payload||{};
-        if(["publish","photo_calendar"].includes(action)){const t=template(payload.template_id),x=payload.photo_x??38;payload=snapshot(t);if(action==="photo_calendar"){if(payload.kind!=="image")throw Error("图片日历只能选择图片");const frame=P.photoFrame(P.decode64(payload.frame),x);payload={...payload,photo_x:x,frame:P.bytes64(frame),png:ELinkRenderer.png(frame),sha256:await P.sha256(frame)};}}
+        if(["publish","photo_calendar"].includes(action)){const t=template(payload.template_id),layout=JSON.parse(t.spec).builtin_layout,x=layout==="calendar"?0:payload.photo_x??38;imageLayout(t,action==="photo_calendar"?"calendar":"fullscreen");payload=snapshot(t);if(action==="photo_calendar"){if(payload.kind!=="image")throw Error("图片日历只能选择图片");const frame=P.photoFrame(P.decode64(payload.frame),x);payload={...payload,photo_x:x,frame:P.bytes64(frame),png:ELinkRenderer.png(frame),sha256:await P.sha256(frame)};}}
         if(action==="album"){
             const {auto_rotate=false,expected_sequence,max_image_writes,...content}=payload;
             if(typeof auto_rotate!=="boolean"||Object.keys(content).sort().join(",")!=="interval_minutes,items,mode"||!["image","calendar"].includes(payload.mode)||!Array.isArray(payload.items)||!payload.items.length||payload.items.length>Math.min(7,device(address).state?.album_capacity||4))throw Error("图库数量超出上限或设置无效，7张需1.5.11并读取状态");P.int(payload.interval_minutes,60,10080,"轮播间隔");const seen=new Set();
             P.int(expected_sequence,0,4294967295,"已确认图库版本");P.int(max_image_writes,0,payload.items.length,"已确认写图数量");
             if(expected_sequence!==device(address).state?.album?.sequence)throw Error("图库已变化，请重新读取并确认");
-            payload={...payload,auto_rotate,items:payload.items.map(item=>{if(!item||Object.keys(item).sort().join(",")!=="photo_x,template_id"||seen.has(item.template_id))throw Error("图库图片不能重复");seen.add(item.template_id);P.int(item.photo_x,0,76,"取景位置");const t=template(item.template_id),frame=snapshot(t);if(frame.kind!=="image")throw Error("图库仅接受图片");return {...frame,photo_x:item.photo_x};})};
+            payload={...payload,auto_rotate,items:payload.items.map(item=>{if(!item||Object.keys(item).sort().join(",")!=="photo_x,template_id"||seen.has(item.template_id))throw Error("图库图片不能重复");seen.add(item.template_id);P.int(item.photo_x,0,76,"取景位置");const t=template(item.template_id),frame=snapshot(t);imageLayout(t,payload.mode==="calendar"?"calendar":"fullscreen");if(frame.kind!=="image")throw Error("图库仅接受图片");return {...frame,photo_x:JSON.parse(t.spec).builtin_layout==="calendar"?0:item.photo_x};})};
         }
         if(action==="album_rotation"){
             if(Object.keys(payload).sort().join(",")!=="auto_rotate,interval_minutes,sequence"||typeof payload.auto_rotate!=="boolean")throw Error("自动换图设置无效");
@@ -82,7 +84,7 @@ const ELinkLocal = (() => {
     async function previousBackup(){await ready;const value=await read("before-import");if(!value)throw Error("尚无导入前备份");download(value,"elink-before-import.json");}
     async function validateImport(value){
         if(!value||value.format!=="elink-web"||value.schema!==1)throw Error("请选择 ELINK Web JSON 备份；旧版 SQLite 请先用转换工具导出");
-        const limits={devices:100,templates:100,jobs:1000,plans:100,reminders:1000};for(const [k,n] of Object.entries(limits))if(!Array.isArray(value[k])||value[k].length>n)throw Error("备份列表不合法："+k);
+        const limits={devices:100,templates:200,jobs:1000,plans:100,reminders:1000};for(const [k,n] of Object.entries(limits))if(!Array.isArray(value[k])||value[k].length>n)throw Error("备份列表不合法："+k);
         const addresses=new Set(),ids=new Set();for(const d of value.devices){if(!addressPattern.test(d.address)||addresses.has(d.address)||typeof d.name!=="string"||d.name.length>100)throw Error("备份屏幕地址或名称无效");addresses.add(d.address);d.settings=P.settings(d.settings);d.connection="browser";d.state={};d.preview=null;}
         for(const t of value.templates){if(!/^[0-9a-f]{32}$/.test(t.id)||ids.has(t.id)||typeof t.title!=="string"||t.title.length>80)throw Error("备份图片无效");ids.add(t.id);const s=JSON.parse(t.spec);if(!["image","notice","clock","meeting","calendar"].includes(s.kind))throw Error("备份模板类型无效");const b=P.decode64(t.frame);if(b.length!==8000||await P.sha256(b)!==t.sha256||(s.native_frame&&!P.equal(P.decode64(s.native_frame),b)))throw Error("备份原生像素校验失败");t.png=ELinkRenderer.png(b);}
         const jobIds=new Set();for(const j of value.jobs){if(!/^[0-9a-f]{32}$/.test(j.id)||jobIds.has(j.id)||!addressPattern.test(j.address)||typeof j.action!=="string"||!Number.isFinite(j.created))throw Error("备份任务无效");jobIds.add(j.id);if(j.payload?.frame){const b=P.decode64(j.payload.frame);if(b.length!==8000||await P.sha256(b)!==j.payload.sha256)throw Error("备份任务像素校验失败");j.payload.png=ELinkRenderer.png(b);}if(j.payload?.display_png)delete j.payload.display_png;if(unfinished.includes(j.status)){j.status="cancelled";j.error="导入备份后停止旧队列，请核对设备后重新下发";}j.receipt=j.receipt&&typeof j.receipt==="object"?j.receipt:{};j.payload=j.payload||{};}
@@ -110,11 +112,11 @@ const ELinkLocal = (() => {
         }
         if(path==="/api/builtin"){
             const entry=configuration.gallery.find(e=>e.path===b.path);if(!entry)throw Error("内置图片不存在");const response=await fetch(entry.frame);if(!response.ok)throw Error("原生图读取失败");const frame=new Uint8Array(await response.arrayBuffer());if(frame.length!==8000||await P.sha256(frame)!==entry.sha256)throw Error("内置原生图校验失败");
-            const existing=data.templates.find(t=>t.sha256===entry.sha256);if(existing){const spec=JSON.parse(existing.spec);if(spec.builtin){spec.builtin=entry.path;existing.spec=JSON.stringify(spec);}return {id:existing.id,title:existing.title};}
-            if(data.templates.length>=100)throw Error("图片缓存已满，请先导出备份并删除旧图");const png=ELinkRenderer.png(frame),t={id:id(),title:entry.title,spec:JSON.stringify({kind:"image",image:png,crop:{mode:"stretch",zoom:1,x:0,y:0,rotation:0},builtin:entry.path}),png,frame:P.bytes64(frame),sha256:entry.sha256,created:now()};data.templates.push(t);return {id:t.id,title:t.title};
+            const existing=data.templates.find(t=>t.sha256===entry.sha256&&JSON.parse(t.spec).builtin_layout===entry.layout);if(existing){const spec=JSON.parse(existing.spec);if(spec.builtin){spec.builtin=entry.path;spec.builtin_layout=entry.layout;existing.spec=JSON.stringify(spec);}return {id:existing.id,title:existing.title};}
+            if(data.templates.length>=200)throw Error("图片缓存已满，请先导出备份并删除旧图");const png=ELinkRenderer.png(frame),t={id:id(),title:entry.title,spec:JSON.stringify({kind:"image",image:png,crop:{mode:"stretch",zoom:1,x:0,y:0,rotation:0},builtin:entry.path,builtin_layout:entry.layout}),png,frame:P.bytes64(frame),sha256:entry.sha256,created:now()};data.templates.push(t);return {id:t.id,title:t.title};
         }
         if(path==="/api/templates"){
-            const title=String(b.title||"").trim();if(!title||title.length>80)throw Error("图片名称须为 1 至 80 字");const rendered=await ELinkRenderer.render(b.spec),t=b.id?template(b.id):{id:id(),created:now()};if(!b.id&&data.templates.length>=100)throw Error("图片缓存已满，请删除旧图");Object.assign(t,{title,spec:JSON.stringify(b.spec),...rendered});if(!b.id)data.templates.push(t);return {id:t.id};
+            const title=String(b.title||"").trim();if(!title||title.length>80)throw Error("图片名称须为 1 至 80 字");const rendered=await ELinkRenderer.render(b.spec),t=b.id?template(b.id):{id:id(),created:now()};if(!b.id&&data.templates.length>=200)throw Error("图片缓存已满，请删除旧图");Object.assign(t,{title,spec:JSON.stringify(b.spec),...rendered});if(!b.id)data.templates.push(t);return {id:t.id};
         }
         if(path==="/api/templates/delete"){template(b.id);let stopped=0;for(const p of data.plans)if(p.template_id===b.id&&p.enabled){p.enabled=false;stopped++;}data.templates=data.templates.filter(t=>t.id!==b.id);return {ok:true,stopped_plans:stopped};}
         if(path==="/api/jobs"){
@@ -154,19 +156,19 @@ const ELinkLocal = (() => {
     }
     async function updateJob(j,changes){assertOwner();Object.assign(j,changes,{updated:now()});await persist();}
     async function updateState(address,state){assertOwner();const d=device(address);d.state=copy(state);d.updated=d.last_seen=now();await persist();}
-    function albumMatches(album){const used=new Set();return album.crc32.map(crc=>{const id=data.templates.find(t=>!used.has(t.id)&&P.crc32(P.decode64(t.frame))===crc)?.id||null;if(id)used.add(id);return id;});}
+    function albumMatches(album){const used=new Set();return album.crc32.map(crc=>{const id=data.templates.find(t=>{const layout=JSON.parse(t.spec).builtin_layout;return !used.has(t.id)&&(!layout||layout===(album.mode?"calendar":"fullscreen"))&&P.crc32(P.decode64(t.frame))===crc;})?.id||null;if(id)used.add(id);return id;});}
     function albumFrame(album,index){const t=data.templates.find(t=>P.crc32(P.decode64(t.frame))===album.crc32[index]);return t?P.decode64(t.frame):null;}
     async function restoreAlbum(album,frames){
         const matches=albumMatches(album),items=[];
         for(let i=0;i<album.count;i++){
             let t=matches[i]?template(matches[i]):null;
             if(!t&&frames[i]){
-                const frame=frames[i];if(frame.length!==8000||P.crc32(frame)!==album.crc32[i])throw Error("图库原图校验失败");if(data.templates.length>=100)throw Error("浏览器图片库已满，请导出备份并清理后读取图库");
-                const digest=await P.sha256(frame),known=[...configuration.gallery,...configuration.retired_gallery||[]].find(x=>x.sha256===digest),png=ELinkRenderer.png(frame);
-                t={id:id(),title:known?.title||"屏幕图库 "+(i+1),spec:JSON.stringify({kind:"image",...(known?{builtin:known.path}:{}),native_frame:P.bytes64(frame),image:png}),frame:P.bytes64(frame),png,sha256:digest,created:now()};data.templates.push(t);
+                const frame=frames[i];if(frame.length!==8000||P.crc32(frame)!==album.crc32[i])throw Error("图库原图校验失败");if(data.templates.length>=200)throw Error("浏览器图片库已满，请导出备份并清理后读取图库");
+                const digest=await P.sha256(frame),candidates=galleryEntries().filter(x=>x.sha256===digest),known=candidates.find(x=>x.layout===(album.mode?"calendar":"fullscreen"))||candidates.find(x=>!x.layout)||candidates[0],png=ELinkRenderer.png(frame);
+                t={id:id(),title:known?.title||"屏幕图库 "+(i+1),spec:JSON.stringify({kind:"image",...(known?{builtin:known.path,builtin_layout:known.layout}:{}),native_frame:P.bytes64(frame),image:png}),frame:P.bytes64(frame),png,sha256:digest,created:now()};data.templates.push(t);
             }
-            const known=[...configuration.gallery,...configuration.retired_gallery||[]].find(x=>x.crc32===album.crc32[i]);
-            items.push({template_id:t?.id||null,title:t?.title||known?.title||"未命名图片 "+(i+1),photo_x:album.photo_x[i]});
+            const known=galleryEntries().find(x=>x.crc32===album.crc32[i]);
+            items.push({template_id:t?.id||null,title:t?.title||known?.title||"未命名图片 "+(i+1),photo_x:album.photo_x[i],sha256:t?.sha256||known?.sha256||null});
         }
         await persist();return {...album,items,editable:items.every(x=>!!x.template_id)};
     }
