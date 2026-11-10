@@ -7,13 +7,15 @@ function albumEnabled(){return $("album-save").checked&&["publish","photo_calend
 let galleryPending=0,galleryQueue=Promise.resolve(),previewImage=null,previewDate=null,previewKey="",previewLoad=0,dragPhoto=null;
 let photoPositions={};try{photoPositions=JSON.parse(localStorage.getItem("elink-photo-positions")||"{}");if(!photoPositions||typeof photoPositions!=="object"||Array.isArray(photoPositions))photoPositions={};}catch(_){photoPositions={};}
 async function builtinTemplate(path){const old=state.templates.find(t=>JSON.parse(t.spec).builtin===path);return old?old.id:(await api("/api/builtin",{path})).id;}
+function calendarArtwork(id=$("publish-template").value){const t=state.templates.find(t=>t.id===id);return !!t&&JSON.parse(t.spec).builtin_layout==="calendar";}
+function chooseGallery(kind){document.querySelector('[name="page"][value="'+(kind==="calendar"?"calendar":"publish")+'"]').checked=true;if(kind==="calendar")$("calendar-theme").value="photo_calendar";pageControls();}
 function initGallery(items){
     $("album-save").checked=false;
     $("album-auto").checked=false;$("album-interval").value="1440";$("album-hours").value="24";
     $("album-custom").hidden=$("album-interval").value!=="0";
     for(const host of document.querySelectorAll('[data-native-gallery]')){
         host.replaceChildren();
-        for(const item of items){
+        for(const item of items.filter(i=>(i.layout||"fullscreen")===(host.dataset?.nativeGallery||"fullscreen"))){
             const button=document.createElement("button"),image=document.createElement("img"),title=document.createElement("span");
             button.type="button";button.className="image-choice";button.dataset.path=item.path;button.setAttribute("aria-pressed","false");button.setAttribute("aria-label","选择 "+item.title);
             image.src=resource(item.path);image.alt="";image.loading="lazy";title.textContent=item.title;button.append(image,title);
@@ -21,6 +23,7 @@ function initGallery(items){
             host.append(button);
         }
     }
+    $("gallery-fullscreen").onclick=()=>chooseGallery("fullscreen");$("gallery-calendar").onclick=()=>chooseGallery("calendar");
     $("album-save").onchange=()=>{saveAlbumSettings();pageControls();};
     $("album-auto").onchange=pageControls;
     $("album-add").onclick=()=>perform($("album-add"),async()=>{const id=$("publish-template").value;if(!id)throw Error("请先选择图片");if(!albumSelection.includes(id))toggleAlbum(id);pageControls();});
@@ -33,12 +36,12 @@ function initGallery(items){
     $("photo-x").oninput=()=>positionPhoto(Number($("photo-x").value));
     for(const [id,x] of [["photo-left",0],["photo-center",38],["photo-right",76]])$(id).onclick=()=>positionPhoto(x);
     const canvas=$("photo-canvas");
-    canvas.onpointerdown=e=>{if(!previewImage||operationBusy()||e.offsetX/canvas.clientWidth>174/250)return;dragPhoto={id:e.pointerId,x:e.clientX,start:Number($("photo-x").value)};canvas.setPointerCapture(e.pointerId);};
+    canvas.onpointerdown=e=>{if(!previewImage||calendarArtwork()||operationBusy()||e.offsetX/canvas.clientWidth>174/250)return;dragPhoto={id:e.pointerId,x:e.clientX,start:Number($("photo-x").value)};canvas.setPointerCapture(e.pointerId);};
     canvas.onpointermove=e=>{if(!dragPhoto||e.pointerId!==dragPhoto.id)return;positionPhoto(Math.round(dragPhoto.start-(e.clientX-dragPhoto.x)*250/canvas.getBoundingClientRect().width));};
     canvas.onpointerup=canvas.onpointercancel=()=>{dragPhoto=null;};
 }
 function positionPhoto(x){
-    x=Math.max(0,Math.min(76,x));$("photo-x").value=x;const id=$("publish-template").value;
+    x=calendarArtwork()?0:Math.max(0,Math.min(76,x));$("photo-x").value=x;const id=$("publish-template").value;
     if(id){photoPositions[id]=x;try{localStorage.setItem("elink-photo-positions",JSON.stringify(photoPositions));}catch(_){}}
     paintPhoto();
 }
@@ -49,18 +52,24 @@ function paintPhoto(){
     if(previewDate)ctx.drawImage(previewDate,174,0,76,122,174,0,76,122);
 }
 function imageControls(){
-    const photo=pageAction()==="photo_calendar";$("photo-position").hidden=!photo;$("image-section-title").textContent=photo?"选择日历图片":"选择图片";
-    $("image-preview-note").textContent=photo?"日期预览采用当前查看屏幕的时区；屏幕独立跨天更新。新版宽图日历与离线轮播需1.5.9固件。":"250 × 122 · 点击应用后才发送到屏幕";
+    const photo=pageAction()==="photo_calendar",kind=photo?"calendar":"fullscreen",current=state.templates.find(t=>t.id===$("publish-template").value),layout=current&&JSON.parse(current.spec).builtin_layout;
+    if(layout&&layout!==kind)$("publish-template").value="";
+    for(const option of $("publish-template").options){const t=state.templates.find(t=>t.id===option.value),usage=t&&JSON.parse(t.spec).builtin_layout;option.hidden=option.disabled=!!usage&&usage!==kind;}
+    for(const host of document.querySelectorAll('[data-native-gallery]'))host.hidden=(host.dataset?.nativeGallery||"fullscreen")!==kind;
+    $("gallery-fullscreen").setAttribute("aria-pressed",String(!photo));$("gallery-calendar").setAttribute("aria-pressed",String(photo));
+    $("photo-position").hidden=!photo||calendarArtwork();$("image-section-title").textContent=photo?"选择日历专用图":"选择全屏图";
+    $("image-preview-note").textContent=photo?(calendarArtwork()?"日历图 174 × 122 · 原生 1:1 对齐，完整显示，无需拖动；日期由设备更新":"请选择下方日历专用图，完整显示无需裁切；旧图和自定义照片仍可调整取景") :"全屏图 250 × 122 · 点击显示后才发送到屏幕";
     renderSelection();renderAlbum();
 }
 function renderSelection(){
     const id=$("publish-template").value,photo=pageAction()==="photo_calendar",row=state.templates.find(t=>t.id===id),builtin=row?JSON.parse(row.spec).builtin:"";
     for(const card of document.querySelectorAll('[data-native-gallery] button'))card.setAttribute("aria-pressed",String(card.dataset.path===builtin));
-    $("saved-preview").hidden=!id||photo;$("photo-canvas").hidden=!id||!photo;$("preview-empty").hidden=!!id;$("photo-x").disabled=!id;
+    $("saved-preview").hidden=!id||photo;$("photo-canvas").hidden=!id||!photo;$("preview-empty").hidden=!!id;$("photo-x").disabled=!id||calendarArtwork(id);
+    if(calendarArtwork(id))$("photo-x").value=0;
     if(!id){previewKey="";previewLoad++;previewImage=null;previewDate=null;return;}
     const zone=selected()?.settings?.clock_timezone||selected()?.state?.clock_timezone||"local",day=new Intl.DateTimeFormat("en-CA",{timeZone:zone==="local"?undefined:zone,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date()),key=[id,row?.sha256,zone,day].join("|");
     if(key===previewKey){paintPhoto();return;}previewKey=key;previewImage=null;previewDate=null;paintPhoto();
-    const position=photoPositions[id];$("photo-x").value=Number.isInteger(position)&&position>=0?Math.min(position,76):38;
+    const position=photoPositions[id];$("photo-x").value=calendarArtwork(id)?0:Number.isInteger(position)&&position>=0?Math.min(position,76):38;
     const seq=++previewLoad,src=resource("/api/templates/"+encodeURIComponent(id)+"/preview.png"),im=new Image(),date=new Image();
     $("saved-preview").src=src;
     im.onload=()=>{if(seq!==previewLoad)return;previewImage=im;paintPhoto();};date.onload=()=>{if(seq!==previewLoad)return;previewDate=date;paintPhoto();};
@@ -133,7 +142,7 @@ function albumMinutes(){
 }
 function albumPayload(){
     if(!albumSelection.length)throw Error("请选择图库图片");
-    return {mode:pageAction()==="photo_calendar"?"calendar":"image",auto_rotate:$("album-auto").checked,interval_minutes:albumMinutes(),items:albumSelection.map(id=>({template_id:id,photo_x:Math.min(photoPositions[id]??38,76)}))};
+    return {mode:pageAction()==="photo_calendar"?"calendar":"image",auto_rotate:$("album-auto").checked,interval_minutes:albumMinutes(),items:albumSelection.map(id=>({template_id:id,photo_x:calendarArtwork(id)?0:Math.min(photoPositions[id]??38,76)}))};
 }
 async function replaceAlbumImage(){
     const id=$("publish-template").value,index=albumDraftSlot,old=albumSelection[index];
@@ -146,7 +155,7 @@ async function replaceAlbumImage(){
 async function saveDeviceAlbum(){
     const d=singleDevice(),a=d.state?.album;if(!a||d.state.capabilities_stale||a.writing)throw Error("请先读取设备状态，再保存图库");
     const payload=albumPayload(),signature=JSON.stringify(payload),sequence=a.sequence;
-    const same=a.count===payload.items.length&&payload.items.every((x,i)=>a.items?.[i]?.template_id===x.template_id&&a.photo_x[i]===x.photo_x);
+    const same=a.count===payload.items.length&&payload.items.every((x,i)=>a.items?.[i]?.template_id===x.template_id&&a.items[i].sha256===state.templates.find(t=>t.id===x.template_id)?.sha256&&!!a.items[i].sha256&&a.photo_x[i]===x.photo_x);
     const count=same?0:payload.items.length;
     if(!await confirmAction(d.name+"："+(count?"将替换设备整组图库，写入 "+count+" 张（"+count*8000+" 字节）。现有固件修改一张也需保存整组。只想换当前画面，请取消后点“显示当前图片”。":"图片相同，复用设备图库，不上传图片。")+(payload.auto_rotate?" 保存后开启自动换图。":" 保存后关闭自动换图。")))return;
     if(singleDevice().address!==d.address||d.state.album.sequence!==sequence||JSON.stringify(albumPayload())!==signature)throw Error("设备或草稿已变化，请重新确认");

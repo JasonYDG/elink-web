@@ -1,0 +1,225 @@
+{
+  "format": "elink-gallery-layouts-1",
+  "layouts": {
+    "fullscreen": {
+      "width": 250,
+      "height": 122
+    },
+    "calendar": {
+      "width": 174,
+      "height": 122
+    }
+  },
+  "items": [
+    {
+      "slug": "01-sunrise-lake",
+      "title": "日出山水",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "02-dutch-windmill",
+      "title": "荷兰风车",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "04-coffee-book",
+      "title": "咖啡与书",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "05-seaside-lighthouse",
+      "title": "海边灯塔",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "06-window-cat",
+      "title": "窗边小猫",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "08-dutch-canal",
+      "title": "荷兰运河",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "09-chinese-mountain-retreat",
+      "title": "水墨山居",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "10-panda-bamboo",
+      "title": "熊猫竹林",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "11-jiangnan-water-town",
+      "title": "江南水乡",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "12-plum-magpie",
+      "title": "红梅喜鹊",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "14-japanese-gate",
+      "title": "湖畔鸟居",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "15-whale-ocean",
+      "title": "鲸跃海面",
+      "main": "",
+      "subtitle": ""
+    },
+    {
+      "slug": "18-born-to-shine",
+      "title": "天生我材",
+      "main": "天生我材必有用",
+      "subtitle": "千金散尽还复来"
+    },
+    {
+      "slug": "19-wind-and-waves",
+      "title": "长风破浪",
+      "main": "长风破浪会有时",
+      "subtitle": "直挂云帆济沧海"
+    },
+    {
+      "slug": "21-desert-cavalry",
+      "title": "黄沙金甲",
+      "main": "黄沙百战穿金甲",
+      "subtitle": "不破楼兰终不还"
+    },
+    {
+      "slug": "22-distant-friend",
+      "title": "海内知己",
+      "main": "海内存知己",
+      "subtitle": "天涯若比邻"
+    },
+    {
+      "slug": "23-bamboo-in-wind",
+      "title": "劲竹凌风",
+      "main": "千磨万击还坚劲",
+      "subtitle": "任尔东西南北风"
+    },
+    {
+      "slug": "25-maple-pavilion",
+      "title": "浮生若梦",
+      "main": "浮生若梦",
+      "subtitle": "为欢几何"
+    },
+    {
+      "slug": "26-summit-overlook",
+      "title": "绝顶凌云",
+      "main": "会当凌绝顶",
+      "subtitle": "一览众山小"
+    },
+    {
+      "slug": "28-higher-horizons",
+      "title": "欲穷千里目",
+      "main": "欲穷千里目",
+      "subtitle": "更上一层楼"
+    },
+    {
+      "slug": "29-soaring-eagle",
+      "title": "扶摇九万里",
+      "main": "扶摇九万里",
+      "subtitle": "大鹏一日同风起"
+    },
+    {
+      "slug": "30-self-renewal",
+      "title": "自强不息",
+      "main": "自强不息",
+      "subtitle": "天行健"
+    },
+    {
+      "slug": "31-endless-quest",
+      "title": "上下求索",
+      "main": "上下求索",
+      "subtitle": "路漫漫其修远兮"
+    },
+    {
+      "slug": "32-rainy-riverside",
+      "title": "任平生",
+      "main": "任平生",
+      "subtitle": "一蓑烟雨任平生"
+    },
+    {
+      "slug": "33-loulan-sword",
+      "title": "斩楼兰",
+      "main": "斩楼兰",
+      "subtitle": "愿将腰下剑"
+    },
+    {
+      "slug": "34-celestial-archer",
+      "title": "射天狼",
+      "main": "射天狼",
+      "subtitle": "会挽雕弓如满月"
+    },
+    {
+      "slug": "35-lamplit-sword",
+      "title": "挑灯看剑",
+      "main": "挑灯看剑",
+      "subtitle": "醉里挑灯看剑"
+    },
+    {
+      "slug": "36-fearless-road",
+      "title": "莫愁前路",
+      "main": "莫愁前路",
+      "subtitle": "天下谁人不识君"
+    },
+    {
+      "slug": "37-spring-triumph",
+      "title": "春风得意",
+      "main": "春风得意",
+      "subtitle": "一日看尽长安花"
+    },
+    {
+      "slug": "38-golden-sands",
+      "title": "千淘万漉",
+      "main": "千淘万漉",
+      "subtitle": "吹尽狂沙始到金"
+    },
+    {
+      "slug": "39-lofty-ambition",
+      "title": "青云之志",
+      "main": "青云之志",
+      "subtitle": "我辈岂是蓬蒿人"
+    },
+    {
+      "slug": "40-poetry-and-wine",
+      "title": "诗酒年华",
+      "main": "诗酒年华",
+      "subtitle": "且将新火试新茶"
+    },
+    {
+      "slug": "41-promising-journey",
+      "title": "鹏程万里",
+      "main": "鹏程万里",
+      "subtitle": "又携书剑路茫茫"
+    },
+    {
+      "slug": "42-patriotic-heart",
+      "title": "报国丹心",
+      "main": "报国丹心",
+      "subtitle": "愿得此身长报国"
+    },
+    {
+      "slug": "43-youthful-spirit",
+      "title": "少年壮气",
+      "main": "少年壮气",
+      "subtitle": "奋烈自有时"
+    }
+  ]
+}

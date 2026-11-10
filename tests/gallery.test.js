@@ -14,17 +14,19 @@ test("device slot inventory reflects the last committed playlist and keeps stagi
     assert.equal(context.displayedAlbumSlot(d),1);assert.match(context.deviceAlbumSlots(d,context.displayedAlbumSlot(d))[1],/当前槽位$/);
     d.state.display_generation++;assert.equal(context.displayedAlbumSlot(d),-1);
 });
-test("every gallery entry has a unique native frame, valid hash and matching preview provenance",()=>{
-    const root=path.join(__dirname,".."),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),artwork=JSON.parse(fs.readFileSync(path.join(root,"ARTWORK.json"))),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),titles=new Set(),paths=new Set(),hashes=new Set();
-    assert.ok(html.includes("内置图库 · "+config.gallery.length+" 张"));
-    assert.equal(config.gallery.length,35);assert.deepEqual(config.retired_gallery.map(i=>i.path),["image/03-sleeping-cat.png","image/07-mountain-train.png","image/13-space-rabbit.png","image/16-fox-garden.png","image/17-mountain-summit.png","image/24-rivers-and-mountains.png","image/20-plum-in-snow.png","image/27-scholar-sword.png"]);
-    for(const item of config.gallery){assert.equal(titles.has(item.title),false);titles.add(item.title);}
-    assert.equal(config.gallery.find(i=>i.path==="image/26-summit-overlook.png").title,"绝顶凌云");
-    for(const item of [...config.gallery,...config.retired_gallery]){
-        assert.match(item.path,/^image\/\d{2}-[a-z0-9-]+\.png$/);assert.equal(item.frame,item.path.replace(/\.png$/,".bin"));assert.equal(paths.has(item.path),false);
-        const frame=fs.readFileSync(path.join(root,item.frame)),digest=crypto.createHash("sha256").update(frame).digest("hex");assert.equal(frame.length,8000);assert.equal(digest,item.sha256);assert.equal(item.crc32,require("../protocol.js").crc32(frame));assert.equal(hashes.has(digest),false);
+test("both native gallery layouts have complete pairs, exact dimensions and matching frame provenance",()=>{
+    const root=path.join(__dirname,".."),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),artwork=JSON.parse(fs.readFileSync(path.join(root,"ARTWORK.json"))),html=fs.readFileSync(path.join(root,"index.html"),"utf8"),paths=new Set();
+    assert.ok(html.includes("全屏 35 张 / 日历 35 张"));
+    assert.equal(config.gallery.length,70);assert.equal(config.legacy_gallery.length,35);assert.deepEqual(config.retired_gallery.map(i=>i.path),["image/03-sleeping-cat.png","image/07-mountain-train.png","image/13-space-rabbit.png","image/16-fox-garden.png","image/17-mountain-summit.png","image/24-rivers-and-mountains.png","image/20-plum-in-snow.png","image/27-scholar-sword.png"]);
+    for(const layout of ["fullscreen","calendar"]){const group=config.gallery.filter(i=>i.layout===layout);assert.equal(group.length,35);const names=new Set();for(const item of group){assert.equal(names.has(item.title),false);names.add(item.title);assert.equal(item.width,layout==="calendar"?174:250);assert.equal(item.height,122);assert.ok(config.gallery.some(other=>other.pair===item.pair&&other.layout!==layout));}}
+    assert.equal(config.gallery.find(i=>i.path==="image/fullscreen/26-summit-overlook.png").title,"绝顶凌云");
+    for(const item of [...config.gallery,...config.retired_gallery,...config.legacy_gallery]){
+        assert.match(item.path,/^image\/(?:fullscreen\/|calendar\/)?\d{2}-[a-z0-9-]+\.png$/);assert.equal(item.frame,item.path.replace(/\.png$/,".bin"));assert.equal(paths.has(item.path),false);
+        const frame=fs.readFileSync(path.join(root,item.frame)),digest=crypto.createHash("sha256").update(frame).digest("hex"),png=fs.readFileSync(path.join(root,item.path));assert.equal(frame.length,8000);assert.equal(digest,item.sha256);assert.equal(item.crc32,require("../protocol.js").crc32(frame));assert.equal(png.readUInt32BE(16),item.width||250);assert.equal(png.readUInt32BE(20),122);
+        if(item.layout==="calendar")assert.deepEqual(require("../protocol.js").photoFrame(frame,0),Uint8Array.from(frame));
         for(let col=0;col<250;col++){assert.equal(frame[col*16+15]&63,63);assert.equal(frame[4000+col*16+15]&63,0);}
-        titles.add(item.title);paths.add(item.path);hashes.add(digest);
+        paths.add(item.path);
     }
-    for(const item of artwork.imports||[]){const registered=[...config.gallery,...config.retired_gallery].find(g=>g.path===item.file);assert.ok(registered);assert.equal(registered.title,item.title);assert.equal(registered.sha256,item.native_frame_sha256);assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.join(root,item.file))).digest("hex"),item.png_sha256);}
+    for(const item of artwork.imports||[]){const registered=[...config.gallery,...config.retired_gallery,...config.legacy_gallery].find(g=>g.path===item.file);assert.ok(registered);assert.equal(registered.title,item.title);assert.equal(registered.sha256,item.native_frame_sha256);assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.join(root,item.file))).digest("hex"),item.png_sha256);}
+    assert.equal(artwork.native_layouts.assets.length,70);for(const item of artwork.native_layouts.assets){const registered=config.gallery.find(g=>g.path===item.file);assert.ok(registered);assert.equal(item.native_frame_sha256,registered.sha256);assert.equal(crypto.createHash("sha256").update(fs.readFileSync(path.join(root,item.file))).digest("hex"),item.png_sha256);}
 });

@@ -5,8 +5,8 @@ function harness(){
     const elements=new Map(),storage=new Map([["elink-album-settings",JSON.stringify({enabled:true,items:["old-cache"]})]]),queued=[],confirmations=[],cards=[];
     const element=()=>({value:"",checked:false,children:[],dataset:{},classList:{toggle(){}},setAttribute(){},append(...children){this.children.push(...children);},replaceChildren(){this.children=[];},get firstElementChild(){return this.children[0];}});
     const get=id=>{if(!elements.has(id))elements.set(id,element());return elements.get(id);};
-    const templates=Array.from({length:8},(_,i)=>({id:String(i),title:"Image "+i,spec:JSON.stringify({kind:"image",builtin:"image/"+i+".png"})}));
-    const album={protocol_version:3,count:7,sequence:4,mode:0,index:3,photo_x:[0,10,20,30,40,50,60],crc32:[1,2,3,4,5,6,7],enabled:true,running:true,interval_minutes:360,items:templates.slice(0,7).map((t,i)=>({template_id:t.id,title:t.title,photo_x:i*10}))};
+    const templates=Array.from({length:8},(_,i)=>({id:String(i),title:"Image "+i,sha256:"fixture-sha-"+i,spec:JSON.stringify({kind:"image",builtin:"image/"+i+".png"})}));
+    const album={protocol_version:3,count:7,sequence:4,mode:0,index:3,photo_x:[0,10,20,30,40,50,60],crc32:[1,2,3,4,5,6,7],enabled:true,running:true,interval_minutes:360,items:templates.slice(0,7).map((t,i)=>({template_id:t.id,title:t.title,sha256:t.sha256,photo_x:i*10}))};
     const device={address:"screen",name:"Screen",state:{album,album_capacity:7,display_mode:7,album_minute_tick:true}};
     const c=vm.createContext({Date,Set,Map,Math,JSON,Number,String,Object,Array,Promise,Error,$:get,state:{templates,devices:[device],jobs:[{id:"new-probe",address:"screen",action:"probe",status:"succeeded",updated:Date.now()/1000}]},targets:new Set(["screen"]),localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},document:{createElement:element,querySelectorAll:s=>s==='[data-native-gallery]'?[{replaceChildren(){},append(b){cards.push(b);}}]:[],querySelector:()=>element()},selected:()=>device,singleDevice:()=>device,pageAction:()=>"publish",pageIssue:()=>"",operationBusy:()=>false,pageControls(){},showSaved(){},pending:()=>false,batching:false,resource:x=>x,perform:async(b,fn)=>fn(),api:async()=>({}),refresh:async()=>{},queue:async(action,payload)=>queued.push({action,payload}),confirmAction:async text=>{confirmations.push(text);return c.confirmed;},confirmed:true});
     vm.runInContext(source,c);get("publish-template").value="7";c.initGallery([{path:"image/7.png",title:"Image 7"}]);
@@ -32,6 +32,9 @@ test("whole-album save confirms all seven writes and binds the queue to that dev
 });
 test("unchanged images confirm zero uploads, while a never-started album focuses the first slot",async()=>{
     const h=harness();h.device.state.album.index=255;h.c.restoreDeviceAlbum();assert.equal(h.get("publish-template").value,"0");await h.c.saveDeviceAlbum();assert.equal(h.queued[0].payload.max_image_writes,0);assert.match(h.confirmations.at(-1),/不上传图片/);
+});
+test("editing a template under the same ID confirms image writes instead of falsely promising reuse",async()=>{
+    const h=harness();h.c.restoreDeviceAlbum();h.c.state.templates[3].sha256="edited-pixels";await h.c.saveDeviceAlbum();assert.equal(h.queued[0].payload.max_image_writes,7);assert.match(h.confirmations.at(-1),/写入 7 张/);
 });
 test("the main phone action confirms and displays exactly one preview even when the bulk editor is open",async()=>{
     const h=harness(),calls=[];h.c.pageAction=()=>"publish";h.get("album-save").checked=true;h.c.batch=async(action,payload)=>calls.push({action,payload});

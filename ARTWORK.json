@@ -473,5 +473,1350 @@
       "source": "user-supplied artwork",
       "conversion": "existing source/backend/render.py quantize: LANCZOS to 250x122; black/white/#BE0000; native 8000-byte two-plane frame; no dithering"
     }
-  ]
+  ],
+  "native_layouts": {
+    "generator": "built-in image_gen, one edit per asset",
+    "layouts": {
+      "fullscreen": {
+        "width": 250,
+        "height": 122
+      },
+      "calendar": {
+        "width": 174,
+        "height": 122
+      }
+    },
+    "assets": [
+      {
+        "file": "image/fullscreen/01-sunrise-lake.png",
+        "frame": "image/fullscreen/01-sunrise-lake.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "4afa518bb17905f2b08b60df249ceaeca238c847fbf1ee0caba9fb173d0c4db2",
+        "png_sha256": "4afa518bb17905f2b08b60df249ceaeca238c847fbf1ee0caba9fb173d0c4db2",
+        "native_frame_sha256": "9b5e3bac1369c486a8b342eb63df2347962f80bf52ef7b390ce11202a5b0afa0",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/01-sunrise-lake.png",
+        "frame": "image/calendar/01-sunrise-lake.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "7137c246578c13c75526fa6597ecdd379712c7978d741b45680c1eca10c4046c",
+        "png_sha256": "ea6367a9f149010307009148726b19cba5ac9d5cef18a1a5a81d3da1e2954771",
+        "native_frame_sha256": "1ea152b2564ee6e8a39f9ea2ba98d3ec63bcb6cef1f2937ce262a0f9a7ce09f8",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/02-dutch-windmill.png",
+        "frame": "image/fullscreen/02-dutch-windmill.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "60d6e5d0c754145690a53de7e08efd0554a82ebe8b5daced5f4078578b8b69f6",
+        "png_sha256": "60d6e5d0c754145690a53de7e08efd0554a82ebe8b5daced5f4078578b8b69f6",
+        "native_frame_sha256": "e684357cde1c315891ebca40c874fb5fd01222424c42487816926c8628a6a609",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/02-dutch-windmill.png",
+        "frame": "image/calendar/02-dutch-windmill.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "a6b0867504689fc2f4a9d5c47372bb5c833344f5a42f00dd97f53f0e52e46cdd",
+        "png_sha256": "f806f9d02bf22bc82eddeb981c941d2afef809925a623368eb2730bc4c5b53be",
+        "native_frame_sha256": "54af1ff542b3ddf9d3d7b3a4c8ecd7305de067e92e9c1fbca8d0d67929e46a99",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/04-coffee-book.png",
+        "frame": "image/fullscreen/04-coffee-book.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "d56bf7d31c88b05cd8326677efdc6d9ac9dd64cc8b75ed25fdbfcdaa54cee411",
+        "png_sha256": "d56bf7d31c88b05cd8326677efdc6d9ac9dd64cc8b75ed25fdbfcdaa54cee411",
+        "native_frame_sha256": "2d657b09f5022ac9e7d570e038d33e296e69f3e13b3aaa37f7570ea66ccb1109",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/04-coffee-book.png",
+        "frame": "image/calendar/04-coffee-book.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "24560c0f9f08e0f2b08d4c2b4c1093bca6fd600c427d86e0ff7d7e29149720cc",
+        "png_sha256": "9c04008d776a8b7c4b6febae6172b6de8d2558368f67955abb704b7a8a597965",
+        "native_frame_sha256": "e949c6d467fe499672fe34687dee5a899cebdaa66a3501350c6d6fa64ecf9cc2",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/05-seaside-lighthouse.png",
+        "frame": "image/fullscreen/05-seaside-lighthouse.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "e83109fbe8d05404b2b7ffec16695100e6ef702cf0ecf18ce1df79328bd34283",
+        "png_sha256": "e83109fbe8d05404b2b7ffec16695100e6ef702cf0ecf18ce1df79328bd34283",
+        "native_frame_sha256": "e40a1d208c8b3014ce6d3fbaa7bf739941b7f33d5d33a4d5466b19bd72351524",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/05-seaside-lighthouse.png",
+        "frame": "image/calendar/05-seaside-lighthouse.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "d0d2673e898b30500abf4432455613264e52c0758e4af09e513ec632b9d55720",
+        "png_sha256": "55792f1ce2d1c548c3b2ec5b68a367f8ef5f5277c89458edaa5c3965156c8ddc",
+        "native_frame_sha256": "c8fcba29e1b542e8a22604513cb59f994ae4da09caf2ef0d91a32ed07e0a7a36",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/06-window-cat.png",
+        "frame": "image/fullscreen/06-window-cat.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "18b85b5edc9fd3dec01016eb04da2428eda99c863d1c5696e6059657c9c82c0b",
+        "png_sha256": "18b85b5edc9fd3dec01016eb04da2428eda99c863d1c5696e6059657c9c82c0b",
+        "native_frame_sha256": "3a739f0cb8295739c08e8b84c27028ea7e138c1a78b16d8870854989125acfc5",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/06-window-cat.png",
+        "frame": "image/calendar/06-window-cat.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "44b04555841673e3d8653327f904f3601f1850162cffa3ec87bba318520140f0",
+        "png_sha256": "cc2e4571d26731466d58b3750e78bf6840f5a546d4221e8646d4aeb7008cd34d",
+        "native_frame_sha256": "8c8b4afaa2254de16e76baaf6e9ff53e2094267a47c390619f89ac5f8f9aab94",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/08-dutch-canal.png",
+        "frame": "image/fullscreen/08-dutch-canal.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "82431d9efc87cb2f1aa363bc96e143dec025a86014aa8209410c6cebf50d8128",
+        "png_sha256": "82431d9efc87cb2f1aa363bc96e143dec025a86014aa8209410c6cebf50d8128",
+        "native_frame_sha256": "6f68e17daf74066a8c53e54db8151b5432fc1e684891c8fb5342aa89a696f920",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/08-dutch-canal.png",
+        "frame": "image/calendar/08-dutch-canal.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "5733b293940e936c665ee555cc1782eb12a70eee1c52fe8fb53e04a7ce7055a6",
+        "png_sha256": "211122c47506df0a685601eefc5f50282c833211880dadb7ffd49fc49e5622ec",
+        "native_frame_sha256": "df8390310b3d454fd945f04be39fce7226677c98cf061543ff251871a410a85f",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/09-chinese-mountain-retreat.png",
+        "frame": "image/fullscreen/09-chinese-mountain-retreat.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "bf6ee4950cb70655ba6c96786fa1fb9f55d25af7238384397719247916bfdf04",
+        "png_sha256": "bf6ee4950cb70655ba6c96786fa1fb9f55d25af7238384397719247916bfdf04",
+        "native_frame_sha256": "dcab981f15b23656f7a8fe24d8293ec3df3f0bf884fab0381722b3c0fdb6fe6d",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/09-chinese-mountain-retreat.png",
+        "frame": "image/calendar/09-chinese-mountain-retreat.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "83ec13eadcdf9cde2b7bee7a800712e6182b627ee1cfe5673b7f13fe1bca7169",
+        "png_sha256": "bff21fbbc999a9b841d5537ffe6ffee9a4be931373530954a2b8382bdd767e75",
+        "native_frame_sha256": "79c8467f7cb2da07c1635139e7b5a3ccdb1189cbb74ea6a6ff68f4a7da842fa1",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/10-panda-bamboo.png",
+        "frame": "image/fullscreen/10-panda-bamboo.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "28c8a17c78e4f61bd0ce0f04c0632f986a38fb1c97354fe141f650d0ad972657",
+        "png_sha256": "28c8a17c78e4f61bd0ce0f04c0632f986a38fb1c97354fe141f650d0ad972657",
+        "native_frame_sha256": "3cc32acc46c7bde10440752cdcb5bc00135355e1da5c607c1e836aea2725130f",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/10-panda-bamboo.png",
+        "frame": "image/calendar/10-panda-bamboo.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "3b7f71ab2acb9100b1fd6d420febafff230ceee47e5a665c27ae7b19c2854835",
+        "png_sha256": "49393c6017594f447c40e993a984e8e3a7504e1113b99063ac8486973b370b1f",
+        "native_frame_sha256": "002c94957b2a66eb8a403efab899cbc96c307d03a29e24b01d80eeee8be84e59",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/11-jiangnan-water-town.png",
+        "frame": "image/fullscreen/11-jiangnan-water-town.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "afd781ae9d2f6aad42cceb508abf931f32c256e704e90fce5136707469d013a5",
+        "png_sha256": "afd781ae9d2f6aad42cceb508abf931f32c256e704e90fce5136707469d013a5",
+        "native_frame_sha256": "69f428821a4765d5803a8570615169573362abf38255f55622b3f9ac1128aab8",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/11-jiangnan-water-town.png",
+        "frame": "image/calendar/11-jiangnan-water-town.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "4130a61ef3202514857c4d2bddc05b8b419f8d5bd6a3a1696c5c9cfd0ee6efac",
+        "png_sha256": "ca8d90ba914473a295aef16d617820c31bd91897142ce17243ce8f8991627315",
+        "native_frame_sha256": "18053805481e1cb39aa86d7e38fd25d0f2aa6788fb9e9984474415ab96f2cdd2",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/12-plum-magpie.png",
+        "frame": "image/fullscreen/12-plum-magpie.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "a3ff0e25e2b06dee07509ac4c9170549959301da5706309aa40a580940d58ea6",
+        "png_sha256": "a3ff0e25e2b06dee07509ac4c9170549959301da5706309aa40a580940d58ea6",
+        "native_frame_sha256": "b10e9075a7cf7bc80a23fef5b2718add49206290fd12f16467e1c288f7c2b622",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/12-plum-magpie.png",
+        "frame": "image/calendar/12-plum-magpie.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "2890662573d144789c0595298cb1db226e4e25b015fac2663d81f4f73277e221",
+        "png_sha256": "ea9aaa59a83af8c25b989922a0f1aaba6359d9e76139c653f4b6f853f786caa4",
+        "native_frame_sha256": "d3903f9334facbb62caf3cab95d9140d89c90fe4fc369201fd193e87af1c4c94",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/14-japanese-gate.png",
+        "frame": "image/fullscreen/14-japanese-gate.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "672c91af207e22bb756e477b1d14341a75641803b19decd782a11b308a852efb",
+        "png_sha256": "672c91af207e22bb756e477b1d14341a75641803b19decd782a11b308a852efb",
+        "native_frame_sha256": "493ea8d569e5f9869415ebae9ea0a0fe59da80619a30ef332cdaa3321286dfe2",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/14-japanese-gate.png",
+        "frame": "image/calendar/14-japanese-gate.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "30d50f35a25a9f4eb4d6501361b90f20bab26383854f28b55e15401aaf5b4d69",
+        "png_sha256": "de532070b9056acdc0b234e0d7a6d6b37d0a4e238c6337517696de3a2a57a4e1",
+        "native_frame_sha256": "477ec5f48b6bc070842a397f7ac30e8ccabb47165a328561c6a6311b2734735f",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/15-whale-ocean.png",
+        "frame": "image/fullscreen/15-whale-ocean.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "16e9d23cb8522662bf180fa4995d53916f4edb1f3347e8a5c0ceb02054b7034c",
+        "png_sha256": "16e9d23cb8522662bf180fa4995d53916f4edb1f3347e8a5c0ceb02054b7034c",
+        "native_frame_sha256": "97346fe63e263feee8907896b0efc4c1742f7f27a8ecfc4d9b34d7f5b5a20e10",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/15-whale-ocean.png",
+        "frame": "image/calendar/15-whale-ocean.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "e88bda40a1cfce435d0b5efe4a8d11d0829bbf733c5dd144bcae7a652beaaf73",
+        "png_sha256": "fd30ed505000b3c16a147ba4d7c00c24b1caf9854aee00d704a147ee64faf9d9",
+        "native_frame_sha256": "6a02af2970e2c83ecf799c86a25db454831a8fc66ce3da577873a9b4a19aefe4",
+        "main_text": "",
+        "subtitle_text": "",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/18-born-to-shine.png",
+        "frame": "image/fullscreen/18-born-to-shine.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "7397fcdf9d9ffdc8ac9c999a500a8195a7fa1050e7698b3e7f631cfc44f54567",
+        "png_sha256": "6d09670e66bfeb163fd2862fca170345034bf3bfd23b52e6c2a83d1e2c7a3666",
+        "native_frame_sha256": "13c04b233e77b2b34bbc8f453e1c49ab007f4544fb64c09f6142534c4e3cec17",
+        "main_text": "天生我材必有用",
+        "subtitle_text": "千金散尽还复来",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/18-born-to-shine.png",
+        "frame": "image/calendar/18-born-to-shine.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "d79aa052270f3caf277d21e9630b9316d8c3a786b7b50fe93d3cbe35129c111d",
+        "png_sha256": "f957d32066bd4eeb472b7e2a23000c5f9cd14fda039ed04b15b02c1baaba81cb",
+        "native_frame_sha256": "38bd8f3b6a406417b7ed7440d18538f9e3606f0abdf7a2a1b82957d70176b14c",
+        "main_text": "天生我材必有用",
+        "subtitle_text": "千金散尽还复来",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/19-wind-and-waves.png",
+        "frame": "image/fullscreen/19-wind-and-waves.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "c950336bfa2e6ea2fb22e3118224c85b8ea1c6f6f6fdc5ff608f39d807476525",
+        "png_sha256": "e84ce670f914a52490fef501223568d04482fb155bdbf2031aadf3a250895f42",
+        "native_frame_sha256": "4ca5c1c2d29d5cd4f42d75b4bdefd92a2e82989ca4b2fe293a942758c027d956",
+        "main_text": "长风破浪会有时",
+        "subtitle_text": "直挂云帆济沧海",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/19-wind-and-waves.png",
+        "frame": "image/calendar/19-wind-and-waves.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "c41f1833c29b18c7b54ccab7b0bf6d5a8939e576a601dcc96e4bbd25ac70e1e5",
+        "png_sha256": "3eaeb569a8484b756e9724fc2a8de5c8af3a74a4b9c2bb51d8a13b22dc26ae0f",
+        "native_frame_sha256": "768fa93dc2f0daa6293d1caa688b9b5cf7b220c4f7dc5305f4155ededce92abe",
+        "main_text": "长风破浪会有时",
+        "subtitle_text": "直挂云帆济沧海",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/21-desert-cavalry.png",
+        "frame": "image/fullscreen/21-desert-cavalry.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "069bca3cb9fd7d7c5a56246bcbe46aa2634fe19ad25bb5ad9786044738e4d28a",
+        "png_sha256": "8126c36becea7fbe9d15692d2077c0ba605018d3b164c16de5f63ab36bc6c403",
+        "native_frame_sha256": "1846df060816cf252a83c66cdf81aae18a8666c2811fadf26133974e0f92631f",
+        "main_text": "黄沙百战穿金甲",
+        "subtitle_text": "不破楼兰终不还",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/21-desert-cavalry.png",
+        "frame": "image/calendar/21-desert-cavalry.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "10bc471786e577a25d4ed2e84bbd4cdc3535cdbfa78ee29089c93c63f304850c",
+        "png_sha256": "624b75e16b2168a497cb4f6785a9fbc46e14579f7f8ffea5f2f692de1f4a80b8",
+        "native_frame_sha256": "486226c7d78e1525f80a7e8a5847f024c3c2d2f68aea04b8e9e3e47e7972a5da",
+        "main_text": "黄沙百战穿金甲",
+        "subtitle_text": "不破楼兰终不还",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/22-distant-friend.png",
+        "frame": "image/fullscreen/22-distant-friend.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "30eac7c89ca5de7d13bcda078278f57f9c9261761d4ae16912f526ed1120c86c",
+        "png_sha256": "0db9bcf27a8ace6a73acf3a0dff21127a1ab474665ec862f8d3cce334327e734",
+        "native_frame_sha256": "52e31e7e6c17106b2d92de77c3c5581eb52d88cac7616ffd6a19c9e50179da96",
+        "main_text": "海内存知己",
+        "subtitle_text": "天涯若比邻",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/22-distant-friend.png",
+        "frame": "image/calendar/22-distant-friend.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "66cfa7d68ec346275418e1381a34c140f099e4c187899b3f9f960257a7abb9ec",
+        "png_sha256": "28ab09f167526856b699ed4c31275f15a7dea9668226a7ee069b71e714d7fc4a",
+        "native_frame_sha256": "d8d93f6bffceeadfe9c8e253b82b2500b0a34e3e9cf77c47fa0e4ff634b88fa8",
+        "main_text": "海内存知己",
+        "subtitle_text": "天涯若比邻",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/23-bamboo-in-wind.png",
+        "frame": "image/fullscreen/23-bamboo-in-wind.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "a5dd6c7475917e6f4d7725a6eaf12e4c461b7f8f09c4d7969a4606428618ddad",
+        "png_sha256": "920888d662009baddb1d9b76748457a6ebfde70b4ca3be2575ef281551ccdfa6",
+        "native_frame_sha256": "885ce203e5ef79e458d57f45bc153b7c25ace596de9931fa6b5690f7d12c3755",
+        "main_text": "千磨万击还坚劲",
+        "subtitle_text": "任尔东西南北风",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/23-bamboo-in-wind.png",
+        "frame": "image/calendar/23-bamboo-in-wind.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "2f70c67633b175934a55dfb01d39aef39ae52f3c410aa617cd06ca73ad95841a",
+        "png_sha256": "47f43d8b59d0ce25bc552a871cd5ad3e2515027e058797ed21bac66515c20056",
+        "native_frame_sha256": "2cde5172a6cd0e0e47e5489cc2c8685f5f678428e6dbc6bed483d12daf1d916d",
+        "main_text": "千磨万击还坚劲",
+        "subtitle_text": "任尔东西南北风",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/25-maple-pavilion.png",
+        "frame": "image/fullscreen/25-maple-pavilion.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "b14f23ddff4f4d68a4653cb1059f0885147e7e4c39da582e29e64c55db874966",
+        "png_sha256": "86fade0a5e71c42591f73e419ee404137863e6fd3877b5a13ea278c591e4d63a",
+        "native_frame_sha256": "1c59ac6a4128e8cf832505511475f954759af49d669e28ee637e757d192871e4",
+        "main_text": "浮生若梦",
+        "subtitle_text": "为欢几何",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/25-maple-pavilion.png",
+        "frame": "image/calendar/25-maple-pavilion.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "3fdee5c9c9d1bd904452659d61fcf74290bc8646733354e203d815ca3a22af47",
+        "png_sha256": "bfe206b8405a7bc1a1a138a50139076bb3e3e522b97b8329d7d44870f8a73b98",
+        "native_frame_sha256": "aec43fe534691ca2687d11cbe964bd45afd6d606b304025bd3fbf9944e5a340c",
+        "main_text": "浮生若梦",
+        "subtitle_text": "为欢几何",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/26-summit-overlook.png",
+        "frame": "image/fullscreen/26-summit-overlook.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "61372bb4405750a3869bbd4588df4e8daa307ec295e328fadf422e31082ee709",
+        "png_sha256": "2f6e46f5c8c5ef7c7d0f3ac2073d2c9ad8642e4a768061f02472dfa54d303227",
+        "native_frame_sha256": "2abf9a16413bb7fda3e40aaa99bda60e61993f3df083245fce04198e2301864a",
+        "main_text": "会当凌绝顶",
+        "subtitle_text": "一览众山小",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/26-summit-overlook.png",
+        "frame": "image/calendar/26-summit-overlook.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "ccf56c09b3154df55abb45f63e930b968d98733f46e62f49a330f55667cad4b8",
+        "png_sha256": "ca1513880c4e1ac7c9b35da2aaa3350481db7ea548082cf7d25240858a1b6b15",
+        "native_frame_sha256": "9ee90a8bcfdb11099cdc934d095b0e222d62315155de089d23232c2516f955a5",
+        "main_text": "会当凌绝顶",
+        "subtitle_text": "一览众山小",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/28-higher-horizons.png",
+        "frame": "image/fullscreen/28-higher-horizons.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "b21a1087a765a7d91171c0454fd0a5dbcabb5697fad9fcfd03f8e6c7887aa0c9",
+        "png_sha256": "b88aec63e9acab69b59d09c42e8f9b6138208ea7c0c323a5f5a8308ddbd7494d",
+        "native_frame_sha256": "8c5bcecbfa428ace2fb87346e83bc3e1f9dc2cd7d1a251b1046e31d1da74b779",
+        "main_text": "欲穷千里目",
+        "subtitle_text": "更上一层楼",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/28-higher-horizons.png",
+        "frame": "image/calendar/28-higher-horizons.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "f567ea6595f7dc04bc3c3ba0fc4caf006b193dca4b45445885e09ba071c8b273",
+        "png_sha256": "f4fb81b5fbb3bf7880ea5a36e38698f8c28527c1ce45c1a34089286462ca86c7",
+        "native_frame_sha256": "a157992ed498a074120e0ebb892a589f7b0ac211b0c0c8b7f6d68553a898411f",
+        "main_text": "欲穷千里目",
+        "subtitle_text": "更上一层楼",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/29-soaring-eagle.png",
+        "frame": "image/fullscreen/29-soaring-eagle.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "ac16548315a8348be8d681c4b84a52d5f27dc1c6292d133b0e4a3b9521a7764b",
+        "png_sha256": "97db8aba720b7984d4f99d661a2a71a5af747e110e6e311507582e266f12c52d",
+        "native_frame_sha256": "136b7621c497a482415a0117aca1e374d3f0034c7c81fd76322b6009811cec97",
+        "main_text": "扶摇九万里",
+        "subtitle_text": "大鹏一日同风起",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/29-soaring-eagle.png",
+        "frame": "image/calendar/29-soaring-eagle.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "4ddc3829cc58a3466f95f0853de82f5d895732f5c81fe78482374edd6903e287",
+        "png_sha256": "3394d9f2f43e0ff7e4efc079c6b464f72128fb5907d5c437770c9fc522b106c8",
+        "native_frame_sha256": "87dd9b17b32574f661e1ef5468ec572fc5025976e1e991fc5684e268f84dd003",
+        "main_text": "扶摇九万里",
+        "subtitle_text": "大鹏一日同风起",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/30-self-renewal.png",
+        "frame": "image/fullscreen/30-self-renewal.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "7f0a83b73ea051b0d9d71245b44f3f8f14d6f69614c161d54b66bbe2a3b1cff1",
+        "png_sha256": "ecd3705f2012c1e99001a945dda7872fd8586a585366f204015e86619330b075",
+        "native_frame_sha256": "066cb7b70bc37f0c268e95cddafe705142f1c1e5756584d1c7fd98969ff01753",
+        "main_text": "自强不息",
+        "subtitle_text": "天行健",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/30-self-renewal.png",
+        "frame": "image/calendar/30-self-renewal.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "5a9c1e6124337aec13678427b0e6bbf71b0c25a91c05153467a6d4989cd20437",
+        "png_sha256": "3ad4a062211032900e103d81549e83926b239237fb2b289386ee593875b14b7b",
+        "native_frame_sha256": "8946e8a69f88cd6bcd215c8ba5178bcc0d95abbb8fae29ba3307afd16e25c24a",
+        "main_text": "自强不息",
+        "subtitle_text": "天行健",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/31-endless-quest.png",
+        "frame": "image/fullscreen/31-endless-quest.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "794a4f48b035524a88fe730da1c8399fdd5a0c8a0a0e59af60de774803c6eeb5",
+        "png_sha256": "e5ffa500080978748eecf8e0022aed14e06ca5ea49263cedadb1ed46ebaa0656",
+        "native_frame_sha256": "7161e8f7b75519b435e8e9f6cedfba1d339a5fee9d3b1e315ae9e23999159eb7",
+        "main_text": "上下求索",
+        "subtitle_text": "路漫漫其修远兮",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/31-endless-quest.png",
+        "frame": "image/calendar/31-endless-quest.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "35b2986724a446741ce55b24efb7e09dda762ab5669e2accbf22bd01fdeb23c2",
+        "png_sha256": "5c1110655aa3d293c27e68fc4f3baa67e737e3e379ad28b36658f38ebc0520eb",
+        "native_frame_sha256": "83bc6ec7310ae24ae87e9ce010127bcc9c7a8f02fcc65e3a980c478f59383786",
+        "main_text": "上下求索",
+        "subtitle_text": "路漫漫其修远兮",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/32-rainy-riverside.png",
+        "frame": "image/fullscreen/32-rainy-riverside.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "8923a9e1a0337f525280214ef4a81e6afb6a34fafbbc5d2470d33feddb223c47",
+        "png_sha256": "94ecba92dacb145f910c229c2f2f2fb3a3b503c629d5c0150eb9b91d5383dc36",
+        "native_frame_sha256": "085cfae25a6540cd0cf03f33e4fe6519b4599be06a01cea9852a01d623c26d2c",
+        "main_text": "任平生",
+        "subtitle_text": "一蓑烟雨任平生",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/32-rainy-riverside.png",
+        "frame": "image/calendar/32-rainy-riverside.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "7688cd026edbf8d46525c89569950a2687609c89b3ce442ba21b4eed24581ad5",
+        "png_sha256": "fdb93c6171d0d4d7407c458aa1a4308c8dfcf64c79c9cb88bbc8e7d64018a2e1",
+        "native_frame_sha256": "f75e7a7dffd5ade2495aa902c6d833d380f65c3b1e68e09656e0f6e33a865442",
+        "main_text": "任平生",
+        "subtitle_text": "一蓑烟雨任平生",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/33-loulan-sword.png",
+        "frame": "image/fullscreen/33-loulan-sword.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "bf39cec52623d939c29b0be9a33d62ce1cc7ae0582a067541535cf87592fbcae",
+        "png_sha256": "4017e0df1adb41e3cac235e9313cfe2692e165fc459b1a2c04a517570d5db99c",
+        "native_frame_sha256": "e77f264bd953e6edf4ec72165234366b547f10e1f1ee603c900a6a51eb8535d2",
+        "main_text": "斩楼兰",
+        "subtitle_text": "愿将腰下剑",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/33-loulan-sword.png",
+        "frame": "image/calendar/33-loulan-sword.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "19bc9dca979422bc19c322c562e91fbfb53851f4e705c8c466ec2687d1c3cd55",
+        "png_sha256": "0e037db8f50fef08879ddf9f2fb0ebc8f40c3832e8d64fb2729584c954f18307",
+        "native_frame_sha256": "42cd10fe5f804068008eb13918db34af7b7c4201f99553b9b0dc3968a57969c5",
+        "main_text": "斩楼兰",
+        "subtitle_text": "愿将腰下剑",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/34-celestial-archer.png",
+        "frame": "image/fullscreen/34-celestial-archer.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "a7f5c625d85d5217b438c10fcabf5e29ec8121aad22bc21dd52629163125cb81",
+        "png_sha256": "093d0fb98d1c9f9ebf4ce28428a92376db80eaaecbd53e1d1f99ae207a1711fe",
+        "native_frame_sha256": "d398910f700425e6da67c829c50147f9aafb51bc6465358de16888a7a27a2d54",
+        "main_text": "射天狼",
+        "subtitle_text": "会挽雕弓如满月",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/34-celestial-archer.png",
+        "frame": "image/calendar/34-celestial-archer.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "25e428e89af24064610748bc982b31b56709bafe4735798a63574de1527db635",
+        "png_sha256": "202e21740d7c93149c5aa9685fdbbb79e596fde5dc63c74b6d4e821fc7acf101",
+        "native_frame_sha256": "a3faddcfa2852045ff80ccfc56862c185518c3d412a77b3fe70a7fe7f65a2369",
+        "main_text": "射天狼",
+        "subtitle_text": "会挽雕弓如满月",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/35-lamplit-sword.png",
+        "frame": "image/fullscreen/35-lamplit-sword.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "f5d9be65c4a855038689be0367742036c01a677274e8b7373c8199de4825b678",
+        "png_sha256": "778c618de152cdf0b565975a67e558afd8ceb25611eec2e8e798c6d96e2a2e5b",
+        "native_frame_sha256": "42c92ea9fca4d2b1f6699482c49fc65a4737d2a4c6fc5e44de98ab2f8dcd820c",
+        "main_text": "挑灯看剑",
+        "subtitle_text": "醉里挑灯看剑",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/35-lamplit-sword.png",
+        "frame": "image/calendar/35-lamplit-sword.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "496438ef4a3ed8a54f1c337b1d28ebffc74c978ede8f394e9b2eaed51bf9c52c",
+        "png_sha256": "254a8ddb65b39c88c9679df3bc04a771f123b6b42660bd963a78f70246f35d1f",
+        "native_frame_sha256": "0f2404e6ba0b34d440be456ab2a0d1c5060c9399e146eadc5933c108bd93cb45",
+        "main_text": "挑灯看剑",
+        "subtitle_text": "醉里挑灯看剑",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/36-fearless-road.png",
+        "frame": "image/fullscreen/36-fearless-road.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "3afee722e66ce60c4ee5c7eae10072567317d601bbef8538a92667ea685c3adc",
+        "png_sha256": "a7b6fb55a3cce693ccad9ebadb1cbb56b3ed652e6d5f6f6ac9887c8f2fc76b30",
+        "native_frame_sha256": "9402d356de67eaa976f8f7812a69e3c45b257a4f5746803365af83a2bef64fb4",
+        "main_text": "莫愁前路",
+        "subtitle_text": "天下谁人不识君",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/36-fearless-road.png",
+        "frame": "image/calendar/36-fearless-road.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "75a21d9246c3eedb7937b1213b90ed737da41b3e2de6a5e2cc8f01340ff82b04",
+        "png_sha256": "e8eafe38dfc5191a8b7d12bcdb7b4db2cf89754d356a65f75b4a125312f22b9a",
+        "native_frame_sha256": "6d62bbaa885bf40eac9c476cab9f75cefae4dd2eecc104cbfc90002db3500eb7",
+        "main_text": "莫愁前路",
+        "subtitle_text": "天下谁人不识君",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/37-spring-triumph.png",
+        "frame": "image/fullscreen/37-spring-triumph.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "dd44a4ac58185a484556639995127be7c2d34779001877059b35c75729408496",
+        "png_sha256": "77e4a29f441fc8bae55eb44e13ed73ef4a29349e0d9d758259314916a72c017a",
+        "native_frame_sha256": "1db5f00a4420f2fc20ba56f8f1d99fadb87d2d7879c856c7f0cf47b63751ec8c",
+        "main_text": "春风得意",
+        "subtitle_text": "一日看尽长安花",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/37-spring-triumph.png",
+        "frame": "image/calendar/37-spring-triumph.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "c3a5c8d5bce808f1188e30574bb215394a3344bab63cbd0750cbf3c8a6d4442b",
+        "png_sha256": "a487810d7bc94a2391cd81b925645f3a501c9d90a8b2d9cdbacf48a58d3c1410",
+        "native_frame_sha256": "f0313dd020da5296b19c71af4dbc1fecbe09360942cbaeba322072859cdb48fe",
+        "main_text": "春风得意",
+        "subtitle_text": "一日看尽长安花",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/38-golden-sands.png",
+        "frame": "image/fullscreen/38-golden-sands.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "8030dcfb3df7cfc575684d9655bdbe91286650bbafc2f4e6ef4c687ebdbdbf6b",
+        "png_sha256": "b47ef52ae0b7b9d508fefe9bb665ba874825090dc1bc9fbb7550ba6efdf2c202",
+        "native_frame_sha256": "75dd32cd3789b80f344137a05ce35fabcb33eaca3e1df555e798b57b0d51fd39",
+        "main_text": "千淘万漉",
+        "subtitle_text": "吹尽狂沙始到金",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/38-golden-sands.png",
+        "frame": "image/calendar/38-golden-sands.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "a7e285ad0e1f5385e05a2091bf1e4fc7d2fcf2f9a3ba12b93a657edd77dbac76",
+        "png_sha256": "132ce5ba8fa3364083977a6eea1afc742be53c2d08aa88fb1b6e3be8e32b7ae1",
+        "native_frame_sha256": "24880d836bee12434e35f25c39e9b22216768b2e14c8c542c0fe21c3fa3d50f0",
+        "main_text": "千淘万漉",
+        "subtitle_text": "吹尽狂沙始到金",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/39-lofty-ambition.png",
+        "frame": "image/fullscreen/39-lofty-ambition.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "bf912ed90281e8500e665a174cbb5eb86b0d7a5e12d9128ed73974e32631baf5",
+        "png_sha256": "d76d51ff450acb41aba1b6bff14ca81d2c3f637c7ed45521d949c04b94cc0437",
+        "native_frame_sha256": "e795b13090935fdb9ffd50a8a83ba323d071e2ddc68fdaa1af02fd2f77b9dea6",
+        "main_text": "青云之志",
+        "subtitle_text": "我辈岂是蓬蒿人",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/39-lofty-ambition.png",
+        "frame": "image/calendar/39-lofty-ambition.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "79901cfe20e38a8386eb0e832034a067caca2e531bee9b4e02a3ef336ecf0ac8",
+        "png_sha256": "16b43fa36e8f924d14b407ce3016e1109eb8746854c0904e42d04fdf50efb965",
+        "native_frame_sha256": "70886c12a2f29bf0d0585e1b6563ce280bc988d26e6990d997e7d4324e62b526",
+        "main_text": "青云之志",
+        "subtitle_text": "我辈岂是蓬蒿人",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/40-poetry-and-wine.png",
+        "frame": "image/fullscreen/40-poetry-and-wine.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "f32881288efb61f2ec9c91899771dddc29b3f372eb7f562ed24a022bf7236fbe",
+        "png_sha256": "84f6c356a7db7bfc70517a8e4d81a3d8aabb16a902a319043a700f31d7b3b62d",
+        "native_frame_sha256": "48035dbdd3700de41ae16f8c10afb4ff537e58264a04b42d09dfa25aa7fb92bd",
+        "main_text": "诗酒年华",
+        "subtitle_text": "且将新火试新茶",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/40-poetry-and-wine.png",
+        "frame": "image/calendar/40-poetry-and-wine.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "9c5656395a136b66a7749a9e2170710a9c8f0b903cdcfa3eafd0ccf6de851e83",
+        "png_sha256": "85ded46f8a4b90dfc75227ad41d5a2fe071ce07decc3c56d26e032fbe6ba9ecc",
+        "native_frame_sha256": "bb2e1c3f5e04c4e686214ccdb840095168447a8d76956e701e2026754982d9ba",
+        "main_text": "诗酒年华",
+        "subtitle_text": "且将新火试新茶",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/41-promising-journey.png",
+        "frame": "image/fullscreen/41-promising-journey.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "8f17cd1b6712f24490e9468e704bfae4503be50a285976bbbd71936b0e4c9585",
+        "png_sha256": "351ed9740422ba0aa30b09edebdad850a57b87571c7d8e70700f6970f7d31abe",
+        "native_frame_sha256": "9e1ea04e898488865eea267c1d183d9beeab1a18c5d3416318df431b53e82555",
+        "main_text": "鹏程万里",
+        "subtitle_text": "又携书剑路茫茫",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/41-promising-journey.png",
+        "frame": "image/calendar/41-promising-journey.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "2623e1cb4d52fc187a27f9dee56a833c5aa2f013d4159b31ac315bb57cf4f60b",
+        "png_sha256": "2efd01f210972106d6d0c84ee82f745d1f76137b5959bd73458ddb3a24870f38",
+        "native_frame_sha256": "1554287ae93ed0ceb96a188bdfd54cb80094a2bf84d4f79f31fdac2a8db5c043",
+        "main_text": "鹏程万里",
+        "subtitle_text": "又携书剑路茫茫",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/42-patriotic-heart.png",
+        "frame": "image/fullscreen/42-patriotic-heart.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "bf4ee8681147767041eb6513a8149d86758cba3b2e27c06bb31ca2fb8a7dd304",
+        "png_sha256": "2830c22b935369d65eeefda09655350e98beb79fde17e13d9402b884379a216b",
+        "native_frame_sha256": "55028af02089f46732af644209aa89514101213225a2c7e985bb91c050cea88b",
+        "main_text": "报国丹心",
+        "subtitle_text": "愿得此身长报国",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/42-patriotic-heart.png",
+        "frame": "image/calendar/42-patriotic-heart.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "22b89104ef91d206efd5a31a938f5432e9b3988baa6706cf05e7c3252b262258",
+        "png_sha256": "eb9f89466171e97f835e1e72b217366331590ac9a2ca498d443335686b5dfe2c",
+        "native_frame_sha256": "4752b433f277eeaa2ceed0a7ea31447a4ad9e6dfa21e19e2da3028b73fad3052",
+        "main_text": "报国丹心",
+        "subtitle_text": "愿得此身长报国",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/fullscreen/43-youthful-spirit.png",
+        "frame": "image/fullscreen/43-youthful-spirit.bin",
+        "layout": "fullscreen",
+        "native_dimensions": [
+          250,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "35e6da48ad640162d2bc9bf7d592c99ee0711dda3cc9759f409d40680ae7503a",
+        "png_sha256": "a69e163c1cdcc3f6067a86ca3b5d7ac2055c410d38d6ed1ee0fc9f93bb3f7831",
+        "native_frame_sha256": "4363cfa30e0e2dd189bfc4c96c975befc1b93f542a5b99febd1851bdd02a66bb",
+        "main_text": "少年壮气",
+        "subtitle_text": "奋烈自有时",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      },
+      {
+        "file": "image/calendar/43-youthful-spirit.png",
+        "frame": "image/calendar/43-youthful-spirit.bin",
+        "layout": "calendar",
+        "native_dimensions": [
+          174,
+          122
+        ],
+        "carrier_dimensions": [
+          250,
+          122
+        ],
+        "master_sha256": "c6d5be2a16f0a224c0ae2698dae8fa6ff3d9786aaf78a078ae7c148f03551e42",
+        "png_sha256": "8b26f3e45b46aff36ba215a1732c0f8dca07cc42e43d55d23b85427c655e79f3",
+        "native_frame_sha256": "744906bc9dcf6dd18c313de41546f320f5cb66c5f2cca22147a39db513ebcb79",
+        "main_text": "少年壮气",
+        "subtitle_text": "奋烈自有时",
+        "conversion": "complete model-composed master resized once to native dimensions; existing three-ink quantizer; calendar art padded on right to native 8000-byte carrier with photo_x=0; no crop"
+      }
+    ]
+  }
 }

@@ -6,7 +6,7 @@ function workspace(){return {format:"elink-web",schema:1,devices:[{address,name:
 async function harness(initial=workspace(),execute=async()=>({})){
     const saved=new Map([["current",structuredClone(initial)]]);
     const db={transaction(){const t={};t.objectStore=()=>({get(key){const r={};queueMicrotask(()=>{r.result=structuredClone(saved.get(key));r.onsuccess();});return r;},put(value,key){saved.set(key,structuredClone(value));queueMicrotask(()=>t.oncomplete?.());}});return t;}};
-    const context=vm.createContext({ELinkProtocol:P,ELinkRenderer:{png:()=>"canonical-png",render:async spec=>{const b=spec.test_frame||frame;return {frame:P.bytes64(b),sha256:await P.sha256(b),png:"canonical-png"};}},ELinkBLE:{execute},console,crypto,structuredClone,Uint32Array,Promise,Error,Date,Math,JSON,Set,Map,Object,Array,Number,String,URL,Blob,setTimeout,window:{isSecureContext:true,addEventListener(){}},location:{href:"https://example.test/elink-web/"},navigator:{locks:{request:async(name,options,handler)=>handler({name})}},indexedDB:{open(){const r={};queueMicrotask(()=>{r.result=db;r.onsuccess();});return r;}},fetch:async()=>({json:async()=>JSON.parse(fs.readFileSync(path.join(root,"config.json"),"utf8"))}),portable:{address,device:{gatt:{connected:true}}}});
+    const context=vm.createContext({ELinkProtocol:P,ELinkRenderer:{png:()=>"canonical-png",render:async spec=>{const b=spec.test_frame||frame;return {frame:P.bytes64(b),sha256:await P.sha256(b),png:"canonical-png"};}},ELinkBLE:{execute},console,crypto,structuredClone,Uint32Array,Promise,Error,Date,Math,JSON,Set,Map,Object,Array,Number,String,URL,Blob,setTimeout,window:{isSecureContext:true,addEventListener(){}},location:{href:"https://example.test/elink-web/"},navigator:{locks:{request:async(name,options,handler)=>handler({name})}},indexedDB:{open(){const r={};queueMicrotask(()=>{r.result=db;r.onsuccess();});return r;}},fetch:async url=>String(url).endsWith(".bin")?{ok:true,arrayBuffer:async()=>Uint8Array.from(fs.readFileSync(path.join(root,url))).buffer}:{json:async()=>JSON.parse(fs.readFileSync(path.join(root,"config.json"),"utf8"))},portable:{address,device:{gatt:{connected:true}}}});
     vm.runInContext(fs.readFileSync(path.join(root,"local.js"),"utf8"),context);const local=vm.runInContext("ELinkLocal",context);await local.ready;return {local,saved,context};
 }
 test("queued image stays immutable after editing and deleting its template",async()=>{
@@ -18,7 +18,7 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.10");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.11");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
 });
 
@@ -36,7 +36,7 @@ test("readback restores native originals and duplicate pictures to distinct edit
 });
 
 test("gallery rename updates only the previous default title and preserves retired pictures and aliases",async()=>{
-    const w=workspace(),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),item=config.gallery.find(i=>i.path==="image/26-summit-overlook.png"),old=config.retired_gallery.find(i=>i.path==="image/17-mountain-summit.png");w.app_version="1.1.7";
+    const w=workspace(),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),item=config.legacy_gallery.find(i=>i.path==="image/26-summit-overlook.png"),old=config.retired_gallery.find(i=>i.path==="image/17-mountain-summit.png");w.app_version="1.1.7";
     for(const [i,title,picture] of [[1,"登高望岳",item],[2,"我的山景",item],[3,"绝顶凌云",old]]){const bytes=fs.readFileSync(path.join(root,picture.frame));w.templates.push({id:ident(i),title,spec:JSON.stringify({kind:"image",builtin:picture.path}),frame:P.bytes64(bytes),sha256:picture.sha256,png:"original",created:1});}
     const {local,saved}=await harness(w),templates=local.summary().templates;assert.deepEqual(Array.from(templates,t=>t.title),["绝顶凌云","我的山景","绝顶凌云"]);
     for(let i=0;i<3;i++)assert.deepEqual({...saved.get("current").templates[i],title:w.templates[i].title},w.templates[i]);
@@ -59,6 +59,28 @@ test("inventory names use metadata without loading originals, and slot requests 
     for(const payload of [{index:1,sequence:0,crc32:a.crc32[0]},{index:0,sequence:2,crc32:a.crc32[0]},{index:0,sequence:0,crc32:0},{index:0.5,sequence:0,crc32:a.crc32[0]}])await assert.rejects(h.local.api("/api/jobs",{address,action:"album_show",payload}));
     assert.equal(h.local.summary().jobs.length,0);
     const job=await h.local.api("/api/jobs",{address,action:"album_read",payload:{index:0,sequence:0,crc32:a.crc32[0]}});assert.equal(h.local.job(job.id).action,"album_read");
+});
+
+test("calendar-specific native images force x=0 and reject use in the fullscreen mode",async()=>{
+    const h=await harness(),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),item=config.gallery.find(i=>i.layout==="calendar"),r=await h.local.api("/api/builtin",{path:item.path});
+    assert.equal(JSON.parse(h.local.summary().templates.find(t=>t.id===r.id).spec).builtin_layout,"calendar");
+    await assert.rejects(h.local.api("/api/jobs",{address,action:"publish",payload:{template_id:r.id}}),/日历专用/);
+    const result=await h.local.api("/api/jobs",{address,action:"photo_calendar",payload:{template_id:r.id,photo_x:38}}),j=h.local.job(result.id);
+    assert.equal(j.payload.photo_x,0);assert.deepEqual(P.decode64(j.payload.frame),Uint8Array.from(fs.readFileSync(path.join(root,item.frame))));
+});
+test("legacy calendar albums stay editable after an identical new fullscreen image was cached",async()=>{
+    const h=await harness(),config=JSON.parse(fs.readFileSync(path.join(root,"config.json"))),full=config.gallery.find(i=>i.path==="image/fullscreen/01-sunrise-lake.png"),original=Uint8Array.from(fs.readFileSync(path.join(root,full.frame)));
+    const chosen=await h.local.api("/api/builtin",{path:full.path}),a={capacity:7,count:1,sequence:4,crc32:[P.crc32(original)],photo_x:[38],mode:1,enabled:true,interval_minutes:1440};
+    assert.equal(h.local.albumMatches(a)[0],null);
+    const restored=await h.local.restoreAlbum(a,[original]),id=restored.items[0].template_id;assert.notEqual(id,chosen.id);assert.equal(JSON.parse(h.local.summary().templates.find(t=>t.id===id).spec).builtin_layout,undefined);
+    const j=await h.local.api("/api/jobs",{address,action:"photo_calendar",payload:{template_id:id,photo_x:38}});assert.deepEqual(P.decode64(h.local.job(j.id).payload.frame),P.photoFrame(original,38));
+});
+test("one hundred existing templates plus all seventy new variants remain selectable and importable",async()=>{
+    const w=workspace(),sha=await P.sha256(frame);for(let i=0;i<100;i++)w.templates.push({id:ident(i+1),title:"old "+i,spec:'{"kind":"image"}',frame:P.bytes64(frame),sha256:sha,png:"old",created:1});
+    const h=await harness(w),config=JSON.parse(fs.readFileSync(path.join(root,"config.json")));
+    for(const item of config.gallery)await h.local.api("/api/builtin",{path:item.path});
+    assert.equal(h.local.summary().templates.length,170);const backup=await h.local.validateImport(structuredClone(h.saved.get("current")));assert.equal(backup.templates.length,170);
+    assert.equal(h.local.summary().templates.slice(0,100).every(t=>JSON.parse(t.spec).builtin_layout===undefined),true);
 });
 
 test("seven-image request is refused by old device capacity before a job is admitted",async()=>{
