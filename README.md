@@ -1,6 +1,14 @@
-# ELINK Web 1.1.11
+# ELINK Web 1.1.12
 
-[打开网页](https://jasonydg.github.io/elink-web/?v=1.1.11) · 固件保持 1.5.13，无需升级。
+[打开网页](https://jasonydg.github.io/elink-web/?v=1.1.12) · 固件保持 1.5.13，无需升级。
+
+公告、会议、日程、时钟模板，以及提醒画面、汇总标题和电量文字，现在直接读取固定点阵字库，不再调用浏览器 `FontFace`、`fillText` 或 `measureText`。点阵由现有后端按原生字号生成，保留基线、字宽、12px 中文 Fusion Pixel 和 14/18px Noto Medium 规则；预览与实际发送共用同一份像素数据。菜单、按钮继续使用系统字体。
+
+字库按实际需要的字号加载并缓存，逐文件校验 SHA256；加载失败或缺字会明确报错。每个常规字号覆盖原字体中的约 3.09 万个 Unicode 字符（含其支持的扩展汉字）；64px 仅用于时钟数字和冒号。12px 原 Fusion 文件中两个超高的竖排假名符号 U+3031/U+3032 不提供，不使用系统字体替代。图片日历字形表、已有图片、已保存的模板像素和固件保持原样；旧模板再次编辑保存或新建提醒时使用新字库。
+
+重建字库和主机像素对照样本：在仓库根目录运行 `python tools/build-text-fonts.py`，使用 `windows-manager/source/backend/requirements.txt` 中固定的 Pillow 版本及随源码提供的字体。产物、来源和校验值见 `fonts/text-fonts.json`，点阵格式为 `ELF1`：12 字节头（标识、字号、字形数），随后每字 9 字节索引（Unicode 码点、相对像素区偏移、字宽），最后为每行按高位优先打包的黑白像素。
+
+## 1.1.11 历史说明
 
 内置图库分为 **35 张全屏图（250×122）** 和 **35 张日历专用图（174×122）**。日历版本基于同名全屏主题重新构图，画面和文字完整放入左侧区域，固定 `photo_x=0`，不再要求拖动裁切。右侧 76 列日期仍由设备生成。
 
@@ -99,9 +107,9 @@ main 保存网页及 windows-manager/ 源码；gh-pages 只发布静态运行资
 node --test tests/*.test.js
 ```
 
-图像原生帧及哈希保持不变，来源见 ARTWORK.json。通用模板使用 Noto Sans SC Black，许可见 fonts/LICENSE.txt。图片日历使用与固件同源的原生尺寸 Noto Black/Medium 和 Fusion Pixel 字形表，见 fonts/calendar-glyphs.json、fonts/FusionPixel-OFL.txt；未复制 4.2 寸固件的专有字体。
+图像原生帧及哈希保持不变，来源见 ARTWORK.json。通用模板使用 Noto Black/Medium 和 Fusion Pixel 预生成点阵，许可见 fonts/LICENSE.txt、fonts/FusionPixel-OFL.txt。图片日历仍使用与固件同源的原生尺寸字形表 fonts/calendar-glyphs.json；未复制 4.2 寸固件的专有字体。
 
-通用 Canvas 模板可能有系统栅格化差异，预制图库和日历字形不依赖系统字体。协议模拟、浏览器界面及编译检查不能代替真实手机蓝牙、实体显示、续航和掉电验收；本次为候选测试发布。
+所有上屏文字使用固定点阵，浏览器不再重新栅格化文字。协议模拟、浏览器界面及像素对照检查不能代替真实手机蓝牙、实体显示、续航和掉电验收；本次为候选测试发布。
 
 
 Web 1.1.5：实机发现播放列表已提交后 Windows 仍可能中止 BD03 回执。网页此时最多重连 3 次，只读核对固件、播放序号、完整配置和首张像素；不重发 BD03、不重新上传。未提交成功、目标改变、持续断线或读回不符仍保留待核对结果。
