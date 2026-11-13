@@ -82,8 +82,9 @@ def has_glyph(ch,height):
 def cells(chars,height):
     if height<12:raise ValueError('点阵字号至少为12像素')
     native=12 if height in (12,14,15,24,28,44) else 16
-    result={};scale=height//native
-    for ch,source in fallback_cells(chars,native).items():
+    result={};scale=height//native;originals=fallback_cells(chars,native)
+    latin=(originals if native==12 else fallback_cells(''.join(ch for ch in chars if ord(ch)<128),12)) if height<=20 else {}
+    for ch,source in originals.items():
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
         if height in (44,66) and ch in '0123456789:':
@@ -91,12 +92,27 @@ def cells(chars,height):
             zoom=4 if height==44 else 6;source=source.crop(source.getbbox())
             cell=source.resize((source.width*zoom,source.height*zoom),Image.Resampling.NEAREST)
             width=27 if height==44 else 28 if ch==':' else 50
-        assert cell.width<=width and cell.height<=height
-        out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
+        if height<=20 and source.getbbox():
+            if ord(ch)<128:
+                source=latin[ch];box=source.getbbox()
+                # Fill the actual cap height; retain descenders and low punctuation.
+                cell=source.crop((0,min(2,box[1]),max(5,box[2]),max(10,box[3])))
+                width=max(8 if height in (12,16) else (height+2)//2,cell.width+2)
+                cell=cell.resize((max(cell.width,width-2),max(cell.height,height-1)),Image.Resampling.NEAREST)
+                x=1 if height>=16 else 0
+            else:
+                target=height-1 if height not in (12,16) else native
+                cell=source.resize((source.width*target//native,target),Image.Resampling.NEAREST)
+                width=max(width,cell.width+(height>12 and height!=16));x=(width-cell.width)//2
+            assert x+cell.width<=width and cell.height<=height
+            out=Image.new('1',(width,height));out.paste(cell,(x,(height-cell.height)//2));result[ch]=out
+        else:
+            assert cell.width<=width and cell.height<=height
+            out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
     return result
 
 def text_mask(value,size=12,bold_digits=False):
-    # Compatibility flag: preserve the original bitmap strokes without synthetic bolding.
+    # Compatibility flag: retain source strokes without synthetic bolding.
     if not value:return Image.new('1',(1,1))
     glyphs=cells(''.join(sorted(set(value))),size)
     missing=set(value)-glyphs.keys()

@@ -297,7 +297,7 @@ def main():
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
-          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Fusion Pixel 12px and Unifont 16px original bitmaps; integer nearest-neighbor enlargement only; all native pages, 44px photo dates and 66px clock digits; no outline rasterization',
+          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Fusion Pixel 12px / Unifont 16px bitmap sources; 12..20px cap-height fitting without downsampling with original strokes and counters; unchanged integer-scaled 44px photo and 66px clock; no outline rasterization',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
           'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'R=1, LUT2/3 neutral'},
           'panel':'DA14585 five-pad BWR 250x122','default_refresh':'full',

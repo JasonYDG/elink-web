@@ -253,12 +253,14 @@ class ProductUi(unittest.TestCase):
         black=lambda x,y:not frame[(249-x)*16+y//8]&(128>>(y%8))
         # Title, specification, rule and MAC share the left edge beside the red bar.
         # Origins retain the pixel fonts' real side bearings.
-        for low,high,edge in ((20,49,21),(62,78,20),(83,83,21),(89,98,20)):
+        for low,high,edge in ((20,49,21),(61,77,20),(83,83,21),(87,97,20)):
             self.assertEqual(min(x for y in range(low,high+1) for x in range(12,176) if black(x,y)),edge)
-        for y in list(range(50,62))+list(range(79,83))+list(range(84,89)):
+        for y in list(range(50,61))+list(range(78,83))+list(range(84,87)):
             self.assertFalse(any(black(x,y) for x in range(12,176)),f'row {y} must stay blank')
         mac=[(x,y) for x,y,s in m.draws if s==b'AA:AA:AA:AA:AA:AA']
         self.assertEqual(mac,[(20,87)])
+        self.assertTrue(frame_matches(frame,'BWR 2.13 / 250x122',18,19,61))
+        self.assertTrue(frame_matches(frame,'AA:AA:AA:AA:AA:AA',12,20,87))
         mac_end=20+text_mask('AA:AA:AA:AA:AA:AA',12).width
         self.assertLess(mac_end,176,'Widest MAC must not overlap Bluetooth icon')
         for x in range(mac_end,176):

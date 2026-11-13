@@ -36,22 +36,21 @@ class Data(unittest.TestCase):
                 self.assertEqual(cell.height,height)
                 self.assertIsNotNone(cell.getbbox(),ch)
                 self.assertGreater(cell.width,0)
-        self.assertEqual(text_mask('0123456789',16).tobytes(),text_mask('0123456789',16,bold_digits=True).tobytes(),'Pixel strokes must not receive synthetic bolding')
+        self.assertEqual(text_mask('0123456789',16).tobytes(),text_mask('0123456789',16,bold_digits=True).tobytes(),'The compatibility flag must not change original bitmap strokes')
 
-    def test_small_year_countdown_and_mac_use_original_fusion_pixels_and_fit(self):
-        from bitmap_fonts import text_mask,fallback_cells
+    def test_small_year_countdown_and_mac_keep_all_ink_and_fit(self):
+        from bitmap_fonts import text_mask,fallback_cells,cells
         for value in ('2026/10','5天后','16天后','今日','18:BC:5A:6B:8A:B1'):
-            mask=text_mask(value,12);source=fallback_cells(value,12)
+            mask=text_mask(value,12);source=fallback_cells(value,12);glyphs=cells(value,12)
             self.assertEqual(mask.height,12)
             x=0
             for ch in value:
-                expected=source[ch]
-                self.assertEqual(mask.crop((x,0,x+expected.width,12)).tobytes(),expected.tobytes(),ch)
-                x+=expected.width
+                self.assertGreaterEqual(sum(bool(p) for p in glyphs[ch].get_flattened_data()),sum(bool(p) for p in source[ch].get_flattened_data()),ch)
+                x+=glyphs[ch].width
         self.assertLessEqual(text_mask('2026/10',12).width,76)
         for n in range(17):self.assertLessEqual(36+text_mask(str(n)+'天后',12).width,76)
         for ch in '0123456789ABCDEF':self.assertLess(20+text_mask(':'.join([ch*2]*6),12).width,194)
-        self.assertEqual(text_mask('/',12).tobytes(),fallback_cells('/',12)['/'].tobytes(),'Keep the complete original bitmap slash')
+        self.assertGreaterEqual(text_mask('/',12).getbbox()[3]-text_mask('/',12).getbbox()[1],10,'Keep a complete, visible slash')
 
     def test_netherlands_wall_time_dst_and_native_font_frames(self):
         from datetime import timezone

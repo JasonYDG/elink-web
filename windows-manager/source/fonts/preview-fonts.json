@@ -1,5 +1,5 @@
 {
-  "purpose": "All dynamic device text uses original Fusion Pixel 12px / Unifont 16px bitmap cells, with integer nearest-neighbor enlargement only. Outline fonts below remain historical references.",
+  "purpose": "Original Fusion Pixel / Unifont bitmap sources; 12..20px actual-ink fitting without downsampling, original strokes and counters; larger glyphs remain integer-scaled and unchanged. Original font files unmodified.",
   "fusion": {
     "version": "2026.09.25",
     "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
