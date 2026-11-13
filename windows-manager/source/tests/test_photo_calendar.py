@@ -129,6 +129,11 @@ class PhotoCalendar(unittest.TestCase):
         # Application font data is compressed losslessly; the stricter 1.5.5 comparison validates each relocated BL.
         allowed = [(0x2cc4, 0x31c8), (0x7eb4, 0x8500), (0x8600, 0xa46c), (0xa48c,0xba00),
                    (0xba00, 0xc2a0), (0xc3c4,0xd2b0), (0x2274,0x2278), (0xde04, 0xe2d4), (0xe2f0, 0xe2f4)]
+        from test_pixel_fonts import pixel_asset_ranges
+        allowed+=pixel_asset_ranges(meta)
+        initial=int(meta['state_file_offset'],16)+7
+        self.assertEqual((old[initial],new[initial]),(0,4),'Default-page status was corrected in 1.5.12')
+        allowed.append((initial,initial+1))
         self.assertEqual(len(old), len(new))
         for i, (a, b) in enumerate(zip(old, new)):
             if a != b:
@@ -138,8 +143,8 @@ class PhotoCalendar(unittest.TestCase):
         refresh = runtime_source + int(meta['labels']['refresh'], 16) - 1 - runtime_address
         for start,end in ((refresh,0xe12c),(0xe130,0xe13e),(0xe142,0xe172),(0xe176,0xe2d4)):
             self.assertEqual(old[start:end],new[start:end],hex(start))
-        self.assertEqual(old[0xe2f4:], new[0xe2f4:],
-                         'Boot asset and existing hardware helpers must remain exact')
+        helper=(int(meta['state_file_offset'],16)+32+meta['boot_asset_bytes']+3)&~3
+        self.assertEqual(old[helper:],new[helper:],'Hardware helpers after the boot illustration must remain exact')
         spi = (FIRMWARE_DIR / ('elink-bwr-' + meta['version'] + '-spi.bin')).read_bytes()
         device = (ROOT / 'firmware-test/20261018-512k.bin').read_bytes()
         self.assertEqual(spi[:0x2000], device[:0x2000])

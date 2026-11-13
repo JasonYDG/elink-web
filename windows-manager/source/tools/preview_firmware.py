@@ -18,6 +18,7 @@ def frame_image(frame):
 
 if __name__=='__main__':
     m=ProductMachine();m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1647))
+    m.uc.mem_write(STATE+7,b'\x00')
     m.uc.mem_write(BASE+0xdd98+0x20,bytes(4)) # No season calculation in direct RTC fixture.
     frame_image(m.draw(force=128)).save(FIRMWARE_DIR/'clock-preview.png');m.finish()
     m.uc.mem_write(STATE+7,b'\x03')

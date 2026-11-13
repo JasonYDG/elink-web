@@ -1,7 +1,7 @@
 {
   "format": "ELF1",
   "source": {
-    "purpose": "OFL Noto Sans SC Black native 12px ASCII/countdown and 44px photo date, Medium 14/18px labels, OFL Fusion Pixel remaining 12px Chinese; original fonts unmodified.",
+    "purpose": "All dynamic device text uses original Fusion Pixel 12px / Unifont 16px bitmap cells, with integer nearest-neighbor enlargement only. Outline fonts below remain historical references.",
     "fusion": {
       "version": "2026.09.25",
       "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
@@ -51,63 +51,68 @@
   "sizes": {
     "12": {
       "file": "text-12.bin",
-      "glyphs": 30888,
-      "bytes": 1013268,
-      "sha256": "a4df01e1a322bdac3ff9e84af784059e8828546b55d248c465c266304262abce"
+      "glyphs": 36979,
+      "bytes": 1207527,
+      "sha256": "2612d412b7718901f1616749c7deab03b8ffdebb0c153e2d87e263ccf3243689"
     },
     "14": {
       "file": "text-14.bin",
-      "glyphs": 30890,
-      "bytes": 1138882,
-      "sha256": "f2f05a2560ae775a6bdd7d10ace23ed2a6f9c216cc2969f7c16e74f11e64bff0"
+      "glyphs": 36979,
+      "bytes": 1353367,
+      "sha256": "7fa1a032a6295a15b478de8ada2285ed529f47a240923591bc98b5013aa48a24"
     },
     "16": {
       "file": "text-16.bin",
-      "glyphs": 30890,
-      "bytes": 1264694,
-      "sha256": "3e53b532b5d37fc55359ce8ff1414036c7b37fe6c3b0258e6be70e0085be4afe"
+      "glyphs": 57021,
+      "bytes": 2221361,
+      "sha256": "3fd3a5719851614062d9865cf6d9a4521a06b8ab6f81d72d913ceb679040ca2f"
     },
     "17": {
       "file": "text-17.bin",
-      "glyphs": 30890,
-      "bytes": 1839557,
-      "sha256": "8a523e466e63b544e884bdcf21e7196aa3ae76833b28dc637b020bd69adae4aa"
+      "glyphs": 57021,
+      "bytes": 3173684,
+      "sha256": "fcfe2f18b96afbcf50a8536bb20452e6cee147daad0049f967a5ff987db8b441"
     },
     "18": {
       "file": "text-18.bin",
-      "glyphs": 30890,
-      "bytes": 1935336,
-      "sha256": "e28e1ef3bb9d85dbe6083f78e6b3840709c58fba64fa3a7501ba52bd3bd780aa"
+      "glyphs": 57021,
+      "bytes": 3461259,
+      "sha256": "371958ca591a0cb33ab8ebb2d124450f423bb17e68c162e655e58560e7623057"
     },
     "20": {
       "file": "text-20.bin",
-      "glyphs": 30890,
-      "bytes": 2120502,
-      "sha256": "f63a64620c5fe874b296549a0be23292e780a0c8e1efa2f9894504d246552687"
+      "glyphs": 57021,
+      "bytes": 3788821,
+      "sha256": "357514e82806d3eb10bfb732f77e1d513c7faaef1e39bfff7d38b0ddf7c6a4dc"
     },
     "24": {
       "file": "text-24.bin",
-      "glyphs": 30890,
-      "bytes": 2492214,
-      "sha256": "47cf049bfda1e96d213357c13356b9a22f63d5682a56c2412cee2802db32aa73"
+      "glyphs": 36979,
+      "bytes": 2970015,
+      "sha256": "fd831029815f4f34cb06145a1ce1e5a8b8e7b64ba09deaebb1db1005d66223f6"
     },
     "28": {
       "file": "text-28.bin",
-      "glyphs": 30890,
-      "bytes": 3719054,
-      "sha256": "de60f1c138a2a5ae9e5e84af5418156192e0b1478ea462ce11983ced197eb389"
+      "glyphs": 36979,
+      "bytes": 4414887,
+      "sha256": "b695c3460989d68542ece41353efc16e9fa80534f501ec642781ecb151a21c89"
     },
     "32": {
       "file": "text-32.bin",
-      "glyphs": 30890,
-      "bytes": 4213670,
-      "sha256": "b46130a29c58f88f82313c862370381f76f2135f1552f61446e53108af65934a"
+      "glyphs": 57021,
+      "bytes": 7345841,
+      "sha256": "0b936d76a2902cc7a729171f85d8d4dd375f373e715cd6a570961978455a9ae6"
     },
     "64": {
       "file": "text-64.bin",
       "glyphs": 11,
-      "bytes": 3503,
-      "sha256": "18494c177aad1217d43c418fd51a95a5be502c433e2db155d4a84517f262b729"
+      "bytes": 2927,
+      "sha256": "d73daae2b720a7b91ce2f0114c1480fb944c65a84742d312281f969ce4d93772"
     }
-  }
+  },
+  "pixel_sources": [
+    "fusion",
+    "unifont"
+  ],
+  "outline_rasterization": false
 }

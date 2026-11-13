@@ -65,21 +65,29 @@ CODE static int album_save(void){
     u8 ready=254;product_flash_write(addr+51,&ready,1);if(READ(addr,52,&check)!=52)return 0;if(!album_valid(&check))return 0;
     album_copy(&A->current,&check,52);A->page=page;return 1;
 }
-CODE static int album_initialize(void){
+__attribute__((section(".album.extra"),noinline)) static int album_initialize(void){
     if(A->page!=255)return 1;
-    if(!album_empty(0x40000,0x5e000))return 0;
+    if(A->crc!=120)return 0;A->crc=0;
     for(unsigned i=0;i<52;i++)((volatile u8 *)&A->next)[i]=0;
     A->next.minutes=1440;return album_save();
 }
 CODE int product_album_cmd(const u8 *message,unsigned n){
     const u8 *p=message+6;
-    if(n<2||p[0]!=0xbd||p[1]>5)return 1;
+    if(n<2||p[0]!=0xbd||p[1]>6)return 1;
     if(S[8]||*(volatile u32 *)0x07fd0564||(p[1]>0&&p[1]<4&&product_reminder_blocked()))return 2;
     if(A->magic!=RAM_MAGIC)product_album_init();
     if(!album_load())return 6;CALL0(0x07fc42e8);
     if(p[1]==0){
         if(n!=2)return 1;u8 b[64]={'E','L','A','1',3};b[5]=A->page!=255;b[6]=!!A->running;b[7]=A->index;
         b[8]=A->writing;b[9]=A->next.count;unsigned progress=A->writing?A->step:A->elapsed;b[10]=progress;b[11]=progress>>8;album_copy(b+12,&A->current,52);product_publish(b,64);return 0;
+    }
+    if(p[1]==6){
+        // A->crc is a read-only preflight cursor until staging starts; every dedicated byte must be checked.
+        if(n!=3||A->page!=255||A->writing||p[2]>=120)return 1;
+        unsigned part=p[2];if(!part)A->crc=0;
+        if(A->crc==part){if(!album_empty(0x40000+(part<<10),0x40400+(part<<10))){A->crc=0;return 6;}A->crc++;}
+        else if(A->crc!=part+1)return 1;
+        u8 b[8]={'E','L','A','P',A->crc,120};product_publish(b,8);return 0;
     }
     if(p[1]==5){if(n!=5||A->page==255||A->writing||p[2]>=A->current.count)return 1;unsigned off=p[3]|(p[4]<<8);if(off>=8000)return 1;unsigned size=8000-off;if(size>128)size=128;u8 b[128];if(READ(album_address((A->current.flags>>1)&1,p[2])+off,size,b)!=size)return 5;product_publish(b,size);return 0;}
     if(p[1]==1){

@@ -1,6 +1,14 @@
-# ELINK Web 1.1.12
+# ELINK Web 1.1.13
 
-[打开网页](https://jasonydg.github.io/elink-web/?v=1.1.12) · 固件保持 1.5.13，无需升级。
+[打开网页](https://jasonydg.github.io/elink-web/?v=1.1.13) · 配套像素字库测试固件 1.5.14，升级由用户手动确认。
+
+默认页、时钟、月历、图片日历、提醒汇总及到点提醒的动态文字，统一使用真正的 Fusion Pixel / Unifont 像素点阵字形。大字仅整数倍放大原始点阵，保留字格间距；不再将 Noto 矢量字体栅格化。图片日历字形表与新固件同源，预览和发送共用像素。菜单、按钮是管理网页的系统字体；导入照片中已经存在的文字保持原图。
+
+网页版和固件字体已同步。当前保存的提醒画面和汇总标题属于已有像素数据，升级固件不会擅自覆盖用户内容；需要在网页重新保存、下发提醒后使用新字形。浏览器内已保存的模板同样在重新编辑保存后更新。
+
+小字采用原生 12px Fusion Pixel 或 16px Unifont，较大字按整数倍放大并在原字格内对齐。浏览器按实际字号加载、校验 SHA256 并缓存；缺字明确报错。两种字库分别覆盖约 3.70 万与 5.70 万个字符，64px 通用时钟模板仅包含数字及冒号。字体许可见 `fonts/FusionPixel-OFL.txt`、`fonts/Unifont-LICENSE.txt`。
+
+## 1.1.12 历史说明
 
 公告、会议、日程、时钟模板，以及提醒画面、汇总标题和电量文字，现在直接读取固定点阵字库，不再调用浏览器 `FontFace`、`fillText` 或 `measureText`。点阵由现有后端按原生字号生成，保留基线、字宽、12px 中文 Fusion Pixel 和 14/18px Noto Medium 规则；预览与实际发送共用同一份像素数据。菜单、按钮继续使用系统字体。
 
@@ -107,7 +115,7 @@ main 保存网页及 windows-manager/ 源码；gh-pages 只发布静态运行资
 node --test tests/*.test.js
 ```
 
-图像原生帧及哈希保持不变，来源见 ARTWORK.json。通用模板使用 Noto Black/Medium 和 Fusion Pixel 预生成点阵，许可见 fonts/LICENSE.txt、fonts/FusionPixel-OFL.txt。图片日历仍使用与固件同源的原生尺寸字形表 fonts/calendar-glyphs.json；未复制 4.2 寸固件的专有字体。
+图像原生帧及哈希保持不变，来源见 ARTWORK.json。动态文字使用 Fusion Pixel 和 Unifont 原始点阵，许可见 fonts/FusionPixel-OFL.txt、fonts/Unifont-LICENSE.txt。图片日历使用与固件同源的字形表 fonts/calendar-glyphs.json；未复制 4.2 寸固件的专有字体。
 
 所有上屏文字使用固定点阵，浏览器不再重新栅格化文字。协议模拟、浏览器界面及像素对照检查不能代替真实手机蓝牙、实体显示、续航和掉电验收；本次为候选测试发布。
 

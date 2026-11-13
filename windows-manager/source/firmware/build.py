@@ -69,7 +69,9 @@ def boot_asset(version):
                     if j-i>=3:break
                     i=min(j,start+128)
                 out.append(i-start-1);out.extend(p[start:i])
-    return im,frame,bytes(out)
+    # Keep the verified overlay/helper addresses and reset-copy length unchanged.
+    assert len(out)<=1697, 'Pixel boot asset exceeds the existing image slot'
+    return im,frame,bytes(out)+bytes(1697-len(out))
 
 def identity_preview(im,app,address,version):
     # Decode the pinned native ASCII font for an example, not a shared runtime MAC.
@@ -291,11 +293,11 @@ def main():
           'led_policy':'P0_2/P2_5/P2_9 active-low; output high in display-open path and before every wake pad latch',
           'leds_off_address':hex(leds_off_address),'wake_pins_address':hex(wake_pins_address),
           'patches':patches,'hardware_tested':False,
-          'offline_album':{'slots':7,'frame_bytes':8000,'flash_start':'0x40000','flash_end':'0x5e000','metadata_pages':['0x40000','0x41000'],'image_banks':['0x42000','0x4a000'],'extra_image_banks':['0x52000','0x58000'],'required_native_id':'a112','state_address':'0x07fd2140','state_bytes':124,'state_limit':128,'wire_version':3,'save_steps':32,'save_step_bytes':250,'minutes':[60,10080],'atomic_commit':'inactive image bank and alternating CRC metadata; ready byte last','cold_start':'resume first photo without clock calibration; calendar date waits for sync','cursor_persistence':'RAM only; rotation never programs flash'},'flash_offset':0,
+          'offline_album':{'slots':7,'frame_bytes':8000,'flash_start':'0x40000','flash_end':'0x5e000','metadata_pages':['0x40000','0x41000'],'image_banks':['0x42000','0x4a000'],'extra_image_banks':['0x52000','0x58000'],'required_native_id':'a112','state_address':'0x07fd2140','state_bytes':124,'state_limit':128,'wire_version':3,'initialization_chunks':120,'initialization_chunk_bytes':1024,'save_steps':32,'save_step_bytes':250,'minutes':[60,10080],'atomic_commit':'inactive image bank and alternating CRC metadata; ready byte last','cold_start':'resume first photo without clock calibration; calendar date waits for sync','cursor_persistence':'RAM only; rotation never programs flash'},'flash_offset':0,
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
-          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'OFL Noto Sans SC: Black 12px ASCII/countdown and run-coded 44px photo digits, Medium 14/18px labels, Black 15/40px existing sizes; OFL Fusion Pixel remaining 12px Chinese; original 66px clock pixels losslessly run-coded',
+          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Fusion Pixel 12px and Unifont 16px original bitmaps; integer nearest-neighbor enlargement only; all native pages, 44px photo dates and 66px clock digits; no outline rasterization',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
           'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'R=1, LUT2/3 neutral'},
           'panel':'DA14585 five-pad BWR 250x122','default_refresh':'full',

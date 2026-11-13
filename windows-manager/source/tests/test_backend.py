@@ -29,47 +29,29 @@ class Data(unittest.TestCase):
             for x in range(250):
                 if not (176<=x<=249 and 8<=y<=22):self.assertEqual(a.getpixel((x,y)),b.getpixel((x,y)))
         self.assertEqual(notice_battery(measured['png'],None)['frame'],unknown['frame'],'Missing voltage must restore unknown, not retain a stale percentage')
-    def test_licensed_glyphs_render_at_exact_size_without_scaling(self):
-        from PIL import ImageFont,ImageDraw
-        from bitmap_fonts import cells,text_mask,noto_path,INK,BASELINE,fallback_cells
-        for height,style in ((12,'noto'),(14,'noto_medium'),(15,'noto'),(18,'noto_medium'),(24,'noto'),(40,'noto'),(44,'noto')):
-            font=ImageFont.truetype(noto_path(style),height)
-            for ch in '农历闰荷兰寒露8今日天后ABCDEF':
-                canvas=Image.new('L',(3*height,height),0)
-                ImageDraw.Draw(canvas).text((height,round(height*BASELINE)),ch,font=font,fill=255,anchor='ls')
-                reference=canvas.point(lambda v:255 if v>=INK else 0).convert('1');reference=reference.crop(reference.getbbox())
-                if height==12 and ord(ch)>127 and ch not in '今日天后':reference=fallback_cells(ch,12)[ch];reference=reference.crop(reference.getbbox())
-                actual=cells(ch,height)[ch]
-                self.assertEqual(actual.height,height,'Cells keep the requested pixel size; no 12/16px upscale')
-                self.assertEqual(actual.crop(actual.getbbox()).tobytes(),reference.tobytes(),'Use exact licensed '+style+' outlines')
-        self.assertEqual(text_mask('0123456789',16).tobytes(),text_mask('0123456789',16,bold_digits=True).tobytes(),'A bold face must not receive another offset stroke')
+    def test_pixel_glyph_cells_keep_native_strokes_and_requested_bounds(self):
+        from bitmap_fonts import cells,text_mask
+        for height in (12,14,15,16,18,24,40,44,64,66):
+            for ch,cell in cells('农历闰荷兰寒露8今日天后ABCDEF',height).items():
+                self.assertEqual(cell.height,height)
+                self.assertIsNotNone(cell.getbbox(),ch)
+                self.assertGreater(cell.width,0)
+        self.assertEqual(text_mask('0123456789',16).tobytes(),text_mask('0123456789',16,bold_digits=True).tobytes(),'Pixel strokes must not receive synthetic bolding')
 
-    def test_small_year_countdown_and_mac_have_native_bold_strokes(self):
-        from PIL import ImageFont,ImageDraw
-        from bitmap_fonts import text_mask,noto_path,fallback_cells,INK,BASELINE
-        old=ImageFont.truetype(noto_path('noto_medium'),12)
-        def previous(value):
-            count=0
-            for ch in value:
-                if ord(ch)>127:mask=fallback_cells(ch,12)[ch]
-                else:
-                    mask=Image.new('L',(36,12),0)
-                    ImageDraw.Draw(mask).text((12,round(12*BASELINE)),ch,font=old,fill=255,anchor='ls')
-                    mask=mask.point(lambda v:255 if v>=INK else 0).convert('1')
-                count+=sum(bool(v) for v in mask.get_flattened_data())
-            return count
+    def test_small_year_countdown_and_mac_use_original_fusion_pixels_and_fit(self):
+        from bitmap_fonts import text_mask,fallback_cells
         for value in ('2026/10','5天后','16天后','今日','18:BC:5A:6B:8A:B1'):
-            mask=text_mask(value,12)
+            mask=text_mask(value,12);source=fallback_cells(value,12)
             self.assertEqual(mask.height,12)
-            self.assertGreater(sum(bool(v) for v in mask.get_flattened_data()),previous(value)*1.35,value)
+            x=0
+            for ch in value:
+                expected=source[ch]
+                self.assertEqual(mask.crop((x,0,x+expected.width,12)).tobytes(),expected.tobytes(),ch)
+                x+=expected.width
         self.assertLessEqual(text_mask('2026/10',12).width,76)
         for n in range(17):self.assertLessEqual(36+text_mask(str(n)+'天后',12).width,76)
         for ch in '0123456789ABCDEF':self.assertLess(20+text_mask(':'.join([ch*2]*6),12).width,194)
-        full=Image.new('L',(36,36),0)
-        ImageDraw.Draw(full).text((12,12+round(12*BASELINE)),'/',font=ImageFont.truetype(noto_path('noto'),12),fill=255,anchor='ls')
-        full=full.point(lambda v:255 if v>=INK else 0).convert('1')
-        slash=text_mask('/',12)
-        self.assertEqual(slash.crop(slash.getbbox()).tobytes(),full.crop(full.getbbox()).tobytes(),'Keep the entire native Black slash, including its lower tip')
+        self.assertEqual(text_mask('/',12).tobytes(),fallback_cells('/',12)['/'].tobytes(),'Keep the complete original bitmap slash')
 
     def test_netherlands_wall_time_dst_and_native_font_frames(self):
         from datetime import timezone

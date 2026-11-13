@@ -1,4 +1,4 @@
-"""Licensed Noto Sans SC pixels at exact sizes, shared by host and device rendering."""
+"""Fusion Pixel / Unifont bitmap glyphs, shared by host and device rendering."""
 import gzip,hashlib,json,sys
 from functools import lru_cache
 from pathlib import Path
@@ -80,22 +80,23 @@ def has_glyph(ch,height):
 
 @lru_cache(maxsize=256)
 def cells(chars,height):
-    result={}
-    pixel=fallback_cells(''.join(ch for ch in chars if ord(ch)>127 and ch not in '今日天后'),12) if height==12 and any(ord(ch)>127 for ch in chars) else {}
-    for ch in set(chars):
-        if ch in pixel:result[ch]=pixel[ch];continue
-        if has_glyph(ch,height):result[ch]=glyph_cell(ch,height);continue
-        import warnings
-        warnings.warn('思源黑体缺字，使用点阵回退：'+ch,RuntimeWarning)
-        native=16 if height>=16 else 12
-        cell=fallback_cells(ch,native).get(ch)
-        if cell is None:continue
-        scale=max(1,height//native);cell=cell.resize((cell.width*scale,cell.height*scale),Image.Resampling.NEAREST)
-        out=Image.new('1',(cell.width,height));out.paste(cell,(0,(height-cell.height)//2));result[ch]=out
+    if height<12:raise ValueError('点阵字号至少为12像素')
+    native=12 if height in (12,14,15,24,28,44) else 16
+    result={};scale=height//native
+    for ch,source in fallback_cells(chars,native).items():
+        cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
+        width=source.width*height//native
+        if height in (44,66) and ch in '0123456789:':
+            # Preserve the photo/clock column advances while enlarging whole source pixels.
+            zoom=4 if height==44 else 6;source=source.crop(source.getbbox())
+            cell=source.resize((source.width*zoom,source.height*zoom),Image.Resampling.NEAREST)
+            width=27 if height==44 else 28 if ch==':' else 50
+        assert cell.width<=width and cell.height<=height
+        out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
     return result
 
 def text_mask(value,size=12,bold_digits=False):
-    # Compatibility flag: weight is selected by the shared size-to-font mapping.
+    # Compatibility flag: preserve the original bitmap strokes without synthetic bolding.
     if not value:return Image.new('1',(1,1))
     glyphs=cells(''.join(sorted(set(value))),size)
     missing=set(value)-glyphs.keys()

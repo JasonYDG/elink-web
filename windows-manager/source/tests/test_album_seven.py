@@ -53,7 +53,7 @@ class SevenAlbum(unittest.TestCase):
             m.cmd(packet);self.assertNotEqual(m.status()['error'],0)
         self.assertEqual(m.flash_events,events)
 
-    def test_protected_native_bytes_unchanged_and_live_glyphs_identical(self):
+    def test_protected_native_bytes_unchanged_and_live_glyphs_match_pixel_source(self):
         from capstone import Cs,CS_ARCH_ARM,CS_MODE_THUMB
         before=json.loads((ROOT/'build/firmware-1.5.10/manifest.json').read_text());after=json.loads((FIRMWARE_DIR/'manifest.json').read_text())
         old=(ROOT/'build/firmware-1.5.10/elink-bwr-1.5.10-app.bin').read_bytes();new=(FIRMWARE_DIR/f'elink-bwr-{after["version"]}-app.bin').read_bytes()
@@ -61,6 +61,8 @@ class SevenAlbum(unittest.TestCase):
         initial_page=int(after['state_file_offset'],16)+7
         self.assertEqual((old[initial_page],new[initial_page]),(0,4))
         regions=[(0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),(0xa48c,0xb780),(0xb780,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4),(initial_page,initial_page+1)]
+        from test_pixel_fonts import pixel_asset_ranges
+        regions+=pixel_asset_ranges(after)
         calls={0x2274:'product_boot_battery',0xde26:'product_sync_valid',0xdf16:'product_view',0xdf2c:'product_control',0xe12c:'product_refresh',0xe13e:'product_finish',0xe172:'product_minute_tick'}
         for off,name in calls.items():
             regions.append((off,off+4))
@@ -76,6 +78,8 @@ class SevenAlbum(unittest.TestCase):
             return out
         a,b=cells(old,0xa48c),cells(new,0xa48c)
         self.assertEqual(set(a)-set(b),set('ACDEFLNKPMV%-第周'))
-        for ch in b:self.assertEqual(a[ch],b[ch],ch)
+        from bitmap_fonts import native_font
+        reference=cells(native_font(''.join(b),18),0)
+        for ch in b:self.assertEqual(reference[ch],b[ch],ch)
 
 if __name__=='__main__':unittest.main()

@@ -50,9 +50,14 @@ def photo_digits():
     return compressed_font(native_font('0123456789',44),4)
 
 def clock_digits(app):
-    raw=compressed_font(app[0xc3c4:0xd2b0],5)
-    assert len(raw)==0xc8a4-0xc3c4, 'Clock font must end before album code'
-    return raw
+    raw=bytearray(native_font('0123456789:',66))
+    for i in range(struct.unpack_from('<H',raw)[0]):
+        code,off=struct.unpack_from('<HH',raw,2+4*i)
+        # Native clock coordinates include its original 24px top bearing and raised colon.
+        raw[off+4]+=41 if code==ord(':') else 24
+    raw=compressed_font(raw,5)
+    assert len(raw)<=0xc8a4-0xc3c4, 'Clock font overlaps album code'
+    return raw+bytes(0xc8a4-0xc3c4-len(raw))
 
 def bold_font(app):
     raw=native_font(REQUIRED,18)

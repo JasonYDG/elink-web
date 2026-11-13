@@ -59,6 +59,11 @@ class Photo155(unittest.TestCase):
         new=(FIRMWARE_DIR/('elink-bwr-'+after['version']+'-app.bin')).read_bytes()
         # These are application render/font sections, plus individual application call relocations.
         allowed=[(0x2cc4,0x31c8),(0x7eb4,0x8500),(0x8600,0xa46c),(0xa48c,0xc2a0),(0xc3c4,0xd2b0),(0xe2f0,0xe2f4)]
+        from test_pixel_fonts import pixel_asset_ranges
+        allowed+=pixel_asset_ranges(after)
+        initial=int(after['state_file_offset'],16)+7
+        self.assertEqual((old[initial],new[initial]),(0,4),'Default-page status was corrected in 1.5.12')
+        allowed.append((initial,initial+1))
         before=json.loads((ROOT/'build/firmware-1.5.5/manifest.json').read_text())
         from capstone import Cs,CS_ARCH_ARM,CS_MODE_THUMB
         calls={0x2274:'product_boot_battery',0xde26:'product_sync_valid',0xdf16:'product_view',0xdf2c:'product_control',0xe12c:'product_refresh',0xe13e:'product_finish',0xe172:'product_minute_tick'}

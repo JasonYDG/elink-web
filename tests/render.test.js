@@ -13,7 +13,7 @@ function harness(changeResponse){
     return {renderer:vm.runInContext(source+"\nELinkRenderer;",context),requests};
 }
 
-test("frozen native-size glyphs match the host, including baseline, punctuation and supplementary CJK",async()=>{
+test("frozen pixel glyphs match the host, including baseline, punctuation and rare CJK",async()=>{
     const {renderer}=harness();
     for(const item of fixtures.glyphs){const f=await renderer.font(item.size),g=f.glyphs.get(item.char.codePointAt(0));assert.ok(g,item.char);assert.equal(g.width,item.width);assert.equal(Buffer.from(f.bytes.subarray(g.offset,g.offset+g.stride*item.size)).toString("hex"),item.hex,item.size+" "+item.char);}
 });
@@ -24,6 +24,10 @@ test("all dynamic templates render the exact host frame without a browser font A
 
 test("legacy and large reminder metadata agree with the host, including truncation and CRC",async()=>{
     const {renderer}=harness();for(const item of fixtures.metadata)assert.equal(Buffer.from(await renderer.metadata(item.title,item.options,item.large)).toString("hex"),item.hex,item.title+" "+item.large);
+});
+
+test("photo-calendar glyphs match the device host for term days, leap dates and year changes",async()=>{
+    const {renderer}=harness();for(const item of fixtures.date_columns){const [y,m,d]=item.date.split("-").map(Number),actual=await renderer.dateColumn("local",new Date(y,m-1,d,12));assert.equal(Buffer.compare(actual,Buffer.from(item.frame,"hex")),0,item.date);}
 });
 
 test("battery refresh changes only its reserved rectangle and uses the fixed 12px glyphs",async()=>{

@@ -23,6 +23,10 @@ class AlbumMachine(PhotoMachine):
     def minute(self):
         self.uc.mem_write(BASE+0x104dc+44,bytes(4));self.run(int(self.meta['labels']['adv'],16))
     def stage(self,frames):
+        if self.meta['offline_album'].get('initialization_chunks') and not self.album()[5]:
+            for part in range(self.meta['offline_album']['initialization_chunks']):
+                self.cmd(bytes((0xbd,6,part)))
+                assert self.published==b'ELAP'+bytes((part+1,120,0,0))
         self.cmd(b'\xbd\x01');assert self.status()['error']==0
         for i,frame in enumerate(frames):
             for p in list(image_packets(frame,10+i,128))[:-1]:self.cmd(p)
@@ -56,6 +60,8 @@ class OfflineAlbum(unittest.TestCase):
         self.assertEqual(hashlib.sha256(old).hexdigest(),'c927bf68dc368aed55c2b7ea37cded516636ad9e47781647763b1bfa2bed9464')
         self.assertEqual(len(old),len(new));self.assertEqual(before['runtime_bytes'],after['runtime_bytes']);self.assertEqual(before['labels'],after['labels'])
         allowed=[(0x2cc4,0x31c8),(0x7eb4,0x8500),(0x8600,0x90a4),(0x9300,0xa46c),(0xa48c,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4),(0xe0fc,0xe100)]
+        from test_pixel_fonts import pixel_asset_ranges
+        allowed+=pixel_asset_ranges(after)
         initial_page=int(after['state_file_offset'],16)+7
         self.assertEqual((old[initial_page],new[initial_page]),(0,4))
         allowed.append((initial_page,initial_page+1))

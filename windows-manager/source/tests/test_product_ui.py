@@ -16,6 +16,8 @@ class ProductMachine(Machine):
         self.uc.mem_write(BASE+0x104dc+0x58,struct.pack('<I',70))
         # Legacy waveform cases exercise every minute; real cold default is checked separately.
         self.uc.mem_write(STATE+24,b'\x01')
+        # UI fixtures exercise the clock; a real cold boot remains on default page 4.
+        self.uc.mem_write(STATE+7,b'\x00')
     def hook(self,uc,a,size,_):
         if a==getattr(self,'compressed_glyph_address',0):
             p=uc.reg_read(UC_ARM_REG_R3);raw=bytes(uc.mem_read(p,100)).split(b'\0',1)[0]
@@ -250,8 +252,8 @@ class ProductUi(unittest.TestCase):
         frame=bytes(m.uc.mem_read(BASE+0xdedc,4000))
         black=lambda x,y:not frame[(249-x)*16+y//8]&(128>>(y%8))
         # Title, specification, rule and MAC share the left edge beside the red bar.
-        # MAC_X=20 aligns the 14 hex glyphs with a 1px bearing; 'A' and '4' sit 1px further left.
-        for low,high,edge in ((20,49,21),(62,78,21),(83,83,21),(89,98,20)):
+        # Origins retain the pixel fonts' real side bearings.
+        for low,high,edge in ((20,49,21),(62,78,20),(83,83,21),(89,98,20)):
             self.assertEqual(min(x for y in range(low,high+1) for x in range(12,176) if black(x,y)),edge)
         for y in list(range(50,62))+list(range(79,83))+list(range(84,89)):
             self.assertFalse(any(black(x,y) for x in range(12,176)),f'row {y} must stay blank')
@@ -362,7 +364,7 @@ class ProductUi(unittest.TestCase):
         m.draw(h=0,minute=6,day=6,weekday=2);self.assertGreater(len(m.commands),before)
     def test_calendar_capability_validation_and_legacy_sync_compatibility(self):
         from protocol import sync_packet
-        m=ProductMachine();m.cmd(b'\x9d');self.assertEqual(m.published,b'ELUI\x01'+bytes([255 if m.meta.get('offline_reminders') else 127])+bytes([int(bool(m.meta.get('offline_reminders',{}).get('summary_mode')))+2*int(bool(m.meta.get('offline_reminders',{}).get('large_text')))+12*int(bool(m.meta.get('offline_album'))),0]))
+        m=ProductMachine();m.cmd(b'\x9d');self.assertEqual(m.published,b'ELUI\x01'+bytes([255 if m.meta.get('offline_reminders') else 127])+bytes([int(bool(m.meta.get('offline_reminders',{}).get('summary_mode')))+2*int(bool(m.meta.get('offline_reminders',{}).get('large_text')))+12*int(bool(m.meta.get('offline_album')))+16*int(m.meta.get('offline_album',{}).get('slots',0)>=7),0]))
     def test_quiet_publish_sync_does_not_render_clock_or_repaint_static_content(self):
         from protocol import sync_packet,image_packets
         m=ProductMachine();before=len(m.commands)
