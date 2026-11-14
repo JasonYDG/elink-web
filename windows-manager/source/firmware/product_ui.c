@@ -173,7 +173,7 @@ unsigned product_refresh(void){
             u8 row[16];for(unsigned j=0;j<16;j++){unsigned p=gate*16+j;row[j]=~RR[p];RR[p]=0;}
             DATA(row,16);
         }
-        CMD2(0x0f,9,0);CMD3(0x01,102,0,0);CMD1(0x3c,0);
+        /* Preserve native gate scan and border waveform; the pixel mask limits drive. */
     }
     return partial==1?2:partial!=0;
 }

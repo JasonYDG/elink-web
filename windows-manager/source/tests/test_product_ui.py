@@ -302,6 +302,20 @@ class ProductUi(unittest.TestCase):
         m=ProductMachine();m.cmd(b'\x94\x01\x3c');m.draw(minute=0,force=128);m.finish();m.stream.clear()
         m.draw(minute=0);self.assertEqual(m.stream[:4000],[255]*4000);m.finish()
 
+    def test_stroke_refresh_preserves_the_actual_native_border_and_gate_configuration(self):
+        class NativeInit(ProductMachine):
+            def hook(self,uc,address,size,data):
+                if address==BASE+0x3f68 and getattr(self,'native_init',False):return
+                return super().hook(uc,address,size,data)
+        for mode in (1,2):
+            m=NativeInit();m.native_init=True;m.cmd(bytes([0x94,mode,60]))
+            m.draw(minute=5,force=128);m.finish();m.commands.clear();m.draw(minute=6)
+            borders=[c[2] for c in m.commands if c[0]==BASE+0x3c10 and c[1]==0x3c]
+            self.assertTrue(borders);self.assertEqual(borders[-1],5,'Keep the real native border5; do not override it with0')
+            self.assertFalse(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
+            self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands,'Do not shorten the native gate scan to103 lines')
+            m.finish()
+
     def test_stroke_reference_commits_the_drawn_minute_only_after_success(self):
         m=ProductMachine();m.cmd(b'\x94\x02\x3c');old=m.draw(minute=5,force=128)
         # Native wall time can advance while BUSY is asserted; commit the rendered minute.
@@ -341,8 +355,8 @@ class ProductUi(unittest.TestCase):
         expected=list(m.b[0xdc18:0xdc18+70]);expected[14:28]=[0]*14
         self.assertEqual(m.stream[4000:],expected)
         self.assertEqual(m.stream[4014:4028],[0]*14,'Masked red combinations must be undriven')
-        self.assertTrue(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
-        self.assertIn((BASE+0x3c84,0x01,102,0,0),m.commands)
+        self.assertFalse(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
+        self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
         texts=[x[2] for x in m.draws];self.assertIn(b'AM',texts);self.assertIn(b'09',texts);self.assertIn(b'10',texts)
     def test_stroke_refresh_selects_each_original_waveform_and_periodic_full_cleanup(self):
@@ -353,8 +367,8 @@ class ProductUi(unittest.TestCase):
         fly=list(m.b[0xdc68:0xdc68+70]);fly[14:28]=[0]*14
         self.assertEqual(len(m.stream),4070)
         self.assertEqual(m.stream[4000:],fly,'Stroke refresh retains native FLY, preserving red pixels')
-        self.assertTrue(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
-        self.assertIn((BASE+0x3c84,0x01,102,0,0),m.commands)
+        self.assertFalse(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
+        self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(minute=57);m.finish();self.assertEqual(m.update_sequence(),0xc7)
         m.draw(minute=58);m.finish();self.assertEqual(m.update_sequence(),0xf7,'Periodic BWR full refresh')
         m.cmd(b'\x94\x02\x0a');m.stream.clear();m.draw(minute=59);m.finish()

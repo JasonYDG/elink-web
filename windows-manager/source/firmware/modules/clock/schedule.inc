@@ -4,10 +4,9 @@ __attribute__((section(".clock.entry"))) void product_clock(unsigned flags){
     if(S[8]||S[7]==1||*(volatile u32 *)0x07fd0564||!time_valid())return;
     dutch_dst();if(product_reminder_tick()||product_album_tick())return;if(S[7]!=0&&S[7]!=3&&S[7]!=6&&S[7]!=8)return;
     u32 date=date_key();
-    if(!(flags&128)){
-        if(S[7]!=0 && U->valid&&U->date==date&&U->view==S[7])return;
-        if(S[7]==0){unsigned interval=S[24];if(!interval||E[10]-DIV(E[10],interval)*interval)return;}
-    }
+    /* Native0x80 also occurs at noon; only explicit view requests add0x100. */
+    if(!(flags&256)&&S[7]!=0&&U->valid&&U->date==date&&U->view==S[7])return;
+    if(!(flags&128)&&S[7]==0){unsigned interval=S[24];if(!interval||E[10]-DIV(E[10],interval)*interval)return;}
     S[25]=0;CALL0(LEDS_OFF);CALL0(0x07fc3f04);
     /* Pin the digit time before paint; zero remains the idle marker. */
     U->pending=E[10]+1;
@@ -30,5 +29,5 @@ __attribute__((section(".reminder.main"),noinline)) int product_view(unsigned vi
     /* A complete, checked upload can render the photo theme before its first refresh. */
     if(view==3&&((S[7]!=1&&S[7]!=2)||*(volatile u16 *)(S+10)!=8000||
         *(volatile u16 *)(S+14)!=*(volatile u16 *)(S+16)))return 1;
-    S[7]=view==3?6:view?3:0;product_clock(128);return 0;
+    S[7]=view==3?6:view?3:0;product_clock(128|256);return 0;
 }

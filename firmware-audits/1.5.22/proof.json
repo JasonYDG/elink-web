@@ -1,0 +1,234 @@
+{
+  "version": "1.5.22",
+  "firmware_id": "26ddc767",
+  "application_sha256": "b6e3ada75f4143fd24d90865778e1f47f588ecf2e04ed1258c11cb21cbdec02f",
+  "ota_package": "F:\\AI\\2.13-Elink\\build\\firmware-1.5.22-final\\elink-bwr-1.5.22.elink-update.json",
+  "ota_package_sha256": "a2862b4f19566312142149a6b366a56e3fd757f5d80e23b5b05270c63f7ed1fe",
+  "cases": {
+    "calendar-noon": {
+      "before": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 11,
+        "minute": 59,
+        "second": 37,
+        "generation": 1,
+        "busy": false
+      },
+      "after": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 12,
+        "minute": 0,
+        "second": 37,
+        "generation": 1,
+        "busy": false
+      },
+      "native_flags": [
+        128
+      ],
+      "display_refreshes": 0,
+      "date_change": false
+    },
+    "calendar-midnight": {
+      "before": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 23,
+        "minute": 59,
+        "second": 37,
+        "generation": 1,
+        "busy": false
+      },
+      "after": {
+        "date": [
+          2026,
+          11,
+          15
+        ],
+        "hour": 0,
+        "minute": 0,
+        "second": 37,
+        "generation": 2,
+        "busy": false
+      },
+      "native_flags": [
+        128
+      ],
+      "display_refreshes": 1,
+      "date_change": true
+    },
+    "photo-calendar-noon": {
+      "before": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 11,
+        "minute": 59,
+        "second": 37,
+        "generation": 2,
+        "busy": false
+      },
+      "after": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 12,
+        "minute": 0,
+        "second": 37,
+        "generation": 2,
+        "busy": false
+      },
+      "native_flags": [
+        128
+      ],
+      "display_refreshes": 0,
+      "date_change": false
+    },
+    "photo-calendar-midnight": {
+      "before": {
+        "date": [
+          2026,
+          11,
+          14
+        ],
+        "hour": 23,
+        "minute": 59,
+        "second": 37,
+        "generation": 2,
+        "busy": false
+      },
+      "after": {
+        "date": [
+          2026,
+          11,
+          15
+        ],
+        "hour": 0,
+        "minute": 0,
+        "second": 37,
+        "generation": 3,
+        "busy": false
+      },
+      "native_flags": [
+        128
+      ],
+      "display_refreshes": 1,
+      "date_change": true
+    }
+  },
+  "frames": {
+    "calendar-noon-before": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "f960cc195ad7f90b7103eb2b4ff26a601d582d62891a7282fa88e3f95c1bef2a",
+      "png_sha256": "8243c0d0c94bf036e145ae077970f24b3e4b6f086556333edb8a9b53d5284eec",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar-noon-after": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "f960cc195ad7f90b7103eb2b4ff26a601d582d62891a7282fa88e3f95c1bef2a",
+      "png_sha256": "8243c0d0c94bf036e145ae077970f24b3e4b6f086556333edb8a9b53d5284eec",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar-midnight-before": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "f960cc195ad7f90b7103eb2b4ff26a601d582d62891a7282fa88e3f95c1bef2a",
+      "png_sha256": "8243c0d0c94bf036e145ae077970f24b3e4b6f086556333edb8a9b53d5284eec",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar-midnight-after": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "5b090576c0e6d89d40931ec1096779b7d74be34725fe2354d07c55aa87ec61d9",
+      "png_sha256": "23f8d40dd71300eac9ecf41b3f174891a927446ff28414a1f4628a9708e3f01b",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "photo-calendar-noon-before": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "211b6a9b5d1a849577aac76278c7a3154034240d76152266a59892d28c8f5d50",
+      "png_sha256": "6cf7cc623911ec5004d18903b0ad1453ca9db1d27f5e9ba7e2ad12191d45fcf8",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "photo-calendar-noon-after": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "211b6a9b5d1a849577aac76278c7a3154034240d76152266a59892d28c8f5d50",
+      "png_sha256": "6cf7cc623911ec5004d18903b0ad1453ca9db1d27f5e9ba7e2ad12191d45fcf8",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "photo-calendar-midnight-before": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "211b6a9b5d1a849577aac76278c7a3154034240d76152266a59892d28c8f5d50",
+      "png_sha256": "6cf7cc623911ec5004d18903b0ad1453ca9db1d27f5e9ba7e2ad12191d45fcf8",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "photo-calendar-midnight-after": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "8064f1dfee6d3ea2c009f431046b09ccee33f1d188daac32ac5796a02035a649",
+      "png_sha256": "98ff83fd63b15df478171a021734d30dfda704bbda5fe182d0bdd740124b68ca",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    }
+  },
+  "native_entry": "0x07fc25c0",
+  "geometry": [
+    250,
+    122
+  ],
+  "native_second_phase_preserved": true,
+  "clock_step_minutes": 1,
+  "hardware_boundaries": "SPI, BUSY, ROM services/diagnostic logging are emulated",
+  "computer_use": false,
+  "physical_device_access": false,
+  "physical_midnight_tested": false
+}
