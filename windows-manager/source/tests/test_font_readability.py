@@ -32,7 +32,7 @@ def native_cells(raw,base,height):
 
 class FontReadability(unittest.TestCase):
     def test_small_digits_fill_the_requested_height_and_fit_the_real_columns(self):
-        for size,minimum in ((12,11),(14,13),(15,14),(18,17)):
+        for size,minimum in ((12,11),(14,13),(15,12),(18,17)):
             for ch,cell in cells('0123456789',size).items():
                 box=cell.getbbox();self.assertGreaterEqual(box[3]-box[1],minimum,(size,ch))
         self.assertLessEqual(12+text_mask('2026/11/13',14).width,96)
@@ -55,8 +55,8 @@ class FontReadability(unittest.TestCase):
             for ch,cell in cells(''.join(original),size).items():
                 source=original[ch];box=source.getbbox()
                 crop=source.crop((0,min(2,box[1]),8,max(12,box[3])))
-                enlarged=crop.resize((8,min(size,max(crop.height,size-1))),Image.Resampling.NEAREST)
-                expected=Image.new('1',cell.size);expected.paste(enlarged,((cell.width-8)//2,(size-enlarged.height)//2))
+                enlarged=crop.resize((8,12 if size==15 else min(size,max(crop.height,size-1))),Image.Resampling.NEAREST)
+                expected=Image.new('1',cell.size);expected.paste(enlarged,(1 if size==15 else (cell.width-8)//2,(size-enlarged.height)//2))
                 self.assertEqual(cell.tobytes(),expected.tobytes(),(size,ch))
 
     def test_compiled_bold_glyphs_fit_their_slots_and_keep_critical_counters_open(self):
@@ -73,9 +73,24 @@ class FontReadability(unittest.TestCase):
                 self.assertEqual(compiled[ch].size,after[ch].size,(height,ch))
                 self.assertEqual(compiled[ch].tobytes(),after[ch].tobytes(),(height,ch))
             ink=lambda glyphs:sum(sum(bool(p) for p in cell.get_flattened_data()) for cell in glyphs.values())
-            self.assertGreater(ink(after),ink(before)*1.25,height)
+            self.assertGreater(ink(after),ink(before)*(1 if height==15 else 1.25),height)
             for ch,minimum in (('0',1),('8',2),('B',2),('日',2),('月',1)):
                 if ch in after:self.assertGreaterEqual(len(counters(after[ch])),minimum,(height,ch))
+
+    def test_calendar_days_have_more_space_with_the_same_bold_stems(self):
+        old=(ROOT/'build/firmware-1.5.16-release/elink-bwr-1.5.16-app.bin').read_bytes()
+        before=native_cells(old,0xc2a0,15)
+        for ch,cell in cells('0123456789',15).items():
+            box=cell.getbbox();prior=before[ch].getbbox()
+            self.assertEqual(box[3]-box[1],12)
+            self.assertEqual(prior[3]-prior[1],14)
+            self.assertEqual(cell.width,9)
+            self.assertEqual(before[ch].width,8)
+        pair=text_mask('88',15)
+        self.assertLessEqual(pair.width,22)
+        for y in range(15):
+            self.assertFalse(pair.getpixel((8,y)))
+            self.assertFalse(pair.getpixel((9,y)))
 
     def test_numeric_and_native_cjk_vertical_strokes_are_two_pixels_wide(self):
         from product_build import REQUIRED,SMALL_REQUIRED

@@ -100,8 +100,11 @@ def cells(chars,height):
                 # Native bold stems stay two pixels wide; retain descenders and punctuation.
                 cell=source.crop((0,min(2,box[1]),8,max(12,box[3])))
                 width=8 if height in (12,16) else max(8,(height+2)//2)
-                cell=cell.resize((8,min(height,max(cell.height,height-1))),Image.Resampling.NEAREST)
-                x=(width-8)//2
+                # Calendar days need three blank rows and two columns between paired digits.
+                if height==15:width=9
+                ink_height=12 if height==15 else min(height,max(cell.height,height-1))
+                cell=cell.resize((8,ink_height),Image.Resampling.NEAREST)
+                x=1 if height==15 else (width-8)//2
             else:
                 target=height-1 if height not in (12,16) else native
                 cell=source.resize((source.width*target//native,target),Image.Resampling.NEAREST)
