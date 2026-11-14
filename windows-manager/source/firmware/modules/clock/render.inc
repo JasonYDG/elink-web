@@ -7,7 +7,7 @@ __attribute__((noinline)) static void clock_face(void){
     line(12,22,238,0);
     font(DIGITS);unsigned h=E[9];if(h>=12)h-=12;if(!h)h=12;
     FORMAT(t,"%02u",h);compressed_ink(DIGITS,11,1,t,0);compressed_ink(DIGITS,111,-12,":",0);
-    FORMAT(t,"%02u",E[10]);compressed_ink(DIGITS,139,1,t,0);
+    FORMAT(t,"%02u",U->pending-1);compressed_ink(DIGITS,139,1,t,0);
     font(MAIN);
     /* The native lunar counters advance without a gateway; keep this useful footer. */
     unsigned lm=G[5]&127,ld=G[6]+1;

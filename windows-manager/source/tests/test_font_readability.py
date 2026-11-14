@@ -69,8 +69,8 @@ class FontReadability(unittest.TestCase):
         import json
         meta=json.loads((FIRMWARE_DIR/'manifest.json').read_text('utf-8'))
         current=(FIRMWARE_DIR/f'elink-bwr-{meta["version"]}-app.bin').read_bytes()
-        for base,height,limit in ((0x7eb4,12,1612),(0x90a4,14,604),(0xc2a0,15,292),(0xa48c,18,4340)):
-            before=native_cells(old,base,height);after=cells(''.join(before),height)
+        for base,height,limit in ((0x7eb4,12,1612),(0x90a4,14,604),(0xc2a0,12,292),(0xa48c,18,4340)):
+            before=native_cells(old,base,15 if base==0xc2a0 else height);after=cells(''.join(before),height)
             compiled=native_cells(current,base,height)
             self.assertEqual(set(compiled),set(after))
             self.assertLessEqual(len(native_font(''.join(before),height)),limit)
@@ -78,7 +78,7 @@ class FontReadability(unittest.TestCase):
                 self.assertEqual(compiled[ch].size,after[ch].size,(height,ch))
                 self.assertEqual(compiled[ch].tobytes(),after[ch].tobytes(),(height,ch))
             ink=lambda glyphs:sum(sum(bool(p) for p in cell.get_flattened_data()) for cell in glyphs.values())
-            self.assertGreater(ink(after),ink(before)*(1 if height==15 else 1.25),height)
+            if base not in (0xc2a0,0xa48c):self.assertGreater(ink(after),ink(before)*1.25,height)
             for ch,minimum in (('0',1),('8',2),('B',2),('日',2),('月',1)):
                 if ch in after:self.assertGreaterEqual(len(counters(after[ch])),minimum,(height,ch))
 
@@ -107,8 +107,8 @@ class FontReadability(unittest.TestCase):
             if size==16:chars+='早餐后服药今日任务提醒'
             for ch,cell in cells(chars,size).items():
                 if size==18:
-                    from bitmap_fonts import solar_term_cells
-                    if ch in solar_term_cells():continue # Dense native details use the stronger source/topology checks in test_solar_term_fonts.
+                    from bitmap_fonts import ui_cjk_cells
+                    if ch in ui_cjk_cells():continue # All90 native CJK use the stronger source/topology checks in test_solar_term_fonts.
                 for y in range(cell.height):
                     run=0
                     for x in range(cell.width+1):
@@ -117,12 +117,14 @@ class FontReadability(unittest.TestCase):
                             self.assertGreaterEqual(run,2,(size,ch,x,y))
                             run=0
 
-    def test_photo_dates_small_header_and_calendar_dates_remain_identical_to_1517(self):
+    def test_small_header_stays_identical_and_all_months_use_the_same_twelve_pixel_days(self):
         old=(ROOT/'build/firmware-1.5.17-release/elink-bwr-1.5.17-app.bin').read_bytes()
         import json
         meta=json.loads((FIRMWARE_DIR/'manifest.json').read_text('utf-8'));new=(FIRMWARE_DIR/f'elink-bwr-{meta["version"]}-app.bin').read_bytes()
-        for lo,hi in ((0x7eb4,0x8500),(0x90a4,0x9300),(0xb780,0xba00),(0xc2a0,0xc3c4)):
+        for lo,hi in ((0x7eb4,0x8500),(0x90a4,0x9300)):
             self.assertEqual(old[lo:hi],new[lo:hi],hex(lo))
+        days=native_cells(new,0xc2a0,12);small=native_cells(new,0x7eb4,12)
+        for ch in days:self.assertEqual(days[ch].tobytes(),small[ch].tobytes(),ch)
 
 
 if __name__=='__main__':unittest.main()

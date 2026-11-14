@@ -1,0 +1,63 @@
+"""Record the actual compiled clock's SPI mask, plus native UI glyph diagnostics."""
+from pathlib import Path
+from datetime import date
+import json,os,shutil,struct,sys
+ROOT=Path(__file__).resolve().parents[2]
+sys.path[:0]=[str(ROOT/'source/tests'),str(ROOT/'source/backend'),str(ROOT/'source/tools')]
+from PIL import Image
+from test_product_ui import ProductMachine,BASE
+from test_font_readability import native_cells
+from bitmap_fonts import ui_cjk_cells,font_meta
+from audit_solar_terms import fixture
+from preview_firmware import export_frame,verify_firmware
+
+def main():
+    for key in ('ELINK_TEST_FIRMWARE_DIR','ELINK_PREVIEW_UPDATE_PACKAGE','ELINK_STROKE_AUDIT_OUT'):
+        if not os.environ.get(key):raise SystemExit('Explicit firmware, OTA and new audit paths required')
+    provenance=verify_firmware(Path(os.environ['ELINK_TEST_FIRMWARE_DIR']),os.environ['ELINK_PREVIEW_UPDATE_PACKAGE'])
+    out=Path(os.environ['ELINK_STROKE_AUDIT_OUT']);assert not out.exists();out.mkdir(parents=True)
+    records={};modes={}
+    for mode in (1,2):
+        m=ProductMachine();m.cmd(bytes([0x94,mode,60]));before=fixture(m,date(2026,11,14),0)
+        assert m.status()['clock_refresh_minutes']==1
+        m.stream.clear();m.uc.mem_write(BASE+0x104dc+40,struct.pack('<I',56));m.run(BASE+0x2cc4)
+        after=bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
+        mask=bytes(m.stream[:4000]);assert len(m.stream)==4070
+        assert mask==bytes(255^(a^b) for a,b in zip(before[:4000],after[:4000]))
+        assert before[4000:]==after[4000:]==bytes(4000)
+        m.finish();assert m.status()['display_generation']==2
+        modes[mode]={'driven_pixels':sum(8-v.bit_count() for v in mask),'former_rectangle_pixels':103*72,
+                     'native_update_command':m.update_sequence(),'unchanged_background_neutral':True}
+        if mode==1:
+            records['clock-before']=export_frame(out,'clock-before',before)
+            records['clock-after']=export_frame(out,'clock-after',after)
+            records['stroke-mask']=export_frame(out,'stroke-mask',mask+bytes(255^v for v in mask))
+        else:assert records['clock-before']['frame_sha256']==export_frame(out,'fast-before',before)['frame_sha256']
+    glyphs=native_cells(m.b,0xa48c,18);hints=ui_cjk_cells();chars=sorted(hints)
+    for i in range(0,len(chars),78):
+        sheet=Image.new('RGB',(250,122),'white')
+        for j,ch in enumerate(chars[i:i+78]):
+            assert glyphs[ch].tobytes()==hints[ch].tobytes()
+            sheet.paste('black',(4+j%13*18,4+j//13*19),glyphs[ch])
+        sheet.save(out/f'ui-glyphs-{i//78+1:02}.png')
+    shutil.copy2(ROOT/'source/fonts/ui-cjk-18.json',out/'ui-cjk-18.json')
+    proof={**provenance,'fixture':'2026-11-14 06:55 -> 06:56; real lunar fields; simulated ADC100%',
+           'clock_refresh_minutes':1,'modes':modes,'frames':records,'geometry':[250,122],'native_cjk_glyphs':90,
+           'cjk_source':font_meta('ui_cjk_18'),'photo_digit_source':font_meta('terminus_large'),
+           'photo_plain_zero_source':'O bitmap from the same Terminus32 font',
+           'diagnostics':['stroke-mask is the actual SPI drive-mask diagnostic, not a device page',
+                          'ui-glyphs sheets contain compiled font masks, not a device page'],
+           'computer_use':False,'physical_device_access':False,'optical_tested':False}
+    (out/'proof.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n','utf-8')
+    (out/'index.html').write_text('''<!doctype html><meta charset="utf-8"><title>笔画差分与字形核对</title>
+<style>body{font:16px sans-serif}img{display:block;width:250px!important;height:122px!important;max-width:none;image-rendering:pixelated}figure{margin:24px 0}</style>
+<h1>笔画差分 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。前后画面来自同一交付固件的完整绘制入口。红色诊断图仅标记SPI遮罩中实际允许驱动的像素，白色为不驱动区域，不是设备页面；不模拟墨水显影。</p>
+<figure>刷新前 06:55<img src="clock-before.png" width="250" height="122"></figure>
+<figure>刷新后 06:56<img src="clock-after.png" width="250" height="122"></figure>
+<figure>驱动遮罩诊断<img src="stroke-mask.png" width="250" height="122"></figure>
+<p>下方是90个原生界面汉字的编译字形拼排，属于诊断表，不是设备页面。</p>
+<img src="ui-glyphs-01.png" width="250" height="122"><img src="ui-glyphs-02.png" width="250" height="122">
+<p><a href="proof.json">固件、遮罩与字形来源</a></p>''','utf-8')
+    print(json.dumps({'firmware_id':provenance['firmware_id'],'modes':modes},ensure_ascii=False))
+
+if __name__=='__main__':main()

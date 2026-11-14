@@ -283,13 +283,60 @@ class ProductUi(unittest.TestCase):
         self.assertEqual(m.data_pins,[(0,1)]*16)
         self.assertEqual(m.pin_values[0x11],1)
         self.assertEqual([x[1] for x in m.commands if x[0]==BASE+0x4140],list(range(16)))
+    def test_partial_mask_drives_only_changed_digit_strokes_and_retains_both_planes(self):
+        for mode in (1,2):
+            for before,after in tuple((i,i+1) for i in range(9))+((9,10),(19,20),(29,30),(39,40),(49,50),(58,59),(5,10)):
+                m=ProductMachine();m.cmd(bytes([0x94,mode,60]))
+                old=m.draw(minute=before,force=128);m.finish();m.stream.clear()
+                new=m.draw(minute=after)
+                self.assertEqual(len(m.stream),4070,'Stroke mask and the selected native 70-byte waveform')
+                expected=bytes(255^(a^b) for a,b in zip(old[:4000],new[:4000]))
+                self.assertEqual(bytes(m.stream[:4000]),expected,(mode,before,after))
+                self.assertEqual(new[4000:],old[4000:],'A mask must not become the retained red image')
+                self.assertTrue(any(b!=255 for b in expected))
+                self.assertTrue(all(b==255 for i,b in enumerate(expected) if not(9<=i//16<=111 and 3<=i%16<=11)))
+                m.finish();self.assertEqual(m.status()['display_generation'],2)
+                self.assertEqual(bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000)),new)
+
+    def test_duplicate_clock_minute_drives_no_strokes_or_background(self):
+        m=ProductMachine();m.cmd(b'\x94\x01\x3c');m.draw(minute=0,force=128);m.finish();m.stream.clear()
+        m.draw(minute=0);self.assertEqual(m.stream[:4000],[255]*4000);m.finish()
+
+    def test_stroke_reference_commits_the_drawn_minute_only_after_success(self):
+        m=ProductMachine();m.cmd(b'\x94\x02\x3c');old=m.draw(minute=5,force=128)
+        # Native wall time can advance while BUSY is asserted; commit the rendered minute.
+        m.uc.mem_write(BASE+0x104dc+40,struct.pack('<I',6));m.finish();m.stream.clear()
+        new=m.draw(minute=10)
+        self.assertEqual(bytes(m.stream[:4000]),bytes(255^(a^b) for a,b in zip(old[:4000],new[:4000])))
+        m.busy=1
+        for _ in range(225):m.run(BASE+0x4208)
+        self.assertEqual(m.status()['error'],4);self.assertFalse(m.status()['busy'])
+        m.stream.clear();m.draw(minute=11);self.assertEqual(m.update_sequence(),0xf7);m.finish()
+        old=bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000));m.stream.clear()
+        new=m.draw(minute=12)
+        self.assertEqual(bytes(m.stream[:4000]),bytes(255^(a^b) for a,b in zip(old[:4000],new[:4000])))
+        m.finish()
+
+    def test_clock_reference_matches_digit_ink_if_time_advances_during_paint(self):
+        m=ProductMachine();m.cmd(b'\x94\x01\x3c')
+        battery=int(m.meta['product_symbols']['product_battery'],16)&~1
+        crossed=[]
+        def tick_after_digits(uc,address,size,_):
+            if address==battery and not crossed:
+                uc.mem_write(BASE+0x104dc+40,struct.pack('<I',6));crossed.append(True)
+        hook=m.uc.hook_add(UC_HOOK_CODE,tick_after_digits)
+        before=m.draw(minute=5,force=128);m.uc.hook_del(hook);self.assertTrue(crossed);m.finish()
+        self.assertTrue(frame_matches(before,'05',66,139,25))
+        m.stream.clear();after=m.draw(minute=10)
+        self.assertEqual(bytes(m.stream[:4000]),bytes(255^(a^b) for a,b in zip(before[:4000],after[:4000])))
+        m.finish()
     def test_clock_layout_and_minute_only_then_hour_full(self):
         m=ProductMachine();m.cmd(b'\x94\x02\x0a');a=m.draw();m.finish()
         self.assertEqual(m.update_sequence(),0xf7)
         b=m.draw(minute=59);m.finish();self.assertEqual(m.update_sequence(),0xc7)
         changes=[i for i in range(8000) if a[i]!=b[i]];self.assertTrue(changes)
         self.assertTrue(all(i<4000 and 9<=i//16<=111 and 3<=i%16<=11 for i in changes))
-        self.assertEqual(m.stream[:4000],[0 if 9<=i//16<=111 and 3<=i%16<=11 else 255 for i in range(4000)])
+        self.assertEqual(m.stream[:4000],[255^(a[i]^b[i]) for i in range(4000)])
         self.assertEqual(len(m.stream),4070) # Mask then native quick waveform upload.
         expected=list(m.b[0xdc18:0xdc18+70]);expected[14:28]=[0]*14
         self.assertEqual(m.stream[4000:],expected)
@@ -298,22 +345,23 @@ class ProductUi(unittest.TestCase):
         self.assertIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
         texts=[x[2] for x in m.draws];self.assertIn(b'AM',texts);self.assertIn(b'09',texts);self.assertIn(b'10',texts)
-    def test_whole_page_fast_restores_native_waveform_after_experimental_minute_mask(self):
+    def test_stroke_refresh_selects_each_original_waveform_and_periodic_full_cleanup(self):
         m=ProductMachine();m.cmd(b'\x94\x01\x03');m.draw(minute=55);m.finish()
         self.assertEqual(m.update_sequence(),0xf7)
         m.commands.clear();m.stream.clear();m.draw(minute=56);m.finish()
         self.assertEqual(m.update_sequence(),0xc7)
         fly=list(m.b[0xdc68:0xdc68+70]);fly[14:28]=[0]*14
-        self.assertEqual(m.stream,fly,'Whole-page minute refresh uses native FLY, preserving red pixels')
-        self.assertFalse(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
-        self.assertFalse(any(c[:4]==(BASE+0x3c84,0x01,102,0) for c in m.commands))
+        self.assertEqual(len(m.stream),4070)
+        self.assertEqual(m.stream[4000:],fly,'Stroke refresh retains native FLY, preserving red pixels')
+        self.assertTrue(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
+        self.assertIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(minute=57);m.finish();self.assertEqual(m.update_sequence(),0xc7)
         m.draw(minute=58);m.finish();self.assertEqual(m.update_sequence(),0xf7,'Periodic BWR full refresh')
         m.cmd(b'\x94\x02\x0a');m.stream.clear();m.draw(minute=59);m.finish()
         self.assertEqual(len(m.stream),4070);self.assertEqual(m.stream[4014:4028],[0]*14)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
         m.cmd(b'\x94\x01\x0a');m.stream.clear();m.draw(h=10,minute=1);m.finish()
-        self.assertEqual(m.stream,fly,'Changing back from minute-only must select native FLY')
+        self.assertEqual(m.stream[4000:],fly,'Changing back from FAST must select native FLY')
         m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1706));m.draw(h=10,minute=2);m.finish()
         self.assertEqual(m.update_sequence(),0xf7,'Header and battery changes require full refresh')
     def test_calendar_all_months_leap_years_bounds_and_daily_update(self):
@@ -327,7 +375,7 @@ class ProductUi(unittest.TestCase):
             m.draw(year=year,month=month,day=1,weekday=(first+1)%7,force=128);m.finish()
             dense=(first+1)%7+days>35;pitch=13 if dense else 15
             # Day numbers are centred in their 22px cell using the drawn table's advances.
-            inset=lambda v:(22-text_mask(v.decode(),12 if dense else 15).width)>>1
+            inset=lambda v:(22-text_mask(v.decode(),12).width)>>1
             cells=[(x-inset(v),y,int(v)) for x,y,v in m.draws if v.isdigit() and 44<=y<=110 and x<167 and (x-inset(v)-6)%22==0]
             self.assertEqual([v for x,y,v in cells],list(range(1,days+1)))
             self.assertEqual(cells[0][:2],(6+((first+1)%7)*22,44))
@@ -345,6 +393,31 @@ class ProductUi(unittest.TestCase):
             before=len(m.commands);m.draw(year=year,month=month,day=1,weekday=(first+1)%7,minute=59)
             self.assertEqual(len(m.commands),before,'Monthly calendar must not refresh every minute')
             m.draw(year=year,month=month,day=2,weekday=(first+2)%7);m.finish();self.assertEqual(m.update_sequence(),0xf7)
+
+    def test_six_calendar_rows_keep_the_last_day_and_white_weekday_background(self):
+        import calendar
+        from bitmap_fonts import text_mask
+        six=[]
+        for year in range(2020,2052):
+            for month in range(1,13):
+                first,days=calendar.monthrange(year,month);rows=((first+1)%7+days+6)//7
+                self.assertIn(rows,(4,5,6))
+                if rows==6:six.append((year,month))
+        self.assertIn((2026,5),six);self.assertIn((2026,8),six);self.assertNotIn((2026,11),six)
+        for year,month in ((2026,5),(2026,8),(2025,3),(2027,5)):
+            first,days=calendar.monthrange(year,month);last=(first+1)%7+days-1
+            m=ProductMachine();m.uc.mem_write(STATE+7,b'\x03')
+            raw=m.draw(year=year,month=month,day=days,weekday=(last%7),force=128);m.finish()
+            self.assertEqual(last//7,5);x=6+last%7*22;y=44+5*13
+            mask=text_mask(str(days),12);self.assertLessEqual(y+mask.getbbox()[3],122)
+            self.assertIn((x+((22-mask.width)>>1),y,str(days).encode()),m.draws)
+            # No solid weekday strip; actual glyphs and weekend red remain isolated.
+            p=(249-6)*16+24//8;bit=128>>(24%8)
+            self.assertTrue(raw[p]&bit);self.assertFalse(raw[4000+p]&bit)
+            for xx in range(x+1,x+21):
+                for yy in range(y,y+13):
+                    p=(249-xx)*16+yy//8;bit=128>>(yy%8)
+                    self.assertEqual(bool(raw[p]&bit),not bool(raw[4000+p]&bit),'Last-row highlight cannot clip or mix colors')
     def test_am_pm_interval_full_limit_battery_change_and_busy_failure(self):
         m=ProductMachine();m.cmd(b'\x94\x02\x03')
         m.draw(h=23,minute=56);m.finish()

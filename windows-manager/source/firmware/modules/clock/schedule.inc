@@ -8,7 +8,9 @@ __attribute__((section(".clock.entry"))) void product_clock(unsigned flags){
         if(S[7]!=0 && U->valid&&U->date==date&&U->view==S[7])return;
         if(S[7]==0){unsigned interval=S[24];if(!interval||E[10]-DIV(E[10],interval)*interval)return;}
     }
-    U->ticks=0;S[25]=0;CALL0(LEDS_OFF);CALL0(0x07fc3f04);
+    S[25]=0;CALL0(LEDS_OFF);CALL0(0x07fc3f04);
+    /* Pin the digit time before paint; zero remains the idle marker. */
+    U->pending=E[10]+1;
     if(S[7]==6||S[7]==8)photo_calendar();
     else {
         for(unsigned i=0;i<4000;i++){BW[i]=255;RR[i]=0;}
@@ -19,7 +21,7 @@ __attribute__((section(".clock.entry"))) void product_clock(unsigned flags){
     U->partial=(S[7]==0&&S[5]!=0&&!(flags&128)&&U->valid&&U->view==0&&U->date==date&&U->hour==E[9]&&
         U->outside==U->pending_outside&&U->red==U->pending_red&&U->count+1<S[6])?S[5]:0;
     if(U->valid==1&&U->view==0&&S[7]!=0)U->valid=3;
-    U->pending_date=date;U->pending_hour=E[9];U->pending=1;U->view=S[7];
+    U->pending_date=date;U->pending_hour=E[9];U->view=S[7];
     CALL0(0x07fc3f68);CALL0(0x07fc40e8);CALL0(0x07fc4174);CALL0(0x07fd1480);
 }
 __attribute__((section(".reminder.main"),noinline)) int product_view(unsigned view){

@@ -29,10 +29,11 @@ class PixelFonts(unittest.TestCase):
                     expected=Image.new('1',(width,height));expected.paste(zoom,((width-zoom.width)//2,(height-zoom.height)//2))
                     self.assertEqual(actual.size,expected.size)
                     self.assertEqual(actual.tobytes(),expected.tobytes(),(height,ch))
-            for height,native,scale,width in ((44,12,4,27),):
+            for height,native,width in ((44,32,27),):
                 for ch in '0123456789':
-                    original=fallback_cells(ch,native)[ch];original=original.crop(original.getbbox())
-                    zoom=original.resize((original.width*scale,original.height*scale),Image.Resampling.NEAREST)
+                    source_ch='O' if ch=='0' else ch
+                    original=fallback_cells(source_ch,native)[source_ch];original=original.crop(original.getbbox())
+                    zoom=original.resize((20,32),Image.Resampling.NEAREST)
                     expected=Image.new('1',(width,height));expected.paste(zoom,((width-zoom.width)//2,(height-zoom.height)//2))
                     self.assertEqual(cells(ch,height)[ch].tobytes(),expected.tobytes(),(height,ch))
             with self.assertRaises(ValueError):text_mask('\U0010ffff',12)
@@ -49,27 +50,33 @@ class PixelFonts(unittest.TestCase):
                     self.assertEqual(not bool(actual[pos]&bit),bool(expected.getpixel((x,y))),(hour,minute,x,y))
             m.finish()
 
-    def test_only_font_assets_two_ui_functions_version_and_id_change_from_verified_1513(self):
-        baseline=ROOT/'build/firmware-1.5.13-font-baseline'
+    def test_stroke_refresh_changes_only_verified_application_spans_and_hook_relocations(self):
+        baseline=ROOT/'build/firmware-1.5.20-release'
         before=json.loads((baseline/'manifest.json').read_text());after=json.loads((FIRMWARE_DIR/'manifest.json').read_text())
-        old=(baseline/'elink-bwr-1.5.13-app.bin').read_bytes();new=(FIRMWARE_DIR/f'elink-bwr-{after["version"]}-app.bin').read_bytes()
-        self.assertEqual(hashlib.sha256(old).hexdigest(),'b6347e11f4a6c305d5b6540e61e71b564bbff2d623d26677205064f6be443c75')
+        old=(baseline/'elink-bwr-1.5.20-app.bin').read_bytes();new=(FIRMWARE_DIR/f'elink-bwr-{after["version"]}-app.bin').read_bytes()
+        self.assertEqual(hashlib.sha256(old).hexdigest(),'311f37be98b763694973c8192a37735b2d8921b0ab1930c67ce1b27e483c25f2')
         self.assertEqual(len(old),len(new))
-        for key in ('labels','runtime_address','runtime_load_offset','runtime_bytes','helper_address','helper_bytes','state_address','state_file_offset','boot_identity_address','boot_identity_bytes','product_symbols'):
+        for key in ('labels','runtime_address','runtime_load_offset','runtime_bytes','helper_address','helper_bytes','state_address','state_file_offset','boot_identity_address','boot_identity_bytes'):
             self.assertEqual(before[key],after[key],key)
-        ranges=pixel_asset_ranges(after);version=old.index(b'V1.5.13\0')
-        self.assertEqual(new[version:version+8],('V'+after['version']+'\0').encode())
-        ranges.extend(((version,version+8),(int(after['state_file_offset'],16)+28,int(after['state_file_offset'],16)+32)))
-        functions=json.loads((baseline/'product-functions.json').read_text())
-        self.assertEqual(functions,json.loads((FIRMWARE_DIR/'product-functions.json').read_text()))
-        for name in ('product_battery','product_boot_battery'):
-            f=functions[name];ranges.append((f['address']-BASE,f['address']-BASE+f['bytes']))
+        self.assertEqual(new.count(('V'+after['version']+'\0').encode()),1)
+        self.assertEqual(before['product_symbols']['product_boot_battery'],after['product_symbols']['product_boot_battery'])
+        self.assertEqual(old[0x2248:0x2298],new[0x2248:0x2298],'Native startup hook stays byte-identical')
+        asset=int(after['state_file_offset'],16)+32
+        self.assertEqual(old[asset:asset+1697],new[asset:asset+1697])
+        ranges=pixel_asset_ranges(after)+[(0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),
+                                       (0xb580,0xb780),(0xba00,0xc2a0),(0xc8a4,0xd2b0),(0xe2f0,0xe2f4)]
+        from capstone import Cs,CS_ARCH_ARM,CS_MODE_THUMB
+        for off,name in {0xde26:'product_sync_valid',0xdf16:'product_view',0xdf2c:'product_control',
+                         0xe12c:'product_refresh',0xe13e:'product_finish',0xe172:'product_minute_tick'}.items():
+            ranges.append((off,off+4))
+            address=int(after['runtime_address'],16)+off-int(after['runtime_load_offset'],16)
+            call=list(Cs(CS_ARCH_ARM,CS_MODE_THUMB).disasm(new[off:off+4],address))
+            self.assertEqual(len(call),1);self.assertEqual(call[0].mnemonic,'bl')
+            self.assertEqual(int(call[0].op_str.lstrip('#'),16),int(after['product_symbols'][name],16)&~1)
+        ranges.append((0xe0fc,0xe100))
+        self.assertEqual(struct.unpack_from('<I',new,0xe0fc)[0],int(after['product_symbols']['product_caps'],16))
         for offset,(a,b) in enumerate(zip(old,new)):
             if a!=b:self.assertTrue(any(lo<=offset<hi for lo,hi in ranges),hex(offset))
-        for name,function in functions.items():
-            if name in ('product_battery','product_boot_battery'):continue
-            offset=function['address']-BASE;size=function['bytes']
-            self.assertEqual(old[offset:offset+size],new[offset:offset+size],name)
 
 
 if __name__=='__main__':unittest.main()

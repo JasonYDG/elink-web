@@ -18,7 +18,7 @@ typedef unsigned int u32;
 #define CMD ((void (*)(int))0x07fc3be9)
 #define DATA ((void (*)(const u8 *,int))0x07fc3cf5)
 #define DIV ((u32 (*)(u32,u32))0x07f1dfb9)
-/* Native bitmap tables; integer-scaled 44px photo and seven-segment 66px clock are run-coded. */
+/* Native bitmap tables; fine-grid44px photo and seven-segment66px clock are run-coded. */
 #define SMALL 0x07fc7eb4
 #define DATE 0x07fc90a4
 #define MAIN 0x07fca48c
@@ -27,7 +27,7 @@ typedef unsigned int u32;
 #define DIGITS 0x07fcc3c4
 /* This former, unused low-resolution font lives in the retained application RAM. */
 struct Ui {u32 outside,red,pending_outside,pending_red,date,pending_date;
-    u8 valid,pending,partial,hour,pending_hour,count,ticks,view;};
+    u8 valid,pending,partial,hour,pending_hour,count,minute,view;};
 #define U ((volatile struct Ui *)0x07fca46c)
 __attribute__((used)) const u8 product_caps[8]={'E','L','U','I',1,255,31,0};
 extern int product_reminder_cmd(const u8 *,unsigned);

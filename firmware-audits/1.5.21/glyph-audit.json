@@ -1,0 +1,520 @@
+{
+  "format": "ELINK-solar-audit-1",
+  "terms": [
+    "小寒",
+    "大寒",
+    "立春",
+    "雨水",
+    "惊蛰",
+    "春分",
+    "清明",
+    "谷雨",
+    "立夏",
+    "小满",
+    "芒种",
+    "夏至",
+    "小暑",
+    "大暑",
+    "立秋",
+    "处暑",
+    "白露",
+    "秋分",
+    "寒露",
+    "霜降",
+    "立冬",
+    "小雪",
+    "大雪",
+    "冬至"
+  ],
+  "glyphs": {
+    "冬": {
+      "checked": true,
+      "old_ink": 126,
+      "new_ink": 109,
+      "old_stroke_components": 1,
+      "new_stroke_components": 3,
+      "new_continuous_components": 3,
+      "old_counters": 2,
+      "new_counters": 1,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "分": {
+      "checked": true,
+      "old_ink": 118,
+      "new_ink": 98,
+      "old_stroke_components": 1,
+      "new_stroke_components": 3,
+      "new_continuous_components": 3,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "处": {
+      "checked": true,
+      "old_ink": 133,
+      "new_ink": 124,
+      "old_stroke_components": 2,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 1,
+      "new_counters": 1,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "夏": {
+      "checked": true,
+      "old_ink": 191,
+      "new_ink": 163,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 2,
+      "new_counters": 4,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "大": {
+      "checked": true,
+      "old_ink": 96,
+      "new_ink": 91,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "寒": {
+      "checked": true,
+      "old_ink": 186,
+      "new_ink": 143,
+      "old_stroke_components": 1,
+      "new_stroke_components": 3,
+      "new_continuous_components": 3,
+      "old_counters": 4,
+      "new_counters": 3,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "小": {
+      "checked": true,
+      "old_ink": 79,
+      "new_ink": 76,
+      "old_stroke_components": 3,
+      "new_stroke_components": 3,
+      "new_continuous_components": 3,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "惊": {
+      "checked": true,
+      "old_ink": 152,
+      "new_ink": 131,
+      "old_stroke_components": 2,
+      "new_stroke_components": 6,
+      "new_continuous_components": 6,
+      "old_counters": 2,
+      "new_counters": 1,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "明": {
+      "checked": true,
+      "old_ink": 184,
+      "new_ink": 141,
+      "old_stroke_components": 1,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 4,
+      "new_counters": 4,
+      "ink_bounds": [
+        2,
+        2,
+        16,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "春": {
+      "checked": true,
+      "old_ink": 166,
+      "new_ink": 159,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 2,
+      "new_counters": 3,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "暑": {
+      "checked": true,
+      "old_ink": 195,
+      "new_ink": 161,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 3,
+      "new_counters": 5,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "水": {
+      "checked": true,
+      "old_ink": 114,
+      "new_ink": 99,
+      "old_stroke_components": 2,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "清": {
+      "checked": true,
+      "old_ink": 173,
+      "new_ink": 137,
+      "old_stroke_components": 1,
+      "new_stroke_components": 5,
+      "new_continuous_components": 5,
+      "old_counters": 0,
+      "new_counters": 2,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "满": {
+      "checked": true,
+      "old_ink": 186,
+      "new_ink": 158,
+      "old_stroke_components": 1,
+      "new_stroke_components": 5,
+      "new_continuous_components": 5,
+      "old_counters": 3,
+      "new_counters": 4,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "白": {
+      "checked": true,
+      "old_ink": 121,
+      "new_ink": 110,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 2,
+      "new_counters": 2,
+      "ink_bounds": [
+        3,
+        1,
+        15,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "秋": {
+      "checked": true,
+      "old_ink": 148,
+      "new_ink": 130,
+      "old_stroke_components": 1,
+      "new_stroke_components": 4,
+      "new_continuous_components": 4,
+      "old_counters": 1,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "种": {
+      "checked": true,
+      "old_ink": 164,
+      "new_ink": 140,
+      "old_stroke_components": 1,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 2,
+      "new_counters": 2,
+      "ink_bounds": [
+        1,
+        1,
+        16,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "立": {
+      "checked": true,
+      "old_ink": 115,
+      "new_ink": 94,
+      "old_stroke_components": 1,
+      "new_stroke_components": 5,
+      "new_continuous_components": 5,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        17
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "至": {
+      "checked": true,
+      "old_ink": 160,
+      "new_ink": 127,
+      "old_stroke_components": 1,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 2,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        2,
+        17,
+        17
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "芒": {
+      "checked": true,
+      "old_ink": 126,
+      "new_ink": 115,
+      "old_stroke_components": 1,
+      "new_stroke_components": 2,
+      "new_continuous_components": 2,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        17
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "蛰": {
+      "checked": true,
+      "old_ink": 168,
+      "new_ink": 152,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 3,
+      "new_counters": 4,
+      "ink_bounds": [
+        1,
+        1,
+        16,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "谷": {
+      "checked": true,
+      "old_ink": 135,
+      "new_ink": 119,
+      "old_stroke_components": 1,
+      "new_stroke_components": 4,
+      "new_continuous_components": 4,
+      "old_counters": 3,
+      "new_counters": 1,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "降": {
+      "checked": true,
+      "old_ink": 193,
+      "new_ink": 144,
+      "old_stroke_components": 1,
+      "new_stroke_components": 1,
+      "new_continuous_components": 1,
+      "old_counters": 5,
+      "new_counters": 3,
+      "ink_bounds": [
+        2,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "雨": {
+      "checked": true,
+      "old_ink": 188,
+      "new_ink": 136,
+      "old_stroke_components": 2,
+      "new_stroke_components": 5,
+      "new_continuous_components": 5,
+      "old_counters": 2,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        2,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "雪": {
+      "checked": true,
+      "old_ink": 148,
+      "new_ink": 148,
+      "old_stroke_components": 6,
+      "new_stroke_components": 6,
+      "new_continuous_components": 6,
+      "old_counters": 0,
+      "new_counters": 0,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "霜": {
+      "checked": true,
+      "old_ink": 209,
+      "new_ink": 154,
+      "old_stroke_components": 2,
+      "new_stroke_components": 7,
+      "new_continuous_components": 7,
+      "old_counters": 3,
+      "new_counters": 3,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    },
+    "露": {
+      "checked": true,
+      "old_ink": 213,
+      "new_ink": 157,
+      "old_stroke_components": 1,
+      "new_stroke_components": 7,
+      "new_continuous_components": 7,
+      "old_counters": 5,
+      "new_counters": 3,
+      "ink_bounds": [
+        1,
+        1,
+        17,
+        18
+      ],
+      "source": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+      "dense_details_may_be_one_pixel": true
+    }
+  },
+  "count": 27,
+  "sheet": "compiled native glyph diagnostic; not a device page",
+  "optical_tested": false
+}

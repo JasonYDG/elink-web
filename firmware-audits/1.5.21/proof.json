@@ -1,0 +1,1387 @@
+{
+  "version": "1.5.21",
+  "firmware_id": "feacec0e",
+  "application_sha256": "9454dec64dcf2c614e76b067402778d5aa9d3461c86a6d097ad4393c6e1aa4ae",
+  "ota_package": "F:\\AI\\2.13-Elink\\build\\firmware-1.5.21-final-checked\\elink-bwr-1.5.21.elink-update.json",
+  "ota_package_sha256": "d51f4e20eecfa814002c77ae9dfa7272687b6ef1b67726a5b01386879e2ad54c",
+  "status": "compiled application RAM; hardware unverified",
+  "terms": 24,
+  "glyphs": 27,
+  "frames": 72,
+  "visible_geometry": [
+    250,
+    122
+  ],
+  "computer_use": false,
+  "physical_device_access": false,
+  "cases": {
+    "01-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c348bc8d9129e201fcac8cdbd56238835ca14872cb347bd253b030d9a90aa79",
+      "png_sha256": "e15f9db2ca98d5d41f2977f1a477e9e49d9a243e511464857bce5be8645b5558",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小寒",
+      "date": "2026-01-05",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "01-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "81172264501d06d0a2c83bf4cad9fc95e15f7fdc30778fb795e0a6cec21583dc",
+      "png_sha256": "77c0d386cc032b38727d5c37a35fb334bb385acbfe6124020abe982ec03194ed",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小寒",
+      "date": "2026-01-05",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "01-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "29bc2065299a662d384b7765c4dc930627f48437d1d7ab5b18047dae847118db",
+      "png_sha256": "720d6678cc73c41ec4882c410c285622e61a341bfbe5ebc056a4bc49a518558a",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小寒",
+      "date": "2026-01-05",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "02-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "df0313922bae391599607333773eafc2a82488245b4a984149899a1b55042045",
+      "png_sha256": "81184af3e663d466bb233380be7c5a3e930631b0310a9ba398f4d04ea4d41942",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大寒",
+      "date": "2026-01-20",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "02-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4aa0080f5904d64aa5b3b225faf397daa9b1d7904c95c23f09f26525f3fb4745",
+      "png_sha256": "5ec435bf7de2c4d6041c99f502f350cf5c7819957e7571a4607adbc8dc3d4c86",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大寒",
+      "date": "2026-01-20",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "02-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "a707e2a6cf417a9e4cfeafd0eda486a3f15c750c054d5d5abff88f6417f74017",
+      "png_sha256": "5187775aa11ef287e69d1920b4b4d93e59fd6f117477f975be5c7d6420f1d484",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大寒",
+      "date": "2026-01-20",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "03-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "22fc22893e6d4db1fbd575cc7ae6986afff8f8c1e6d87b5dc30992398d2cca74",
+      "png_sha256": "588508fbe2f1798711276b45d9eb451f9dcfa2c011fcf4db5412971eeb6e2133",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立春",
+      "date": "2026-02-04",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "03-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "20aa50c364721cc00712d869ebe677ca21536e0a43282577c64a84e5d3be4153",
+      "png_sha256": "982cbb1062f8c96abf700d19f0acbd2e60fe5ff18eecf4d66957b87b5fa2f433",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立春",
+      "date": "2026-02-04",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "03-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c69aba46a91f14b4d6d4fd932b8100e94ce10ebbbfbb2b318c0f8fd025f2e733",
+      "png_sha256": "9a8e6f9078dd79b2a1c1c47ac81cb590616ba094f3ef1d0f71b855f81732e4c2",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立春",
+      "date": "2026-02-04",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "04-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "48050572543eae2da26aa662e53b2a2fc8f33b3d9879d325529cc20cd76f6960",
+      "png_sha256": "957aaf6107dbb96e1086152295acb2f38e438881bb7495e6cdf741bdfab4fa03",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "雨水",
+      "date": "2026-02-18",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "04-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "1c30f3f48c818885a8ec11b51557f84638f14e94a827acd0fb444e5cbea179dd",
+      "png_sha256": "bcb5382e5c54a86e10ea57529fe5527464b6abeae9aca0febf986ac76c96d5d4",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "雨水",
+      "date": "2026-02-18",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "04-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "459809ab2efbc9a0b1b3a3b98c02db4d920cff4b0ababf5284853efdbb8f86fb",
+      "png_sha256": "a71e956930765632c95be9687b056f8819895fd8524840feff6f12b53f41a738",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "雨水",
+      "date": "2026-02-18",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "05-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "97a3931e4771f0a9f1f55b10be962a29cb16e61225cd8fe3e4ebb84b484945fd",
+      "png_sha256": "f540a92a1d2ee369ef41419a5dc5095a3c10d495868385543ba276f4c9b68b10",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "惊蛰",
+      "date": "2026-03-05",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "05-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "7b0e8bc8cdb59187591b0adafe8a6eea590ab750950879ba06997897856e1b10",
+      "png_sha256": "db413ffb4df94bde24eaea1af44876a883cca7ad9875cb7c8d0db5461e176a3e",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "惊蛰",
+      "date": "2026-03-05",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "05-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c26b19f63106397ae1e85a1bddebb1f565bf21224b56754c569739f1a28b57de",
+      "png_sha256": "b88dbd36455815a141ef95862b444a6fe49107a5388e701299dae8bbfcb09ad3",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "惊蛰",
+      "date": "2026-03-05",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "06-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e4df98523cf898e1777f799112b823238aca2af90362e34a7f53a1dad47d4589",
+      "png_sha256": "c91874bfc8d4d0af8004918678ee2d61e1a34409ff31231c8764073047bcf0a3",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "春分",
+      "date": "2026-03-20",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "06-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "1835d08b128938bf356198bde1bd8f4e50eb88ea29309b3cf0163276b2e89541",
+      "png_sha256": "f99ad67b1aa28b0996add0b7e84adcebefa320b8afc1b199202c29e9286266f6",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "春分",
+      "date": "2026-03-20",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "06-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "5bbef17a06ecccbfc2e960c273a7c577e80e6270006750f597149ec8e8e48157",
+      "png_sha256": "8a683bbc6558ed796b009895ae746c556a1f0738553e231278bc397cce0a2380",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "春分",
+      "date": "2026-03-20",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "07-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "1bc99f5955d4250352595ed0e61bef971dec96dce1f0c7258a4ab2c45a87e9f9",
+      "png_sha256": "90650ed667e9082c02afd50bf655c1ed4e3a6856e5372aed936118bb007ebb48",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "清明",
+      "date": "2026-04-05",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "07-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e0d16855a8c796e12db9023d9986cbc2822b8c81ccece658e54b33a0e63e3eca",
+      "png_sha256": "b759faab26c06a774ab7cdf247f61a54b500156e77c140c6f74c0f894371a749",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "清明",
+      "date": "2026-04-05",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "07-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "8f2d897a850deebd03075d72aef0c3d2a44415ec7636ddb2b90a36c339f30a41",
+      "png_sha256": "2f8308e1a1288b721aa9eb5af479a5cc29505a6fa54fe7c28f08664cb039a44d",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "清明",
+      "date": "2026-04-05",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "08-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c03ddd2e544fa2a66de9255c8f4ad715fe15feb13021d7d14121301fe42c2c0c",
+      "png_sha256": "8212e06cee8c5210ca37700060ce2e056e85ab1301be476b10889e43bad9ab49",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "谷雨",
+      "date": "2026-04-20",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "08-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "cf4dc026b21f94c69ad055c53a6345ac50ac7a294ea45c5d17466aadec61ca14",
+      "png_sha256": "259d45d216971e389a6681e2953a4ecd3653cad72a1e034f9fbe68572ddb7c66",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "谷雨",
+      "date": "2026-04-20",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "08-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e20366d078df62a6b93b9f079f75c7789ca9217accf779dc83b6e7cb04c8e402",
+      "png_sha256": "9eeda89d227e5f484957c808d6dcc9b3de2488d9b1d73ed922c66671bc0ae121",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "谷雨",
+      "date": "2026-04-20",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "09-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "b50f081fc6f9e71c00976365194793604584a317fa153fe7393ba02ee477b632",
+      "png_sha256": "baea2d81eb07a22f5b326691a8fb682c1a9a06eedf9c1963017e0440e98ae817",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立夏",
+      "date": "2026-05-05",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "09-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "6e0b33bebc658ab0424cf0a3378e3901035edb6dcb416489e3b186472b1b1a32",
+      "png_sha256": "197b53fa01804d8d6ab98267ca8b135fea7b66e1c343335964677dd406752c2f",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立夏",
+      "date": "2026-05-05",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "09-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "fddbb1b967fc277b70c4ec19b6d59e7c2ad7f8cc07d185fe83fc24e747417627",
+      "png_sha256": "0b5fd5ccc16d87447f6fc4ca90dc9cd6b9d874adde686af2d0263a8b79065b0a",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立夏",
+      "date": "2026-05-05",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "10-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "85b96999cd4c94697c0ca7a5b78f7021bace77447617ba113b1920e04623e778",
+      "png_sha256": "299d92e4479463c9cb68fac7fb7ac9975f2b1b77dc64778d722860b740630f2f",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小满",
+      "date": "2026-05-21",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "10-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "f25600bb38aebcb5f6a39d21cc9723ff66763f0693da27df39baad43091eb837",
+      "png_sha256": "c45ae41dec72ec8bb6d58b8f102def5bcabee423077cb1a28ead25db146c75c6",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小满",
+      "date": "2026-05-21",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "10-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "21dc94a957818ce901b205e0cd2058e67630acd7dcf413c341bfea726d8fa6e6",
+      "png_sha256": "5b93927467faeab8040e32181e91c28c34cc5af2cd3309356a86df6ea69a3850",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小满",
+      "date": "2026-05-21",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "11-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "6c01999d88c391885ae6183c40d2996ee9cf723d9aa20fa25b19944c1df0d478",
+      "png_sha256": "5cbeac98d6f0a410243b1c64d0a12bba110586128cdd7521447332e4515e18e1",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "芒种",
+      "date": "2026-06-05",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "11-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "482496c63ffaf332037d597a69177ecf2e258140b8b6eda531d5524b15faace5",
+      "png_sha256": "8a4b59af3139a2a2f5e19ef5518e0864e94e99b5996a3e4648063350e62d3152",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "芒种",
+      "date": "2026-06-05",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "11-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "ba72b1ed22b1c1b0668118360e1b788e60685f64f9ef8b59fa35aad6d95ce1c5",
+      "png_sha256": "2c5636090919fdd119a76eadd69b423fbb837d7c6d6b4c8b4afe19421eaf3075",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "芒种",
+      "date": "2026-06-05",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "12-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "7f774519f7c69a8b73b52cdeb10ac62ec79d29ebea08c0259c36fa5ad4b657ab",
+      "png_sha256": "ec61c48db306125e59b907f16aea3edf7e42f5195952ee6f26808683193f8f89",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "夏至",
+      "date": "2026-06-21",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "12-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "da22d944311fe57aeed3c20238156b7dcf053ff4f544592e48ccbf0cab49e7c2",
+      "png_sha256": "933d8af237d5d24f284f0e8b2b7930f4bdca0f7c3e3d15d1556bae4f800e4bf9",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "夏至",
+      "date": "2026-06-21",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "12-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "14eaaf725ccd4ad39ceab7cbf66b0a847ad93fdab3243f56ab3f1e1b74c15e1b",
+      "png_sha256": "4496197aa50ad31da201bd82fc49b6ea8cedc52ccd328927b4d92c8a7ebb167f",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "夏至",
+      "date": "2026-06-21",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "13-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "d4913c5322600377765526a930cc4b76ea697f621c5255282acc3126cfa5a53f",
+      "png_sha256": "c91d5538d0387a9d3e52ef70ec49a2aabf9018ebf29650c6b153c7a199fe2b04",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小暑",
+      "date": "2026-07-07",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "13-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "2e90b226656bc50c5b7a92e6944c202fdd6e12c59706fb7d5e91c8e3e03a16e9",
+      "png_sha256": "e5e8b3ec117ca70f004687e5c0e30e498783940f8f23f1fdddc085d23b6a395a",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小暑",
+      "date": "2026-07-07",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "13-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c8108da43393bfd4ec006f16ed8787d20c4f33bc70e70da7f098c474778e29aa",
+      "png_sha256": "d0a187550c9489083e2036b865d05b85b09ed9a32fbd9517fb8589da65cb9ec3",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小暑",
+      "date": "2026-07-07",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "14-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "6f22b54b237adbb323163db61bd825ec6b74fc77250d3a022492e5f5904bf725",
+      "png_sha256": "576e8772fe26e10c50624c7da1b7b2147ee291a47f3cfefdab41a4441cd9ce51",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大暑",
+      "date": "2026-07-23",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "14-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "a429e6b1b1016ddbafa75e3aa6b7c94e28e6e0d307f6213a68abb9a7a681ab57",
+      "png_sha256": "bc66bc2619e3eab52152e89220a67748ad14d539acf04821776bbdad8b162f46",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大暑",
+      "date": "2026-07-23",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "14-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c190f429c6d8daa24e1c017b22d3efb2e04068b576560a3851959cc2a24a85be",
+      "png_sha256": "bd5834be1d88d9bd0980b52fa1c7e2fd616e6c7856ca04c2d946b7e8c214fc54",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大暑",
+      "date": "2026-07-23",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "15-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "d69a0bcec48171555b973e7a6c639f0d670662d5efeb8c64baf772f5b3fa3bd2",
+      "png_sha256": "b586dfc0e8d84f024b6d64e3fec313f3c5a0989b3314de0f91afc51a25fe8109",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立秋",
+      "date": "2026-08-07",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "15-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "50eb60bc83fb43bef59a0ca7f276f7a6c340624036ce7065f048d5bf10fece39",
+      "png_sha256": "36f86ce12197bab668a4e36938d71d95cad63f7a287aece61204ab14ad5e2be4",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立秋",
+      "date": "2026-08-07",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "15-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "30e69e6d7f31652659a5acf0462f630881bcf58b36dbc01d16b72aefef4a4907",
+      "png_sha256": "0953815bfa5d1cf7f6155cfa83e8da01f5ab5d97c4becda7c3831687e098ac71",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立秋",
+      "date": "2026-08-07",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "16-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "7f2fcc9064e1b014af97bbf5170e2997c1619331efd9ec3f7e9bf5b81fc02796",
+      "png_sha256": "da4e3e7963c63c2522f6a145f1489eb2037b8394af509a56b8ece5723b40938c",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "处暑",
+      "date": "2026-08-23",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "16-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "664d215195a80e823a73151385d3fe819c3625d6b5bde9bcdf8fd9d37ebf146e",
+      "png_sha256": "293a492971b63a429af6886e5a5e2037c48bdf044fd28a2e3bd067fa29f1a3ae",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "处暑",
+      "date": "2026-08-23",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "16-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "a133a07a9c110ec524a10ecd2b6f530e41db8b6fa7819ff4d58c5cb79cee2c4c",
+      "png_sha256": "545e524843f491da1d14aaca73ac1bea998db914edba7e469107a5316b7e898d",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "处暑",
+      "date": "2026-08-23",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "17-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "5171adbc3d12949ebea6e258583b90ef03226caef038edaf5395a328ded1df0f",
+      "png_sha256": "23fa47c040cd55314aa31d7a398fd81ab861be3231a34296d1cfc4ed893452b8",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "白露",
+      "date": "2026-09-07",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "17-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "255a23b59dd56792b80d24323a51701880604228a164e6c4bdbbdad627963d31",
+      "png_sha256": "cb8e59cd3bd4acaab5dc43ab4713139ce4a10c8e578685db2a72c91bf9e4cc0c",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "白露",
+      "date": "2026-09-07",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "17-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "d3947472e8112dea34a8cec054fe46db481d8c1041a06c5d3c1ae4462c32eac1",
+      "png_sha256": "fb5fb9e9418e4185c82b95eddb2afd58bcdae0980b6e2266a91a14d52780dbf8",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "白露",
+      "date": "2026-09-07",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "18-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "0a2650c78b51a4726901c358d6e5709617b1c261865aada6f10126c8134f097e",
+      "png_sha256": "8eb08fbb45b2562f750e430a2d72aa7b39bec547aae4cd0f9e2083c5fff7b6d5",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "秋分",
+      "date": "2026-09-23",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "18-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "231b104d7247efe9e14ebbe08d785a543235dea3cc228ce526cd93b685b60114",
+      "png_sha256": "6ace9b5c7b382ce8b3c4cd798ba6b1f79e476bb47d8536f55cb4bec6fa6f2b2c",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "秋分",
+      "date": "2026-09-23",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "18-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "afa3c9de966c5a32683c53f063cdc34bea6bf79860784e630af21908052dd267",
+      "png_sha256": "3a09416fe58585b4a967cdd030a1c824912268d6c1fdde8fa6424f5e5f5d952c",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "秋分",
+      "date": "2026-09-23",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "19-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "efa8198c59a836ce4ffc05d01c4c71843a1de9e8250d612973b12c972e388e2c",
+      "png_sha256": "b4f9eb78cd7187cb5b6b11faabe13a1d0c30c914f09ba0af83190c1f81cd5117",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "寒露",
+      "date": "2026-10-08",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "19-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "90af0bbea4c70728b7a5413e9168453006ba91bc5e98fe6d5d30c049289eabe3",
+      "png_sha256": "7d23433828a0d21760132ce556ba2c6ecd516b2eb8f2e985c97eb701fcb9fc58",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "寒露",
+      "date": "2026-10-08",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "19-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "9f5287bbe1b9d1ed1d4eec93d20897eb44f22f7957a0a48543a6424e09852367",
+      "png_sha256": "cdeac26c70d993cd506e546d27d63127aae202740009446457a105f3f01e8131",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "寒露",
+      "date": "2026-10-08",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "20-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "3df47cad467b6cc111c829565c1bdf81e13fd5427e261a914f4c1bf64f022550",
+      "png_sha256": "98a70428cd6ff8604596b7392896adf91e94388536d1e6c8f6244e53dd2051a3",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "霜降",
+      "date": "2026-10-23",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "20-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e5d267151c7768422b79c8743f1cb1ea4958f7501264419c81e484f9ac27d3e4",
+      "png_sha256": "eef19fa28df1493c7ef27018aafbcb2c6ff1500c0795eaa4b56ae0b3b753f387",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "霜降",
+      "date": "2026-10-23",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "20-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "faf5b0846e4370fb1dc15f8b28483940ff373bd8b8a590aae069e8ee62a0ade9",
+      "png_sha256": "d0d17550bcbb175b98692a6078116bdf6b9083af6fe58e677ad435b5c7f55c77",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "霜降",
+      "date": "2026-10-23",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "21-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "cbf4e0cbf0845a8a968f09eaaba2cc453c6235631083904f5432aa3793d54bc6",
+      "png_sha256": "ebf15b2802b616da6d1fcf3db7d10062bfe1fec8525003041520bcc33333699d",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立冬",
+      "date": "2026-11-07",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "21-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "93c036c52b80b0ce957f08170fe8036c35731da7f1b62af4d806df7faf94d600",
+      "png_sha256": "c4fafb14d6682fdbfc80e19c8b04741d887193a64205987c27b8b5bd11e7e2c5",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立冬",
+      "date": "2026-11-07",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "21-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "3aa702a5eadcd429a2c3c3d44fad38c56e74897d319a59caebfbd307348b171d",
+      "png_sha256": "09d01785c5cc86f7733ad226db093705286994e0ec1e290055d0148499ab7f11",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "立冬",
+      "date": "2026-11-07",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "22-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e4c8ffc90e23ecf34a820ba31697396fca3e585ea43e0567be19dec24d7b74a4",
+      "png_sha256": "b96b451247f6d85f24175988a69374f40315f08ba09f362d708e190448c356c4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小雪",
+      "date": "2026-11-22",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "22-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "b6ca523634a62e5af6e9cd60718bc8075eca9bf4cd94a3fea2cd60e18e9c0ce0",
+      "png_sha256": "67fb13520719ef5f2cab3fa688d7fe1c71d4d79c4b14ab4c3e9c2c87c6c71a17",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小雪",
+      "date": "2026-11-22",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "22-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "03c252f2be338d6d7392fe577c0581c5719ec7b93f165cb5ad5d75bc5051271d",
+      "png_sha256": "a5a960731ec207d2fe50c816897a32bf5511b248951c95a75274aa5dc00577c1",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "小雪",
+      "date": "2026-11-22",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "23-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "c68cfbde61c953891146b068b8bf485b2b6870a8edc4ef0dc0c0ad080bcb146b",
+      "png_sha256": "d717a43599456defe941d6eb533de9db697e0a49f59df9c36281684b57cd27ae",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大雪",
+      "date": "2026-12-07",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "23-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "886e89412509d3fcdaacd4b21e3b05a79f48be5d12952533f5190676a509ccf5",
+      "png_sha256": "1d93e96118a4963b16ce4fe5bb36b51e721b75426e0e86a1a7fc1dd185632d4b",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大雪",
+      "date": "2026-12-07",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "23-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "28b81971075f3a9851e8ecf1a56f0dd4aa323dfc0dd5138e6183236c2824e4ca",
+      "png_sha256": "9f180d59b286153eb0868c47a326d1c633e27e2cb9bdb83476f0701bb3dbf705",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "大雪",
+      "date": "2026-12-07",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    },
+    "24-clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "8338f180443a19b7d3ac53d5acd71f4d76ea90072fa154af1316f12dd4ccb7ab",
+      "png_sha256": "6df8253e6965248c1d9c065bc4149a462f0467aea275bf9a38c2f2b8bb7989d3",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "冬至",
+      "date": "2026-12-22",
+      "mode": "clock",
+      "label_position": [
+        172,
+        103
+      ],
+      "label_pixels_checked": 648
+    },
+    "24-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "82bee085b7c5c3ddfc2d496a809d067559ab1678da3bc9b664973b69bb9f331c",
+      "png_sha256": "dd294d9573eadf9c356737b8dd5a099f6739eaeaff5feed3ba7f953aac0e0e7e",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "冬至",
+      "date": "2026-12-22",
+      "mode": "calendar",
+      "label_position": [
+        171,
+        85
+      ],
+      "label_pixels_checked": 648
+    },
+    "24-photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "d2f6d5ffedda7d9172cd548ec934db8ff61208b30acf8eb947e6d7ca8b1b765e",
+      "png_sha256": "2e1ecc6753e7f0a3106156e3c3d328666710939c32fa0822fc305864e51b35fb",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true,
+      "term": "冬至",
+      "date": "2026-12-22",
+      "mode": "photo-calendar",
+      "label_position": [
+        182,
+        101
+      ],
+      "label_pixels_checked": 648
+    }
+  }
+}

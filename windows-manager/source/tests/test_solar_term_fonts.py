@@ -2,7 +2,7 @@
 import json,struct,unittest
 from collections import deque
 from PIL import Image
-from bitmap_fonts import fallback_cells,solar_term_cells
+from bitmap_fonts import fallback_cells,solar_term_cells,ui_cjk_cells
 from photo_calendar import TERMS
 from test_firmware import ROOT,BASE
 from test_product_ui import ProductMachine
@@ -52,10 +52,30 @@ class SolarTermFonts(unittest.TestCase):
             for hole in original_white:
                 if not any(x in (0,17) or y in (0,17) for x,y in hole):self.assertGreaterEqual(len(hole-ink),min(2,len(hole)),ch+' counter must remain open')
 
-    def test_non_term_main_glyphs_keep_the_previous_pixels(self):
+    def test_non_cjk_main_glyphs_keep_the_previous_pixels(self):
         m=ProductMachine();old=(ROOT/'build/firmware-1.5.19-final/elink-bwr-1.5.19-app.bin').read_bytes()
         before=native_cells(old,0xa48c,18);after=native_cells(m.b,0xa48c,18)
-        for ch in set(before)-set(solar_term_cells()):self.assertEqual(before[ch].tobytes(),after[ch].tobytes(),ch)
+        for ch in set(before)-set(ui_cjk_cells()):self.assertEqual(before[ch].tobytes(),after[ch].tobytes(),ch)
+
+    def test_all_ninety_native_cjk_labels_preserve_the_same_skeleton_and_whitespace(self):
+        from product_build import REQUIRED
+        expected=ui_cjk_cells();self.assertEqual(set(expected),{ch for ch in REQUIRED if ord(ch)>127})
+        self.assertEqual(len(expected),90);compiled=native_cells(ProductMachine().b,0xa48c,18)
+        all_pixels={(x,y) for y in range(18) for x in range(18)}
+        for ch,cell in expected.items():
+            self.assertEqual(compiled[ch].tobytes(),cell.tobytes(),ch)
+            if ch in solar_term_cells():self.assertEqual(cell.tobytes(),solar_term_cells()[ch].tobytes())
+            if ch=='雪':continue
+            source=Image.new('1',(18,18));source.paste(fallback_cells(ch,16)[ch],(1,1))
+            original={p for p in all_pixels if source.getpixel(p)};ink={p for p in all_pixels if cell.getpixel(p)}
+            self.assertTrue(original<=ink,ch)
+            self.assertEqual(len(regions(original,True)),len(regions(ink,True)),ch)
+            self.assertLessEqual(len(regions(ink)),len(regions(original)),ch)
+            white=regions(all_pixels-original)
+            self.assertEqual(len(white),len(regions(all_pixels-ink)),ch)
+            for hole in white:
+                if not any(x in (0,17) or y in (0,17) for x,y in hole):self.assertGreaterEqual(len(hole-ink),min(2,len(hole)),ch)
+            self.assertTrue(any(all((x+dx,y+dy) in ink for dx,dy in ((0,0),(1,0),(0,1),(1,1))) for x,y in ink),ch)
 
 
 if __name__=='__main__':unittest.main()

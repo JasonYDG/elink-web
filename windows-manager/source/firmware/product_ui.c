@@ -1,8 +1,9 @@
 #include "product_runtime.h"
 static void font(u32 address){G[14]=address;}
-static void pixel(int x,int y,int red){
+__attribute__((noinline)) static void pixel(int x,int y,int red){
     if((unsigned)x>=250 || (unsigned)y>=122)return;
     unsigned pos=(249-x)*16+(y>>3),mask=128>>(y&7);
+    if(red==2){RR[pos]^=mask;return;} /* Scratch XOR, without changing the target BW plane. */
     BW[pos]&=~mask;
     if(red)RR[pos]|=mask;
 }
@@ -71,9 +72,10 @@ __attribute__((noinline)) void product_battery(int x,int y,int label){
         if(p!=255){FORMAT(t,"%u%%",p);value=t;}text(x+24,y,value,0);}
 }
 /* Boot text is drawn from the font tables: the RLE background has no room for it. */
-void product_boot_battery(void){
+static const char boot_version[] __attribute__((section(".product.version"),used))=BOOT_VERSION;
+__attribute__((section(".product.boot"))) void product_boot_battery(void){
     product_album_init();
-    font(MAIN);text(19,61,"BWR 2.13 / 250x122",0);product_ink(SMALL,148,33,BOOT_VERSION,1);product_battery(194,89,1);
+    font(MAIN);text(19,61,"BWR 2.13 / 250x122",0);product_ink(SMALL,148,33,boot_version,1);product_battery(194,89,1);
 }
 static unsigned month_days(unsigned y,unsigned m){
     static const u8 days[12]={31,28,31,30,31,30,31,31,30,31,30,31};
@@ -160,13 +162,17 @@ unsigned product_refresh(void){
     for(unsigned i=0;i<14;i++)((u8 *)0x07fcdc26)[i]=partial==2?0:((const u8 *)0x07fcdc18)[i];
     /* Native minute FLY pulses, with red pixels left undriven (R=1 rows). */
     for(unsigned i=0;i<14;i++)((u8 *)0x07fcdc76)[i]=partial==1?0:((const u8 *)0x07fcdc68)[i];
-    if(partial==2){
-        /* LUT2/3 are neutral. R=1 masks every pixel outside the minute rectangle.
-           This mask is written to controller RAM only; the retained red plane stays exact. */
+    if(partial){
+        /* Clock red RAM is empty. XOR the last committed and pending minute ink;
+           R=1 leaves unchanged strokes and the background undriven. */
+        char t[4];
+        FORMAT(t,"%02u",U->minute);compressed_ink(DIGITS,139,1,t,2);
+        FORMAT(t,"%02u",U->pending-1);compressed_ink(DIGITS,139,1,t,2);
         CMD1(0x4e,0);CMD2(0x4f,0,0);CMD(0x26);
-        static const u8 outside[16]={255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255};
-        static const u8 inside[16]={255,255,255,0,0,0,0,0,0,0,0,0,255,255,255,255};
-        for(unsigned gate=0;gate<250;gate++)DATA(gate>=9&&gate<=111?inside:outside,16);
+        for(unsigned gate=0;gate<250;gate++){
+            u8 row[16];for(unsigned j=0;j<16;j++){unsigned p=gate*16+j;row[j]=~RR[p];RR[p]=0;}
+            DATA(row,16);
+        }
         CMD2(0x0f,9,0);CMD3(0x01,102,0,0);CMD1(0x3c,0);
     }
     return partial==1?2:partial!=0;
@@ -183,6 +189,7 @@ unsigned product_finish(unsigned busy){
     product_reminder_finish();product_album_finish();if(!U->pending)return 0;
     U->outside=U->pending_outside;U->red=U->pending_red;
     U->date=U->pending_date;U->hour=U->pending_hour;U->valid=1;
+    U->minute=U->pending-1;
     if(U->partial)U->count++;else U->count=0;
     S[20]=U->count;
     U->pending=0;U->partial=0;

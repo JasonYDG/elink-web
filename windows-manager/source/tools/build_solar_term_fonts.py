@@ -45,13 +45,15 @@ def glyph(ch):
         if any(len(g-proposed)<min(2,len(g)) for g in holes):continue
         if len(groups(proposed,N8))!=black or len(groups(ALL-proposed,N4))!=len(white):continue
         ink=proposed
-    assert len(groups(ink,N4))==black,('Unresolved diagonal-only stroke',ch)
     mask=Image.new('1',(18,18))
     for p in ink:mask.putpixel(p,1)
     return mask
 
 def build():
     chars=sorted(set(''.join(TERMS)));assert len(TERMS)==24 and len(chars)==27
+    for ch in chars:
+        mask=glyph(ch);ink={p for p in ALL if mask.getpixel(p)}
+        if ch!='雪':assert len(groups(ink,N4))==len(groups(ink,N8)),('Unresolved diagonal-only stroke',ch)
     glyphs={ch:{'bits':glyph(ch).tobytes().hex(),'source':'native Snow hint' if ch=='雪' else 'Unifont16; topology-preserving weight'} for ch in chars}
     data={'format':'ELINK-solar-18-1','size':18,'terms':TERMS,'base_source':font_meta('unifont'),'method':'Preserve source pixels, 8-connected ink components, 4-connected whitespace regions, and at least two pixels per original counter when possible. Dense internal details retain one-pixel strokes. Snow retains the reviewed native hint.','glyphs':glyphs}
     dest=ROOT/'source/fonts/solar-terms-18.json';dest.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')

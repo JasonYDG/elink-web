@@ -22,9 +22,9 @@ def row_mask(width,height,rows):
 def font_meta(name):
     return json.loads((FONT_ROOT/'preview-fonts.json').read_text('utf-8'))[name]
 
-@lru_cache(maxsize=3)
+@lru_cache(maxsize=4)
 def font_source(height):
-    name={12:'fusion',14:'terminus',16:'unifont'}[height]
+    name={12:'fusion',14:'terminus',16:'unifont',32:'terminus_large'}[height]
     meta=font_meta(name)
     raw=(FONT_ROOT/meta['local_file']).read_bytes()
     if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('字体哈希不一致：'+name)
@@ -33,8 +33,8 @@ def font_source(height):
 @lru_cache(maxsize=128)
 def fallback_cells(chars,height):
     wanted=set(chars);result={};lines=font_source(height)
-    if height in (12,14):
-        ascent=10 if height==12 else 12
+    if height in (12,14,32):
+        ascent=int(next(line.split()[1] for line in lines if line.startswith('FONT_ASCENT ')))
         block=[]
         for line in lines:
             if line.startswith('STARTCHAR '):block=[]
@@ -92,6 +92,19 @@ def solar_term_cells():
         result[ch]=Image.frombytes('1',(18,18),bits)
     return result
 
+@lru_cache(maxsize=1)
+def ui_cjk_cells():
+    meta=font_meta('ui_cjk_18');raw=(FONT_ROOT/meta['local_file']).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('原生界面字库哈希不一致')
+    data=json.loads(raw)
+    if data['format']!='ELINK-cjk-18-1' or data['size']!=18 or len(data['glyphs'])!=90:raise ValueError('原生界面字库格式无效')
+    result={}
+    for ch,record in data['glyphs'].items():
+        bits=bytes.fromhex(record['bits'])
+        if len(ch)!=1 or len(bits)!=54:raise ValueError('原生界面字形长度无效')
+        result[ch]=Image.frombytes('1',(18,18),bits)
+    return result
+
 def lcd_cell(ch):
     """Fixed 50x66 seven-segment bitmap, without font outlines or antialiasing."""
     cell=Image.new('1',(28 if ch==':' else 50,66));draw=ImageDraw.Draw(cell)
@@ -113,7 +126,7 @@ def cells(chars,height):
     latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 or height==40 else {}
     digits=fallback_cells(''.join(ch for ch in chars if ch in '0123456789'),12) if height==18 else {}
     cjk=fallback_cells(''.join(ch for ch in chars if ord(ch)>=0x2e80 and ch not in '\u3031\u3032'),12) if height<=20 else {}
-    terms=solar_term_cells() if height==18 else {}
+    terms=ui_cjk_cells() if height==18 else {}
     for ch,source in originals.items():
         if height==66 and ch in '0123456789:':
             result[ch]=lcd_cell(ch);continue
@@ -122,9 +135,11 @@ def cells(chars,height):
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
         if height==44 and ch in '0123456789':
-            # Preserve photo date columns while enlarging whole source pixels.
-            zoom=4;source=source.crop(source.getbbox())
-            cell=source.resize((source.width*zoom,source.height*zoom),Image.Resampling.NEAREST)
+            # Use the finer native32 grid instead of magnifying an eight-row digit fourfold.
+            # The matching O glyph supplies a plain zero, without the terminal-style slash.
+            source_ch='O' if ch=='0' else ch
+            source=fallback_cells(source_ch,32)[source_ch];source=source.crop(source.getbbox())
+            cell=source.resize((20,32),Image.Resampling.NEAREST)
             width=27
         if (height<=20 or (height==40 and ch in latin)) and source.getbbox():
             if ch in latin:

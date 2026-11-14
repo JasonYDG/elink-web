@@ -11,7 +11,7 @@ REQUIRED='0123456789BWRx. :/'+'农历闰月年今日天后星期一二三四五�
 # Only small-font callers: MAC, version, battery, lunar date and reminder labels.
 SMALL_REQUIRED='0123456789ABCDEFV. :/%-'+'闰月第周一二三四五六七八九十初廿正冬腊今日天后任务提醒无项待已过时另有'
 
-# Calendar day digits sit in the tail of the main-font region, before the native 66px clock digits.
+# Compact12px calendar days occupy the verified former15px day slot.
 DAYS=0xc2a0
 DATE=0x90a4
 PHOTO_DAYS=0xb780
@@ -65,7 +65,7 @@ def bold_font(app):
     assert len(raw)<=PHOTO_DAYS-0xa48c, f'18px font overlaps photo digits: {len(raw)}'
     photo=photo_digits()
     assert len(photo)<=0xba00-PHOTO_DAYS, f'44px photo digits overlap reminder code: {len(photo)}'
-    days=native_font('0123456789',15)
+    days=native_font('0123456789',12)
     assert len(days)<=0xc3c4-DAYS, f'15px calendar digits overlap clock digits: {len(days)}'
     return raw+bytes(PHOTO_DAYS-0xa48c-len(raw))+photo+bytes(DAYS-PHOTO_DAYS-len(photo))+days
 
@@ -79,7 +79,7 @@ def small_font():
 def compile_product(root,out,leds_off,version='0.0.0'):
     assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+',version)
     version_data=('V'+version+'\0').encode('ascii')
-    version_anchor=b'V1.5.19\0' # Preserve the verified LLVM string-pool layout, then patch only version data.
+    version_anchor=b'V1.5.19\0' # Fixed-size application version anchor; inject data after linking.
     assert len(version_data)<=len(version_anchor), 'Version exceeds the existing native text slot'
     firmware=root/'source/firmware'
     modules=load_modules(firmware)

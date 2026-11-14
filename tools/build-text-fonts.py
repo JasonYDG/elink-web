@@ -9,7 +9,7 @@ import sys
 WEB = Path(__file__).resolve().parents[1]
 HOST = WEB / 'windows-manager/source'
 sys.path.insert(0, str(HOST / 'backend'))
-from bitmap_fonts import cells, font_source
+from bitmap_fonts import cells, font_source, font_meta
 from protocol import reminder_metadata
 from render import render
 from photo_calendar import date_column, TERMS, TERM_SECONDS
@@ -25,7 +25,7 @@ def characters(size):
 
 
 def build():
-    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'bitmap_hints': {'18': {'solar_terms': TERMS, 'glyphs': 27, 'source': 'solar_terms_18', 'method': 'Preserve source strokes, separate stroke components and whitespace; retain dense pixel details'}}, 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
+    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'terminus_large', 'fusion', 'unifont'], 'bitmap_hints': {'18': {'solar_terms': TERMS, 'glyphs': 90, 'source': 'ui_cjk_18', 'method': 'One native16 skeleton; source strokes/whitespace retained; original27 term hints unchanged'}, '44': {'source': 'terminus_large', 'plain_zero_source': 'O', 'ink_size': [20,32], 'advance': 27}}, 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
     for size in SIZES:
         glyphs = cells('0123456789:' if size == 64 else characters(size), size)
         index, pixels = bytearray(), bytearray()
@@ -54,6 +54,7 @@ def write_fixtures():
     fixtures = {'glyphs': [], 'frames': [], 'metadata': [], 'date_columns': []}
     for size in SIZES:
         sample = '0123456789:' if size == 64 else 'Aa09/%…，。今日天后星期中文龘'+''.join(TERMS)
+        if size==18:sample+=font_meta('ui_cjk_18')['characters']
         for ch, cell in sorted(cells(sample, size).items()):
             fixtures['glyphs'].append({'size': size, 'char': ch, 'width': cell.width, 'hex': cell.tobytes().hex()})
     specs = [

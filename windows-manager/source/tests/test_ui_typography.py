@@ -71,24 +71,36 @@ class UiTypography(unittest.TestCase):
             for x in range(4,13):self.assertTrue(snow.getpixel((x,y)))
 
     def test_calendar_thin_upper_horizontals_are_two_rows_and_eight_has_two_counters(self):
-        raw=(ROOT/'build/firmware-1.5.17-release/elink-bwr-1.5.17-app.bin').read_bytes();old=native_cells(raw,0xa48c,18)
         glyphs=native_cells(ProductMachine().b,0xa48c,18)
         for ch in '午年六':
             current=glyphs[ch]
-            self.assertEqual(current.getbbox(),old[ch].getbbox());bars=0
+            bars=[]
             for y in range(9):
                 run=[]
                 for x in range(19):
-                    if x<18 and old[ch].getpixel((x,y)):run.append(x)
+                    if x<18 and current.getpixel((x,y)):run.append(x)
                     else:
-                        if len(run)>=10:
-                            bars+=1
-                            for xx in run:self.assertTrue(current.getpixel((xx,y+1)),(ch,xx,y))
+                        if len(run)>=10:bars.append((y,tuple(run)))
                         run=[]
-            self.assertGreater(bars,0,ch)
+            self.assertTrue(bars,ch)
+            y,upper=bars[0]
+            self.assertTrue(all(current.getpixel((x,y+1)) for x in upper),ch+' upper horizontal must span two rows')
         eight=glyphs['8'];self.assertEqual(eight.getbbox(),(1,1,11,17));self.assertEqual(eight.width,12)
         self.assertEqual(len(counters(eight)),2)
         for days in range(17):self.assertLessEqual(text_mask(str(days)+'天后',18).width,73)
+
+    def test_photo_dates_use_the_finer_bitmap_grid_with_a_plain_zero(self):
+        from bitmap_fonts import fallback_cells
+        from product_build import photo_digits
+        m=ProductMachine();data=photo_digits()
+        self.assertEqual(m.b[0xb780:0xb780+len(data)],data)
+        self.assertEqual(len(counters(cells('0',44)['0'])),1)
+        self.assertEqual(len(counters(cells('8',44)['8'])),2)
+        for ch in '0123456789':
+            cell=cells(ch,44)[ch];self.assertEqual(cell.size,(27,44));self.assertEqual(cell.getbbox()[1::2],(6,38))
+            source_ch='O' if ch=='0' else ch;source=fallback_cells(source_ch,32)[source_ch]
+            self.assertGreaterEqual(source.getbbox()[3]-source.getbbox()[1],20)
+        self.assertLessEqual(185+text_mask('88',44).width,250)
 
 
 if __name__=='__main__':unittest.main()

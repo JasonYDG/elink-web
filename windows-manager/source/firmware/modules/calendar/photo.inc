@@ -1,7 +1,7 @@
 /* Shared date overlay for direct uploads and frames loaded by the image album module. */
 __attribute__((section(".clock.rodata"))) static const char photo_year_month[]="%u/%02u";
 __attribute__((section(".clock.rodata"))) static const char photo_weekdays[]="日一二三四五六";
-__attribute__((section(".reminder.extra"),noinline)) static void photo_label(int y,const char *s){
+__attribute__((noinline)) static void photo_label(int y,const char *s){
     font(SMALL);text(212-width(SMALL,s)/2,y,s,0);
 }
 __attribute__((section(".clock.extra"),noinline)) static void photo_day(unsigned day){

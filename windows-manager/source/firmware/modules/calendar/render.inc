@@ -1,6 +1,6 @@
 /* Compile-time calendar module; uses the shared native rendering primitives. */
 /* Invert existing black type into a solid black/red band with white lettering. */
-static void band(int x,int y,int w,int h,int red){
+__attribute__((noinline)) static void band(int x,int y,int w,int h,int red){
     for(int j=y;j<y+h;j++)for(int i=x;i<x+w;i++){
         unsigned pos=(249-i)*16+(j>>3),mask=128>>(j&7);
         if(!(BW[pos]&mask)){BW[pos]|=mask;RR[pos]&=~mask;}else pixel(i,j,red);
@@ -14,9 +14,9 @@ __attribute__((noinline)) static void calendar(void){
     if(!weekno){unsigned prev=G[2]-1,j=jan+7-(1+!(prev&3));if(j>7)j-=7;weekno=(j==4||(j==3&&!(prev&3)))?53:52;}
     else if(weekno==53&&jan!=4&&(jan!=3||(G[2]&3)))weekno=1;
     FORMAT(t,"第%u周",weekno);text(52,5,t,0);
-    static const char *week[7]={"日","一","二","三","四","五","六"};font(MAIN);
+    static const char *week[7]={"日","一","二","三","四","五","六"};
     for(unsigned i=0;i<7;i++){
-        text(8+i*22,23,week[i],0);band(6+i*22,23,22,19,i==0||i==6);
+        product_ink(MAIN,8+i*22,23,week[i],i==0||i==6);
     }
     unsigned first=(G[3]+7-(E[8]-DIV(E[8],7)*7));if(first>=7)first-=7;
     unsigned days=month_days(G[2],E[7]),dense=first+days>35,pitch=dense?13:15;

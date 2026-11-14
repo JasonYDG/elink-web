@@ -1,5 +1,5 @@
 {
-  "purpose": "ELINK Screen Bold: Terminus bitmap ASCII, Fusion Pixel CJK, audited18px solar-term glyphs from native Unifont16 plus native Snow hint. No outline rasterization; original font files unmodified.",
+  "purpose": "Native bitmap UI: Terminus ASCII/photo digits; Fusion small CJK; one Unifont16 skeleton/weight for all90 native18px CJK labels, including the unchanged27 solar-term hints. No outline rasterization.",
   "fusion": {
     "version": "2026.09.25",
     "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
@@ -62,5 +62,23 @@
     "local_sha256": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
     "license": "https://unifoundry.com/LICENSE.txt",
     "characters": "冬分处夏大寒小惊明春暑水清满白秋种立至芒蛰谷降雨雪霜露"
+  },
+  "terminus_large": {
+    "version": "4.49.1",
+    "source": "https://sourceforge.net/projects/terminus-font/files/terminus-font-4.49/terminus-font-4.49.1.tar.gz/download",
+    "archive_sha256": "d961c1b781627bf417f9b340693d64fc219e0113ad3a3af1a3424c7aa373ef79",
+    "original_file": "ter-u32b.bdf",
+    "original_sha256": "f6295e92ebbf95afbb6274f4621608d255c1287ec90d3fefbc50f077bf09dab4",
+    "local_file": "terminus-4.49.1-32b.bdf.gz",
+    "local_sha256": "9bf7c8feb04601ed162e81f8e73dfccde946374f5dfa85395aaa7bab0cb714b0",
+    "license": "Terminus/OFL.txt"
+  },
+  "ui_cjk_18": {
+    "version": "1",
+    "source": "Native Unifont16 plus reviewed Snow hint; source/tools/build_ui_fonts.py",
+    "local_file": "ui-cjk-18.json",
+    "local_sha256": "3d38671970dbc47746e5131d96e49a1f49383045ae36471b17b18f00bb4f699b",
+    "license": "https://unifoundry.com/LICENSE.txt",
+    "characters": "一丁七三丑丙乙九二五亥今任兔八六兰农冬分初务十午卯历后四壬处夏大天子寅寒小己巳年庚廿惊戊戌日明星春暑月期未正水清满牛狗猪猴甲申癸白秋种立羊腊至芒荷虎蛇蛰谷辛辰酉闰降雨雪霜露马鸡鼠龙"
   }
 }
