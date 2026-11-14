@@ -25,7 +25,7 @@ def characters(size):
 
 
 def build():
-    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
+    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'bitmap_hints': {'18': {'雪': 'Native grid with separate rain dots and lower horizontal strokes'}}, 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
     for size in SIZES:
         glyphs = cells('0123456789:' if size == 64 else characters(size), size)
         index, pixels = bytearray(), bytearray()
@@ -52,7 +52,7 @@ def build():
 def write_fixtures():
     fixtures = {'glyphs': [], 'frames': [], 'metadata': [], 'date_columns': []}
     for size in SIZES:
-        sample = '0123456789:' if size == 64 else 'Aa09/%…，。今日天后星期中文龘'
+        sample = '0123456789:' if size == 64 else 'Aa09/%…，。今日天后星期中文龘雪'
         for ch, cell in sorted(cells(sample, size).items()):
             fixtures['glyphs'].append({'size': size, 'char': ch, 'width': cell.width, 'hex': cell.tobytes().hex()})
     specs = [

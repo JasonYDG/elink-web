@@ -5,6 +5,11 @@
     "fusion",
     "unifont"
   ],
+  "bitmap_hints": {
+    "18": {
+      "雪": "Native grid with separate rain dots and lower horizontal strokes"
+    }
+  },
   "outline_rasterization": false,
   "source": {
     "purpose": "ELINK Screen Bold: native Terminus Bold bitmap ASCII; enlarged Fusion Pixel CJK with one-pixel horizontal emboldening; Unifont coverage fallback; no outline rasterization. Original font files unmodified.",
@@ -93,7 +98,7 @@
       "file": "text-18.bin",
       "glyphs": 57021,
       "bytes": 3461259,
-      "sha256": "083fa9188cccf0127c5420882c537545649bba568bbebd4aa6f2c0b6cc5c4ba7"
+      "sha256": "8076610a26b96ac00983d928e772bbd0b0148983045ac43f41c15ca8acd956da"
     },
     "20": {
       "file": "text-20.bin",

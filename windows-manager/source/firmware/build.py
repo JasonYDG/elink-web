@@ -297,7 +297,7 @@ def main():
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
-          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'ELINK Screen Bold: Terminus Bold ASCII and 24px boot cap; 18px CJK strengthened on both axes with integer-scaled Fusion digits; Unifont fallback; unchanged 44px photo; fixed 66px seven-segment clock bitmaps; no outlines',
+          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'ELINK Screen Bold: Terminus Bold ASCII and 24px boot cap; 18px CJK strengthened on both axes with integer-scaled Fusion digits; Unifont fallback; unchanged 44px photo; connected 66px seven-segment clock and native 18px snow hint; no outlines',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
           'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'R=1, LUT2/3 neutral'},
           'panel':'DA14585 five-pad BWR 250x122','default_refresh':'full',

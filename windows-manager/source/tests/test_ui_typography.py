@@ -37,7 +37,7 @@ class UiTypography(unittest.TestCase):
                 for y in (4,14):
                     for x in range(194,211):self.assertEqual(im.getpixel((x,y)),(0,0,0))
 
-    def test_lcd_digits_have_seven_separate_segments_and_open_gaps(self):
+    def test_lcd_digits_join_continuously_and_keep_open_counters(self):
         from product_build import clock_digits
         self.assertEqual(ProductMachine().b[0xc3c4:0xc8a4],clock_digits(b''),'Every compiled LCD glyph must match the fixed bitmap table')
         probes=((25,5),(42,18),(42,45),(25,60),(8,45),(8,18),(25,32))
@@ -45,8 +45,22 @@ class UiTypography(unittest.TestCase):
         for n,pattern in enumerate(expected):
             mask=cells(str(n),66)[str(n)];self.assertEqual(mask.size,(50,66))
             self.assertEqual(''.join('1' if mask.getpixel(p) else '0' for p in probes),pattern)
-            for p in ((25,9),(8,29),(42,36),(25,56)):self.assertFalse(mask.getpixel(p))
+            self.assertEqual(len(counters(mask.point(lambda p:0 if p else 255))),1,'Each digit must form one connected ink shape')
+        self.assertEqual(len(counters(cells('0',66)['0'])),1)
+        self.assertEqual(len(counters(cells('8',66)['8'])),2)
+        for ch in ('0','8'):
+            for x in (*range(6,10),*range(40,44)):self.assertTrue(cells(ch,66)[ch].getpixel((x,33)))
         self.assertEqual(cells(':',66)[':'].width,28)
+
+    def test_snow_hint_keeps_rain_dots_and_lower_bars_separate(self):
+        snow=native_cells(ProductMachine().b,0xa48c,18)['雪']
+        self.assertEqual(snow.size,(18,18));self.assertEqual(snow.getbbox(),(1,1,17,18))
+        for y in (6,8):
+            for x in (4,5,11,12):self.assertTrue(snow.getpixel((x,y)))
+        for y in (5,7,9,12,15):
+            for x in (4,5,11,12):self.assertFalse(snow.getpixel((x,y)),(x,y))
+        for y in (10,11,13,14,16,17):
+            for x in range(4,13):self.assertTrue(snow.getpixel((x,y)))
 
     def test_calendar_thin_upper_horizontals_are_two_rows_and_eight_has_two_counters(self):
         raw=(ROOT/'build/firmware-1.5.17-release/elink-bwr-1.5.17-app.bin').read_bytes();old=native_cells(raw,0xa48c,18)

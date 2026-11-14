@@ -85,9 +85,10 @@ def lcd_cell(ch):
     if ch==':':
         for y in (14,38):draw.rectangle((10,y,17,y+6),fill=1)
         return cell
-    horizontal=lambda y:((12,y),(37,y),(40,y+3),(37,y+5),(12,y+5),(9,y+3))
-    vertical=lambda x,y:((x+3,y),(x+5,y+2),(x+5,y+16),(x+3,y+18),(x,y+16),(x,y+2))
-    segments=(horizontal(3),vertical(39,10),vertical(39,37),horizontal(57),vertical(5,37),vertical(5,10),horizontal(30))
+    horizontal=lambda y:((10,y),(39,y),(44,y+3),(39,y+5),(10,y+5),(5,y+3))
+    vertical=lambda x,y:((x+1,y),(x+4,y),(x+5,y+1),(x+5,y+26),(x+4,y+27),(x+1,y+27),(x,y+26),(x,y+1))
+    # Overlapping four-pixel caps keep lit segments continuous at their joints.
+    segments=(horizontal(3),vertical(39,6),vertical(39,33),horizontal(57),vertical(5,33),vertical(5,6),horizontal(30))
     bits=(0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f)[int(ch)]
     for i,points in enumerate(segments):
         if bits&(1<<i):draw.polygon(points,fill=1)
@@ -104,6 +105,9 @@ def cells(chars,height):
     for ch,source in originals.items():
         if height==66 and ch in '0123456789:':
             result[ch]=lcd_cell(ch);continue
+        if height==18 and ch=='雪':
+            # Native hint: four rain dots and one blank row between the lower horizontal strokes.
+            result[ch]=row_mask(18,18,('000000','1ffe00','1ffe00','00c000','7fff80','60c180','6cd980','60c180','6cd980','000000','1ffe00','1ffe00','000600','0ffe00','0ffe00','000600','1ffe00','1ffe00'));continue
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
         if height==44 and ch in '0123456789':
