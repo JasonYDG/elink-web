@@ -297,7 +297,7 @@ def main():
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
-          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Native bitmap fonts: Terminus Bold ASCII; Terminus32 fine-grid photo date; all90 native18px CJK use one topology-preserving Unifont16 skeleton including unchanged27 solar-term hints; Fusion small CJK; flat-ended66px LCD; no outlines',
+          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Native bitmap fonts: Terminus Bold ASCII; Terminus32 fine-grid photo date; all90 native18px CJK use one topology-preserving Unifont16 skeleton including unchanged27 solar-term hints; Fusion small CJK; separate bevelled66px seven-segment LCD; no outlines',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
           'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'BW=1,R=0 selects all-zero LUT1 source VSS; not border HiZ','drive_mask':'Only XOR strokes: BW=0, R=target BW selects black LUT0 or white LUT2'},
           'clock_border_control':{'register':'0x3c','clock_partial_both_stages':'0xc0','full_and_other_pages':'0x05','runtime_change_explicitly_approved':True,'native_init_binary_unchanged':True,'optical_tested':False},

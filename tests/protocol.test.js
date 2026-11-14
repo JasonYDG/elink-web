@@ -23,5 +23,5 @@ test("calendar sync distinguishes noon from midnight in both supported zones",()
 test("validation rejects malformed protocol and out-of-range settings",()=>{
     assert.throws(()=>P.battery(Uint8Array.of(1)));assert.throws(()=>P.status(new Uint8Array(32)));assert.throws(()=>P.slot(new Uint8Array(24)));assert.throws(()=>P.capabilities(Uint8Array.from([69,76,85,73,1,255,2,0])));
     assert.throws(()=>P.settings({full_every:500}));assert.throws(()=>P.settings({mode:1.5}));assert.throws(()=>P.options({repeat_mask:128}));assert.throws(()=>P.options({check_minutes:2}));assert.throws(()=>P.packet(0x96,[[2,0]],new Uint8Array(18)));
-    assert.equal(P.settings().mode,1);assert.equal(P.settings({mode:0}).mode,1);assert.equal(P.settings({mode:2}).mode,2);assert.equal(P.settings().full_every,60);assert.equal(P.settings().window_seconds,0);assert.equal(P.crc32(new TextEncoder().encode("123456789")),0xcbf43926);
+    assert.equal(P.settings().mode,2);assert.equal(P.settings({mode:0}).mode,2);assert.equal(P.settings({mode:2}).mode,2);assert.equal(P.settings({mode:1}).mode,1);assert.equal(P.settings().full_every,60);assert.equal(P.settings().window_seconds,0);assert.equal(P.crc32(new TextEncoder().encode("123456789")),0xcbf43926);
 });

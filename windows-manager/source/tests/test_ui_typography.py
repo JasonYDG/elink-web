@@ -37,28 +37,26 @@ class UiTypography(unittest.TestCase):
                 for y in (4,14):
                     for x in range(194,211):self.assertEqual(im.getpixel((x,y)),(0,0,0))
 
-    def test_lcd_digits_join_continuously_and_keep_open_counters(self):
+    def test_lcd_digits_have_separate_bevelled_segments_in_the_compiled_font_slot(self):
         from product_build import clock_digits
+        from test_lcd_segments import components
         self.assertEqual(ProductMachine().b[0xc3c4:0xc8a4],clock_digits(b''),'Every compiled LCD glyph must match the fixed bitmap table')
         probes=((25,5),(42,18),(42,45),(25,60),(8,45),(8,18),(25,32))
         expected=('1111110','0110000','1101101','1111001','0110011','1011011','1011111','1110000','1111111','1111011')
         for n,pattern in enumerate(expected):
             mask=cells(str(n),66)[str(n)];self.assertEqual(mask.size,(50,66))
             self.assertEqual(''.join('1' if mask.getpixel(p) else '0' for p in probes),pattern)
-            self.assertEqual(len(counters(mask.point(lambda p:0 if p else 255))),1,'Each digit must form one connected ink shape')
-        self.assertEqual(len(counters(cells('0',66)['0'])),1)
-        self.assertEqual(len(counters(cells('8',66)['8'])),2)
-        for ch in ('0','8'):
-            for x in (*range(6,10),*range(40,44)):self.assertTrue(cells(ch,66)[ch].getpixel((x,33)))
+            self.assertEqual(len(components(mask)),pattern.count('1'),'Each lit segment must stay separate, including diagonal corners')
         self.assertEqual(cells(':',66)[':'].width,28)
 
     def test_lcd_free_end_caps_are_flat_and_have_no_single_pixel_tips(self):
         m=ProductMachine();im=frame_image(m.draw(h=5,minute=7,force=128))
-        for x in (61+44,189+5):
-            for y in range(29,33):self.assertEqual(im.getpixel((x,y)),(0,0,0),(x,y))
-            for y in (28,33):self.assertEqual(im.getpixel((x,y)),(255,255,255))
+        for x in (61+41,189+8):
+            for y in (30,31):self.assertEqual(im.getpixel((x,y)),(0,0,0),(x,y))
+            for y in (29,32):self.assertEqual(im.getpixel((x,y)),(255,255,255))
         m.finish();im=frame_image(m.draw(h=1,minute=10,force=128))
-        for x in range(101,105):self.assertEqual(im.getpixel((x,28)),(0,0,0))
+        for x in (102,103):self.assertEqual(im.getpixel((x,35)),(0,0,0))
+        for x in (101,104):self.assertEqual(im.getpixel((x,35)),(255,255,255))
 
     def test_snow_hint_keeps_rain_dots_and_lower_bars_separate(self):
         snow=native_cells(ProductMachine().b,0xa48c,18)['雪']

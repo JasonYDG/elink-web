@@ -1,0 +1,23 @@
+{
+  "version": "1.5.26",
+  "firmware_id": "31e9ff5f",
+  "native_init_and_frame_reload_executed": true,
+  "mode": 2,
+  "activations": [
+    {
+      "update": "0xc7",
+      "border": "0xc0"
+    },
+    {
+      "update": "0xc7",
+      "border": "0xc0"
+    }
+  ],
+  "first_spi_sha256": "4e4d92e2e4927595970d4f49821c2b8c542851f7c38c8ea91a89ae0c62255365",
+  "second_spi_sha256": "d73551cfe82f1ef4f14b60b4c3d93960fdfefc416026ee4937d5bba31ed01380",
+  "glyph_masks_changed_from_1525": true,
+  "compensation_code_and_original_waveform_bytes_unchanged": true,
+  "native_full_frame_reloads": 3,
+  "physical_device_access": false,
+  "optical_tested": false
+}

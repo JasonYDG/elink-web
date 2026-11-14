@@ -87,13 +87,13 @@ class MidnightCalendar(unittest.TestCase):
             self.assertEqual(m.status()['display_generation'],generation+1)
             self.assertEqual(m.uc.mem_read(BASE+0xdedc+2000,1)[0],token)
 
-    def test_only_application_dispatch_refresh_view_relocations_version_and_id_change_since_1521(self):
+    def test_only_application_dispatch_refresh_view_clock_font_version_and_id_change_since_1521(self):
         old=(ROOT/'build/firmware-1.5.21-final-checked/elink-bwr-1.5.21-app.bin').read_bytes()
         self.assertEqual(hashlib.sha256(old).hexdigest(),'9454dec64dcf2c614e76b067402778d5aa9d3461c86a6d097ad4393c6e1aa4ae')
         meta=json.loads((FIRMWARE_DIR/'manifest.json').read_text('utf-8'))
         new=(FIRMWARE_DIR/f'elink-bwr-{meta["version"]}-app.bin').read_bytes();self.assertEqual(len(new),len(old))
         self.assertEqual(new.count(('V'+meta['version']+'\0').encode()),1)
-        allowed=((0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),(0xba00,0xc2a0),
+        allowed=((0x2cc4,0x31c8),(0x8600,0x90a4),(0x9300,0xa46c),(0xba00,0xc2a0),(0xc3c4,0xc8a4),
                  (0xe0fc,0xe100),(0xe13e,0xe142),(0xe2f0,0xe2f4))
         self.assertFalse([hex(i) for i,(a,b) in enumerate(zip(old,new)) if a!=b and not any(lo<=i<hi for lo,hi in allowed)])
 

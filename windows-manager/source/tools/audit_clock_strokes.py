@@ -94,7 +94,7 @@ def main():
     (out/'proof.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n','utf-8')
     (out/'index.html').write_text('''<!doctype html><meta charset="utf-8"><title>笔画差分与字形核对</title>
 <style>body{font:16px sans-serif}img{display:block;width:250px!important;height:122px!important;max-width:none;image-rendering:pixelated}figure{margin:24px 0}</style>
-<h1>边框高阻与连续局刷 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。数字补偿保持1.5.24。经用户单独授权，时钟局刷两个阶段将边框0x3C设为0xC0高阻，完整刷新及其他页面恢复原生0x05。LUT1全零代表源电平VSS，不能视为边框高阻。红色遮罩标记变化像素，是诊断图；白色表示未选中，不是设备页面。PNG来自编译RAM，不模拟电压、色深、残影或墨水显影。原生初始化代码、扫描、供电和脉冲参数不改。<a href="border-after.json">实际寄存器执行记录</a></p>
+<h1>边框高阻与连续局刷 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。1.5.26字形采用分离斜角七段点阵，补偿流程保持1.5.25。经用户单独授权，时钟局刷两个阶段将边框0x3C设为0xC0高阻，完整刷新及其他页面恢复原生0x05。LUT1全零代表源电平VSS，不能视为边框高阻。红色遮罩标记变化像素，是诊断图；白色表示未选中，不是设备页面。PNG来自编译RAM，不模拟电压、色深、残影或墨水显影。原生初始化代码、扫描、供电和脉冲参数不改。<a href="border-after.json">实际寄存器执行记录</a></p>
 <figure>刷新前 06:55<img src="clock-before.png" width="250" height="122"></figure>
 <figure>刷新后 06:56<img src="clock-after.png" width="250" height="122"></figure>
 <figure>驱动遮罩诊断<img src="stroke-mask.png" width="250" height="122"></figure>

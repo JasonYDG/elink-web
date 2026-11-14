@@ -1,0 +1,121 @@
+{
+  "status": "compiled application RAM; optical result unverified",
+  "version": "1.5.26",
+  "firmware_id": "31e9ff5f",
+  "application_sha256": "fbc9be5ddd6480f619f24725e8b64fbab1f2d85b84dc88d77ae9e967b396663c",
+  "ota_package": "F:\\AI\\2.13-Elink\\build\\firmware-1.5.26-final\\elink-bwr-1.5.26.elink-update.json",
+  "ota_package_sha256": "ac08ced27eb07fe2c7ecea5439207ae54aa4f25d4237d457e9cb98cea63aadb1",
+  "stored_geometry": [
+    128,
+    250
+  ],
+  "visible_geometry": [
+    250,
+    122
+  ],
+  "unused_source_bits_per_gate": 6,
+  "simulation_only": true,
+  "physical_device_access": false,
+  "default_clock_calendar_fixture": "2026-11-14 06:55, battery 100%; reminders use 2026-10-06 fixture",
+  "pages": {
+    "default": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "106d086b26b1547f21cf0a81b6d671bf113de94189323615cb4af635e3ef244b",
+      "png_sha256": "0de40462acf02c3c6b31397c577c528aada11b995fcfe049f55fb707e3a45994",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "clock": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "5e1d304ff701b5c35baf3ba5621c2489489ece18f07b094e9918c76dc9185ef9",
+      "png_sha256": "12d74960ab9cdb10db6197ede1e925667b4bbfa706720fe7ba10528181120980",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "6ba6e58a869fc76c0f718f9dec44dad0bb1184db2f0757de6876737ca9cc4e56",
+      "png_sha256": "8a35d39596759bcbacd3fc1068949a5a7b9c303e803ef6d469ad3605d1a7048b",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "clock-netherlands": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "a6e0ffdd30021295078fe744d4a6daae5a86ced94ef1558afe3527c54cb588bc",
+      "png_sha256": "d683a24741e3a176dda63b1cd69e555825b110f4da0df339fb7f90f9ca8ff0c1",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar-six-rows": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e01b4343e319f32eafa6accd39aa2e115e4040235e865c93627171279a63d86f",
+      "png_sha256": "ef649cf01e7a0a57721406c2be3866f9032a46408f824ad53cb704e545da7c20",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "calendar-leap-month": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "eb6f5b7cc10ce25792a0af9a276a3e70cbe70a39c87a9650138c385b1820629f",
+      "png_sha256": "572ff7e54283498b42aec6ba47fcccb59b8e8682d4bacce2cd3def081e6e3ea7",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "reminders": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "5db761f861e2cc94e41f08c2866ce5cd1d58fca9ff28b8da0367546b137dff69",
+      "png_sha256": "b22c58caa6a70a1c581de9f7b13d1ea99d5599b52ca15dc8b2702337915ff6f7",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "photo-calendar": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "211b6a9b5d1a849577aac76278c7a3154034240d76152266a59892d28c8f5d50",
+      "png_sha256": "6cf7cc623911ec5004d18903b0ad1453ca9db1d27f5e9ba7e2ad12191d45fcf8",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "notice": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "d456d8c401eb3b9268377bf4e7d45894a50d683803fbd400d596798d1d5b4db6",
+      "png_sha256": "d7a67960aa5fecc631d6473b61e56720ed545fd5a01bcfcfb277206900ef035c",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    }
+  }
+}

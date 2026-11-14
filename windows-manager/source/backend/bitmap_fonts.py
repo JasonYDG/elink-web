@@ -111,11 +111,13 @@ def lcd_cell(ch):
     if ch==':':
         for y in (14,38):draw.rectangle((10,y,17,y+6),fill=1)
         return cell
-    # Flat four-pixel end caps and one-pixel corner cuts replace pointed polygons.
-    segments=((5,3,44,8),(39,3,44,35),(39,30,44,62),(5,57,44,62),(5,30,10,62),(5,3,10,35),(5,30,44,35))
+    # Standard bevelled segments: six-pixel stems, short flat tips and a white gap at every joint.
+    def horizontal(y):return ((10,y),(39,y),(41,y+2),(41,y+3),(39,y+5),(10,y+5),(8,y+3),(8,y+2))
+    def vertical(x,y):return ((x+2,y),(x+3,y),(x+5,y+2),(x+5,y+16),(x+3,y+18),(x+2,y+18),(x,y+16),(x,y+2))
+    segments=(horizontal(3),vertical(39,10),vertical(39,37),horizontal(57),vertical(5,37),vertical(5,10),horizontal(30))
     bits=(0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f)[int(ch)]
-    for i,rect in enumerate(segments):
-        if bits&(1<<i):draw.rounded_rectangle(rect,radius=1,fill=1)
+    for i,polygon in enumerate(segments):
+        if bits&(1<<i):draw.polygon(polygon,fill=1)
     return cell
 
 @lru_cache(maxsize=256)
