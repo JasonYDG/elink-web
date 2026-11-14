@@ -4,10 +4,10 @@ const ELinkRenderer = (() => {
     let fontIndex;const fonts=new Map();
     function canvas(w=250,h=122){const c=document.createElement("canvas");c.width=w;c.height=h;return c;}
     async function font(size){
-        fontIndex??=fetch("fonts/text-fonts.json?v=1.1.15").then(r=>{if(!r.ok)throw Error("点阵字库目录加载失败");return r.json();}).catch(e=>{fontIndex=null;throw e;});
+        fontIndex??=fetch("fonts/text-fonts.json?v=1.1.18").then(r=>{if(!r.ok)throw Error("点阵字库目录加载失败");return r.json();}).catch(e=>{fontIndex=null;throw e;});
         const meta=(await fontIndex).sizes[size];if(!meta)throw Error("点阵字库不支持字号："+size);
         if(!fonts.has(size))fonts.set(size,(async()=>{
-            const r=await fetch("fonts/"+meta.file+"?v=1.1.15");if(!r.ok)throw Error("点阵字库加载失败："+size);
+            const r=await fetch("fonts/"+meta.file+"?v=1.1.18");if(!r.ok)throw Error("点阵字库加载失败："+size);
             const bytes=new Uint8Array(await r.arrayBuffer());if(bytes.length!==meta.bytes||await P.sha256(bytes)!==meta.sha256)throw Error("点阵字库校验失败："+size);
             const v=P.view(bytes),count=v.getUint32(8,true),start=12+count*9,glyphs=new Map();
             if(String.fromCharCode(...bytes.subarray(0,4))!=="ELF1"||v.getUint32(4,true)!==size||count!==meta.glyphs||start>bytes.length)throw Error("点阵字库格式无效");
@@ -39,9 +39,9 @@ const ELinkRenderer = (() => {
         rows.forEach((row,y)=>{for(let x=0;x<11;x++)if(row&(1<<(10-x)))ctx.fillRect(176+x,8+y,1,1);});
         ctx.fillRect(194,10,17,11);ctx.fillStyle="white";ctx.fillRect(196,12,13,7);ctx.fillStyle="black";ctx.fillRect(211,13,2,5);
         if(Number.isFinite(percent))ctx.fillRect(197,13,Math.round(percent*11/100),5);
-        // The status label keeps its cell bearings, as the host and firmware do.
+        // The 11px label cap aligns with the battery body's top and bottom edges.
         const m=await mask(Number.isFinite(percent)?percent+"%":"--%",12);
-        for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++)if(m.bits[y*m.width+x])ctx.fillRect(218+x,8+y,1,1);
+        for(let y=0;y<m.height;y++)for(let x=0;x<m.width;x++)if(m.bits[y*m.width+x])ctx.fillRect(218+x,10+y,1,1);
     }
     function png(frame){const c=canvas();c.getContext("2d").putImageData(new ImageData(P.pixels(frame),250,122),0,0);return c.toDataURL("image/png").split(",")[1];}
     async function result(c){const r=P.quantize(c.getContext("2d").getImageData(0,0,250,122).data);return {png:png(r.frame),frame:P.bytes64(r.frame),sha256:await P.sha256(r.frame),red_pixels:r.red_pixels};}
@@ -78,7 +78,7 @@ const ELinkRenderer = (() => {
     async function noticeBattery(encoded,percent){const c=canvas(),ctx=c.getContext("2d");ctx.drawImage(await image(encoded),0,0);ctx.fillStyle="white";ctx.fillRect(176,8,74,15);await statusIcon(ctx,percent);return result(c);}
     let calendarGlyphs;
     async function dateColumn(zone="local",now=new Date()){
-        calendarGlyphs??=fetch("fonts/calendar-glyphs.json?v=1.1.15").then(r=>{if(!r.ok)throw Error("日历字体加载失败");return r.json();}).catch(e=>{calendarGlyphs=null;throw e;});
+        calendarGlyphs??=fetch("fonts/calendar-glyphs.json?v=1.1.18").then(r=>{if(!r.ok)throw Error("日历字体加载失败");return r.json();}).catch(e=>{calendarGlyphs=null;throw e;});
         const glyphs=await calendarGlyphs,t=P.wall(zone,now),c=canvas(),ctx=c.getContext("2d");ctx.fillStyle="white";ctx.fillRect(0,0,250,122);
         function draw(text,size,y,x,red=false){const cells=Array.from(text,ch=>glyphs[size][ch]);if(cells.some(g=>!g))throw Error("日历字符缺失");const width=cells.reduce((n,g)=>n+g.width,0);x??=212-Math.floor(width/2);ctx.fillStyle=red?"#be0000":"black";for(const g of cells){for(let yy=0;yy<size;yy++)for(let xx=0;xx<g.width;xx++)if(g.bits[yy*g.width+xx]==="1")ctx.fillRect(x+xx,y+yy,1,1);x+=g.width;}return width;}
         draw(t.year+"/"+String(t.month).padStart(2,"0"),12,2);draw(String(t.day).padStart(2,"0"),44,15,185,true);draw("星期"+"日一二三四五六"[t.weekday],18,62,185);
