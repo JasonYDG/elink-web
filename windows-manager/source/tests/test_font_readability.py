@@ -106,6 +106,9 @@ class FontReadability(unittest.TestCase):
             if size==18:chars+=''.join(ch for ch in REQUIRED if ord(ch)>127)
             if size==16:chars+='早餐后服药今日任务提醒'
             for ch,cell in cells(chars,size).items():
+                if size==18:
+                    from bitmap_fonts import solar_term_cells
+                    if ch in solar_term_cells():continue # Dense native details use the stronger source/topology checks in test_solar_term_fonts.
                 for y in range(cell.height):
                     run=0
                     for x in range(cell.width+1):

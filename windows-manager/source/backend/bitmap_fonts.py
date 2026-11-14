@@ -79,19 +79,30 @@ def has_glyph(ch,height):
     font=noto_font(height)
     return bytes(font.getmask(ch,mode='1'))!=bytes(font.getmask('\U0010fffd',mode='1')) or ch==' '
 
+@lru_cache(maxsize=1)
+def solar_term_cells():
+    meta=font_meta('solar_terms_18');raw=(FONT_ROOT/meta['local_file']).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('节气点阵字库哈希不一致')
+    data=json.loads(raw);glyphs=data['glyphs']
+    if data['format']!='ELINK-solar-18-1' or data['size']!=18 or len(glyphs)!=27:raise ValueError('节气点阵字库格式无效')
+    result={}
+    for ch,record in glyphs.items():
+        bits=bytes.fromhex(record['bits'])
+        if len(ch)!=1 or len(bits)!=54:raise ValueError('节气点阵字形长度无效')
+        result[ch]=Image.frombytes('1',(18,18),bits)
+    return result
+
 def lcd_cell(ch):
     """Fixed 50x66 seven-segment bitmap, without font outlines or antialiasing."""
     cell=Image.new('1',(28 if ch==':' else 50,66));draw=ImageDraw.Draw(cell)
     if ch==':':
         for y in (14,38):draw.rectangle((10,y,17,y+6),fill=1)
         return cell
-    horizontal=lambda y:((10,y),(39,y),(44,y+3),(39,y+5),(10,y+5),(5,y+3))
-    vertical=lambda x,y:((x+1,y),(x+4,y),(x+5,y+1),(x+5,y+26),(x+4,y+27),(x+1,y+27),(x,y+26),(x,y+1))
-    # Overlapping four-pixel caps keep lit segments continuous at their joints.
-    segments=(horizontal(3),vertical(39,6),vertical(39,33),horizontal(57),vertical(5,33),vertical(5,6),horizontal(30))
+    # Flat four-pixel end caps and one-pixel corner cuts replace pointed polygons.
+    segments=((5,3,44,8),(39,3,44,35),(39,30,44,62),(5,57,44,62),(5,30,10,62),(5,3,10,35),(5,30,44,35))
     bits=(0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f)[int(ch)]
-    for i,points in enumerate(segments):
-        if bits&(1<<i):draw.polygon(points,fill=1)
+    for i,rect in enumerate(segments):
+        if bits&(1<<i):draw.rounded_rectangle(rect,radius=1,fill=1)
     return cell
 
 @lru_cache(maxsize=256)
@@ -102,12 +113,12 @@ def cells(chars,height):
     latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 or height==40 else {}
     digits=fallback_cells(''.join(ch for ch in chars if ch in '0123456789'),12) if height==18 else {}
     cjk=fallback_cells(''.join(ch for ch in chars if ord(ch)>=0x2e80 and ch not in '\u3031\u3032'),12) if height<=20 else {}
+    terms=solar_term_cells() if height==18 else {}
     for ch,source in originals.items():
         if height==66 and ch in '0123456789:':
             result[ch]=lcd_cell(ch);continue
-        if height==18 and ch=='雪':
-            # Native hint: four rain dots and one blank row between the lower horizontal strokes.
-            result[ch]=row_mask(18,18,('000000','1ffe00','1ffe00','00c000','7fff80','60c180','6cd980','60c180','6cd980','000000','1ffe00','1ffe00','000600','0ffe00','0ffe00','000600','1ffe00','1ffe00'));continue
+        if ch in terms:
+            result[ch]=terms[ch];continue
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
         if height==44 and ch in '0123456789':

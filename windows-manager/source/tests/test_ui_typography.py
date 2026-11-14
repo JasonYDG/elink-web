@@ -52,6 +52,14 @@ class UiTypography(unittest.TestCase):
             for x in (*range(6,10),*range(40,44)):self.assertTrue(cells(ch,66)[ch].getpixel((x,33)))
         self.assertEqual(cells(':',66)[':'].width,28)
 
+    def test_lcd_free_end_caps_are_flat_and_have_no_single_pixel_tips(self):
+        m=ProductMachine();im=frame_image(m.draw(h=5,minute=7,force=128))
+        for x in (61+44,189+5):
+            for y in range(29,33):self.assertEqual(im.getpixel((x,y)),(0,0,0),(x,y))
+            for y in (28,33):self.assertEqual(im.getpixel((x,y)),(255,255,255))
+        m.finish();im=frame_image(m.draw(h=1,minute=10,force=128))
+        for x in range(101,105):self.assertEqual(im.getpixel((x,28)),(0,0,0))
+
     def test_snow_hint_keeps_rain_dots_and_lower_bars_separate(self):
         snow=native_cells(ProductMachine().b,0xa48c,18)['雪']
         self.assertEqual(snow.size,(18,18));self.assertEqual(snow.getbbox(),(1,1,17,18))

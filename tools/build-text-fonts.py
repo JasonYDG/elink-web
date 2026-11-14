@@ -12,7 +12,7 @@ sys.path.insert(0, str(HOST / 'backend'))
 from bitmap_fonts import cells, font_source
 from protocol import reminder_metadata
 from render import render
-from photo_calendar import date_column
+from photo_calendar import date_column, TERMS, TERM_SECONDS
 
 SIZES = (12, 14, 16, 17, 18, 20, 24, 28, 32, 64)
 
@@ -25,7 +25,7 @@ def characters(size):
 
 
 def build():
-    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'bitmap_hints': {'18': {'雪': 'Native grid with separate rain dots and lower horizontal strokes'}}, 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
+    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'bitmap_hints': {'18': {'solar_terms': TERMS, 'glyphs': 27, 'source': 'solar_terms_18', 'method': 'Preserve source strokes, separate stroke components and whitespace; retain dense pixel details'}}, 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
     for size in SIZES:
         glyphs = cells('0123456789:' if size == 64 else characters(size), size)
         index, pixels = bytearray(), bytearray()
@@ -42,6 +42,7 @@ def build():
         print(f'{size}px: {len(glyphs)} glyphs, {len(raw)} bytes', flush=True)
     (WEB / 'fonts/text-fonts.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     calendar = json.loads((WEB / 'fonts/calendar-glyphs.json').read_text('utf-8'))
+    assert set(''.join(TERMS)) <= set(calendar['18']), 'All solar-term glyphs must reach the browser date column'
     for size, group in calendar.items():
         for ch, cell in cells(''.join(group), int(size)).items():
             group[ch] = {'width': cell.width, 'bits': ''.join('1' if v else '0' for v in cell.get_flattened_data())}
@@ -52,7 +53,7 @@ def build():
 def write_fixtures():
     fixtures = {'glyphs': [], 'frames': [], 'metadata': [], 'date_columns': []}
     for size in SIZES:
-        sample = '0123456789:' if size == 64 else 'Aa09/%…，。今日天后星期中文龘雪'
+        sample = '0123456789:' if size == 64 else 'Aa09/%…，。今日天后星期中文龘'+''.join(TERMS)
         for ch, cell in sorted(cells(sample, size).items()):
             fixtures['glyphs'].append({'size': size, 'char': ch, 'width': cell.width, 'hex': cell.tobytes().hex()})
     specs = [
@@ -71,7 +72,9 @@ def write_fixtures():
     for title in ('中文任务 Aa09/%', '长任务名称需要自动省略显示并保持基线', '龘字'):
         for large in (False, True):
             fixtures['metadata'].append({'title': title, 'options': options, 'large': large, 'hex': reminder_metadata(title, options, large).hex()})
-    for value in ('2026-11-13', '2026-10-23', '2026-10-24', '2027-01-01', '2025-08-20', '2024-02-29'):
+    dates = ['2026-11-13', '2026-10-23', '2026-10-24', '2027-01-01', '2025-08-20', '2024-02-29']
+    dates += [(datetime.date(2026,1,1)+datetime.timedelta(days=(451804+20950*6-2*86400+seconds)//86400)).isoformat() for seconds in TERM_SECONDS]
+    for value in dict.fromkeys(dates):
         fixtures['date_columns'].append({'date': value, 'frame': date_column(datetime.date.fromisoformat(value))['frame'].hex()})
     (WEB / 'tests/text-font-fixtures.json').write_text(json.dumps(fixtures, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 

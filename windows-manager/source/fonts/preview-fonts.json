@@ -1,5 +1,5 @@
 {
-  "purpose": "ELINK Screen Bold: native Terminus Bold bitmap ASCII; enlarged Fusion Pixel CJK with one-pixel horizontal emboldening; Unifont coverage fallback; no outline rasterization. Original font files unmodified.",
+  "purpose": "ELINK Screen Bold: Terminus bitmap ASCII, Fusion Pixel CJK, audited18px solar-term glyphs from native Unifont16 plus native Snow hint. No outline rasterization; original font files unmodified.",
   "fusion": {
     "version": "2026.09.25",
     "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
@@ -54,5 +54,13 @@
     "local_file": "terminus-4.49.1-14b.bdf.gz",
     "local_sha256": "358c97ee5e1117d0f360077ad202b06662ffa6d836447a5a8a2a739811484f23",
     "license": "Terminus/OFL.txt"
+  },
+  "solar_terms_18": {
+    "version": "1",
+    "source": "Derived from pinned Unifont16 plus reviewed native Snow hint; source/tools/build_solar_term_fonts.py",
+    "local_file": "solar-terms-18.json",
+    "local_sha256": "4d571e16f5af009d7722925e4e67ea9f44d92ca0c5b438e549f4c454c23120e6",
+    "license": "https://unifoundry.com/LICENSE.txt",
+    "characters": "冬分处夏大寒小惊明春暑水清满白秋种立至芒蛰谷降雨雪霜露"
   }
 }

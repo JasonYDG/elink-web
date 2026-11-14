@@ -78,6 +78,9 @@ def small_font():
 
 def compile_product(root,out,leds_off,version='0.0.0'):
     assert re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+',version)
+    version_data=('V'+version+'\0').encode('ascii')
+    version_anchor=b'V1.5.19\0' # Preserve the verified LLVM string-pool layout, then patch only version data.
+    assert len(version_data)<=len(version_anchor), 'Version exceeds the existing native text slot'
     firmware=root/'source/firmware'
     modules=load_modules(firmware)
     unity=(firmware/'product_ui.c').read_text(encoding='utf-8')
@@ -91,7 +94,7 @@ def compile_product(root,out,leds_off,version='0.0.0'):
     out.mkdir(parents=True,exist_ok=True);elf=out/'product-ui.elf'
     command=[str(zig),'cc','-target','thumb-freestanding-eabi','-mcpu=cortex_m0','-Oz','-g',
              '-ffreestanding','-fno-stack-protector','-fno-unwind-tables','-fno-asynchronous-unwind-tables',
-             '-ffunction-sections','-fdata-sections','-nostdlib',f'-DLEDS_OFF={leds_off}',f'-DBOOT_VERSION="V{version}"',
+             '-ffunction-sections','-fdata-sections','-nostdlib',f'-DLEDS_OFF={leds_off}','-DBOOT_VERSION="V1.5.19"',
              '-Wl,-T,'+str(root/'source/firmware/product_ui.ld'),'-Wl,--gc-sections','-Wl,-e,product_clock','-Wl,-u,product_clock',
              '-Wl,-u,product_minute_tick','-Wl,-u,product_boot_battery','-Wl,-u,product_refresh','-Wl,-u,product_finish',
              '-Wl,-u,product_caps','-Wl,-u,product_view','-Wl,-u,product_sync_valid',
@@ -106,6 +109,10 @@ def compile_product(root,out,leds_off,version='0.0.0'):
     regions={};symbols={};functions={}
     for sec in sections:
         name=strings[sec[0]:].split(b'\0',1)[0].decode()
+        if name=='.product':
+            body=raw[sec[4]:sec[4]+sec[5]];assert body.count(version_anchor)==1
+            at=sec[4]+body.index(version_anchor)
+            raw=raw[:at]+version_data.ljust(len(version_anchor),b'\0')+raw[at+len(version_anchor):]
         if name in ('.clock','.product','.reminder','.reminder_extra','.album','.album_extra'):regions[name]=(sec[3],raw[sec[4]:sec[4]+sec[5]])
         if sec[1]==2:
             st=sections[sec[6]];symstrings=raw[st[4]:st[4]+st[5]]
@@ -117,6 +124,7 @@ def compile_product(root,out,leds_off,version='0.0.0'):
                     functions[symname]={'address':value&~1,'bytes':size}
     assert set(regions)=={'.clock','.product','.reminder','.reminder_extra','.album','.album_extra'}
     assert symbols['product_clock']==0x07fc2cc5
+    elf.write_bytes(raw)
     import json
     (out/'product-functions.json').write_text(json.dumps(functions,indent=2),encoding='utf-8')
     return regions,symbols,hashlib.sha256(raw).hexdigest()
