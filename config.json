@@ -1,5 +1,5 @@
 {
-  "version": "1.1.21",
+  "version": "1.1.22",
   "firmware_versions": {
     "de05d8d1": "1.0.3",
     "768fcd19": "1.0.4",
@@ -37,7 +37,8 @@
     "dab1f698": "1.5.18",
     "3eef6260": "1.5.19",
     "bebf1699": "1.5.20",
-    "feacec0e": "1.5.21"
+    "feacec0e": "1.5.21",
+    "26ddc767": "1.5.22"
   },
   "width": 250,
   "height": 122,
@@ -814,7 +815,7 @@
     }
   ],
   "default_clock": {
-    "mode": 1,
+    "mode": 0,
     "full_every": 60,
     "refresh_minutes": 5
   },
