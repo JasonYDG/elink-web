@@ -1,0 +1,148 @@
+{
+  "format": "ELINK-solar-18-1",
+  "size": 18,
+  "terms": [
+    "小寒",
+    "大寒",
+    "立春",
+    "雨水",
+    "惊蛰",
+    "春分",
+    "清明",
+    "谷雨",
+    "立夏",
+    "小满",
+    "芒种",
+    "夏至",
+    "小暑",
+    "大暑",
+    "立秋",
+    "处暑",
+    "白露",
+    "秋分",
+    "寒露",
+    "霜降",
+    "立冬",
+    "小雪",
+    "大雪",
+    "冬至"
+  ],
+  "base_source": {
+    "version": "17.0.04",
+    "source": "https://unifoundry.com/pub/unifont/unifont-17.0.04/font-builds/unifont-17.0.04.hex.gz",
+    "local_file": "unifont-17.0.04.hex.gz",
+    "local_sha256": "e808096f98ff04294f0d49452cad51964e2930b7be046ac8e1efadc46b2bab0f",
+    "license": "https://unifoundry.com/LICENSE.txt"
+  },
+  "method": "Preserve source pixels, 8-connected ink components, 4-connected whitespace regions, and at least two pixels per original counter when possible. Dense internal details retain one-pixel strokes. Snow retains the reviewed native hint.",
+  "glyphs": {
+    "冬": {
+      "bits": "00000003000003000007fc000fdc001e1c003f380033f00007f8001f3e00780f8073c38003f00000380007880007e00000f000003000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "分": {
+      "bits": "0000000030000330000338000718000e1c003c0e002003006ffb806ff9800318000318000718000618000e18001cf80038f000300000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "处": {
+      "bits": "0000000c30000c30000c30000fb0000fb8001dbc0019be0039b7007bb3006f33000f30000630000f30001f800039ff80707f80600000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "夏": {
+      "bits": "0000003fff0023ff000ffc000fcc000ffc000fcc000ffc000fcc000ffc000ffc000ffc001fbc003f380023f0000ffc007f3f80780000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "大": {
+      "bits": "00000000c00000c00000c00000c00000c0007fff807fff8000c00001e00001e00003f0000330000738000e1c001c0e00780780700000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "寒": {
+      "bits": "00000001800001c0003fff80273b806ffb804738001ffe00073e007fff806c1f800dcc001de60078378073838003e00000f000003000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "小": {
+      "bits": "00000000c00000c00000c00000c00000c0000ccc000cce000cc7001cc30018c38038c18070c18060c18000c00003c00003c000018000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "惊": {
+      "bits": "0000000c30000c38000dff800cff800e00002eff002eff002cc3006cff006c10000cd6000cd30009db800b19800979800c78000c3000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "明": {
+      "bits": "000000000000007f003f7f003f6300336300337f003f7f003f6300336300337f003f7f003e630032e30000c30001cf00038f00030000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "春": {
+      "bits": "00000000c00000c0003fff0001ff001ffe0003fe007fff806fff800e1c001ffe007fff80761b8007f80007f80006180007f80007f800",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "暑": {
+      "bits": "0000000ffc000fcc000ffc000fcc000ffc0003fc000ffc00039c007fff8073ff8007fc001fcc007ffc0077cc0007fc0007fc00060000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "水": {
+      "bits": "00000000c00000c00000c00000c60000c6003ece0036fc0006f80006f0000ef8000cdc001cce0038c78070c38063c00003c000018000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "清": {
+      "bits": "0000000030001830001bff00087f0061fe00707e0023ff802800800dfe001de60079fe0079e60019fe0019ce00199e00199e00018000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "满": {
+      "bits": "00000000c60018c6001bff800bff8060000073ff8023ef80286c000bff801bed807a6d807bff801bff801bb3801b07801b0780030000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "白": {
+      "bits": "00000000c00001c0000380001ffe001ffe001806001806001806001ffe001ffe001806001806001806001806001ffe001ffe00180000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "秋": {
+      "bits": "0000000630000f30007f30007c30000cb3007eb3005ca7001dae001c20003f78003f78007e7c006cec000cce0009c7000b83800b0000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "种": {
+      "bits": "0000000618000f18007f18007c18000cff007eff005edb001cdb001edb003eff003eff007edb006c18000c18000c18000c18000c1800",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "立": {
+      "bits": "00000001800001c00000c0000000003fff003fe100000c000c0c000e1c000618000738000330000370000000007fff807fff80000000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "至": {
+      "bits": "0000000000003fff003bff000380000718000e1c001ffe001e1e0000c60000c0001ffe001ffe0000c00000c0007fff807fff80000000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "芒": {
+      "bits": "0000000618000618007fff807fff8004180005980001c0007fff807fff8006000006000006000006000006000007ff0007ff00000000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "蛰": {
+      "bits": "0000000c60000c60007dfc007cfc000ee8007eeb001cef0039ef003ac3001ff9000ffc000ccc000ffc0001e6003fff003fff00180000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "谷": {
+      "bits": "000000061800061c000ece001cc70039e30033f0000738003e1e006003806ff9800ffc000c0c000c0c000c0c000ffc000ffc000c0000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "降": {
+      "bits": "0000000060003f6000367f0034ef0025ee002c7c0026de0037df8036180032ff00323f003f98003fff803dff80301800301800300000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "雨": {
+      "bits": "0000000000007fff807fff8000c00000c0003fff003fff0030830036b30036bb0030830036b300369b0032c30030cf0030cf00300000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "雪": {
+      "bits": "0000001ffe001ffe0000c0007fff8060c1806cd98060c1806cd9800000001ffe001ffe000006000ffe000ffe000006001ffe001ffe00",
+      "source": "native Snow hint"
+    },
+    "霜": {
+      "bits": "0000001ffe0001fe003fff802083806ebb806081000ebc00000000067f003f73001f7f001f73003f7f00777300667f00067f00066000",
+      "source": "Unifont16; topology-preserving weight"
+    },
+    "露": {
+      "bits": "0000001ffe0001fe003fff802083806ebb806081000ebc00003c003e7e0032e6003e3e000eff802e00802e7e003f66007f7e00787e00",
+      "source": "Unifont16; topology-preserving weight"
+    }
+  }
+}
