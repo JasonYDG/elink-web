@@ -32,7 +32,7 @@ def main():
         def save_stage(name):
             for suffix,raw in (('bw',m.stream[:4000]),('rr',m.stream[4000:8000]),('lut',m.stream[8000:])):
                 (out/(name+'.'+suffix+'.bin')).write_bytes(bytes(raw))
-            stages.append({'name':name,'bw_bytes':4000,'rr_bytes':4000,'lut_bytes':70,'border_lut1_neutral':m.stream[8007:8014]==[0]*7})
+            stages.append({'name':name,'bw_bytes':4000,'rr_bytes':4000,'lut_bytes':70,'unchanged_pixel_lut1_all_zero_vss':m.stream[8007:8014]==[0]*7})
         save_stage(f'mode{mode}-balanced')
         m.stream.clear();m.run(BASE+0x4208);assert m.status()['busy'] and m.status()['display_generation']==1
         changed=bytes(a^b for a,b in zip(before[:4000],after[:4000]))
@@ -71,7 +71,7 @@ def main():
             steps.append({'minute':minute,'generation':step+1,'phase_count':2,
                           'new_black_pixels':sum((v&(255^b)).bit_count() for v,b in zip(changed,target[:4000])),
                           'removed_pixels':sum(v.bit_count() for v in white),'extra_black_polarity_frames':polarity_frames(lut,0),
-                          'extra_white_polarity_frames':polarity_frames(lut,2),'border_lut1_neutral':True})
+                          'extra_white_polarity_frames':polarity_frames(lut,2),'unchanged_pixel_lut1_all_zero_vss':True})
             before=target
         sequences[mode]=steps
     glyphs=native_cells(m.b,0xa48c,18);hints=ui_cjk_cells();chars=sorted(hints)
@@ -88,11 +88,13 @@ def main():
            'photo_plain_zero_source':'O bitmap from the same Terminus32 font',
            'diagnostics':['stroke-mask is the actual SPI drive-mask diagnostic, not a device page',
                           'ui-glyphs sheets contain compiled font masks, not a device page'],
-           'computer_use':False,'physical_device_access':False,'optical_tested':False}
+           'clock_partial_border_register':'0xc0','full_border_register':'0x05',
+           'register_execution_proof':'border-after.json (separate native-init trace)',
+           'zero_lut_is_not_border_hiz':True,'computer_use':False,'physical_device_access':False,'optical_tested':False}
     (out/'proof.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n','utf-8')
     (out/'index.html').write_text('''<!doctype html><meta charset="utf-8"><title>笔画差分与字形核对</title>
 <style>body{font:16px sans-serif}img{display:block;width:250px!important;height:122px!important;max-width:none;image-rendering:pixelated}figure{margin:24px 0}</style>
-<h1>对称补擦与连续局刷 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。平衡模式两次原有平衡擦写，加深模式平衡擦写后对新黑笔画和消失笔画分别补黑/擦白。两个阶段都成功后才提交一次代次。红色遮罩只标记实际允许驱动的像素，是诊断图；白色表示不驱动，不是设备页面。PNG来自编译RAM，不模拟色深、残影或墨水显影。边框LUT1仍中性，原生扫描、供电和脉冲参数不改。</p>
+<h1>边框高阻与连续局刷 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。数字补偿保持1.5.24。经用户单独授权，时钟局刷两个阶段将边框0x3C设为0xC0高阻，完整刷新及其他页面恢复原生0x05。LUT1全零代表源电平VSS，不能视为边框高阻。红色遮罩标记变化像素，是诊断图；白色表示未选中，不是设备页面。PNG来自编译RAM，不模拟电压、色深、残影或墨水显影。原生初始化代码、扫描、供电和脉冲参数不改。<a href="border-after.json">实际寄存器执行记录</a></p>
 <figure>刷新前 06:55<img src="clock-before.png" width="250" height="122"></figure>
 <figure>刷新后 06:56<img src="clock-after.png" width="250" height="122"></figure>
 <figure>驱动遮罩诊断<img src="stroke-mask.png" width="250" height="122"></figure>

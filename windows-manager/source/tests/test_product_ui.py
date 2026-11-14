@@ -302,7 +302,7 @@ class ProductUi(unittest.TestCase):
         m=ProductMachine();m.cmd(b'\x94\x01\x3c');m.draw(minute=0,force=128);m.finish();m.stream.clear()
         m.draw(minute=0);self.assertEqual(m.stream[:4000],[255]*4000);m.finish()
 
-    def test_stroke_refresh_preserves_the_actual_native_border_and_gate_configuration(self):
+    def test_stroke_refresh_preserves_native_scan_and_applies_approved_clock_border_hiz(self):
         class NativeInit(ProductMachine):
             def hook(self,uc,address,size,data):
                 if address==BASE+0x3f68 and getattr(self,'native_init',False):return
@@ -311,7 +311,8 @@ class ProductUi(unittest.TestCase):
             m=NativeInit();m.native_init=True;m.cmd(bytes([0x94,mode,60]))
             m.draw(minute=5,force=128);m.finish();m.commands.clear();m.draw(minute=6)
             borders=[c[2] for c in m.commands if c[0]==BASE+0x3c10 and c[1]==0x3c]
-            self.assertTrue(borders);self.assertEqual(borders[-1],5,'Keep the real native border5; do not override it with0')
+            self.assertTrue(borders);self.assertEqual(borders[0],5,'Native initialization remains unchanged')
+            self.assertEqual(borders[-1],0xc0,'Approved clock-only high-impedance border override')
             self.assertFalse(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
             self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands,'Do not shorten the native gate scan to103 lines')
             m.finish()

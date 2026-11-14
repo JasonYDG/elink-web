@@ -1,0 +1,149 @@
+{
+  "firmware_id": "9c096ccc",
+  "native_init_and_frame_reload_executed": true,
+  "modes": [
+    {
+      "mode": 1,
+      "initial": [
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        }
+      ],
+      "changes": [
+        {
+          "minute": 6,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "second_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "target_sha256": "af809a307912b437a19f26101b349a0116b6242b9b977c359be26d281ec02641"
+        },
+        {
+          "minute": 5,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "b1b37f9208f000754678c39625c8ffd5624ffa8c5422828d4bc4c89b44127ca1",
+          "second_spi_sha256": "b1b37f9208f000754678c39625c8ffd5624ffa8c5422828d4bc4c89b44127ca1",
+          "target_sha256": "6eb1579a7f3f45ab38fb9b47fb07a6aea0611ba63e720b4b6fc85d93b87b1090"
+        },
+        {
+          "minute": 6,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "second_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "target_sha256": "af809a307912b437a19f26101b349a0116b6242b9b977c359be26d281ec02641"
+        }
+      ],
+      "hour_full": [
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        },
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        }
+      ],
+      "native_full_frame_reloads": 9
+    },
+    {
+      "mode": 2,
+      "initial": [
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        }
+      ],
+      "changes": [
+        {
+          "minute": 6,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "second_spi_sha256": "c90e4ebef27453d44ef6b0e199be55dff1cc188ef2a02224c5775a149e79b8a8",
+          "target_sha256": "af809a307912b437a19f26101b349a0116b6242b9b977c359be26d281ec02641"
+        },
+        {
+          "minute": 5,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "b1b37f9208f000754678c39625c8ffd5624ffa8c5422828d4bc4c89b44127ca1",
+          "second_spi_sha256": "e853c305796c74570923cd91d6ce461bb94a89b42bffff4f854a7bfc7f4c7498",
+          "target_sha256": "6eb1579a7f3f45ab38fb9b47fb07a6aea0611ba63e720b4b6fc85d93b87b1090"
+        },
+        {
+          "minute": 6,
+          "activations": [
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            },
+            {
+              "update": "0xc7",
+              "border": "0x5"
+            }
+          ],
+          "first_spi_sha256": "c03a67db2cecbe6e8be5a2753586f1545e4594c7a50d1ab6c90c6ae63582d008",
+          "second_spi_sha256": "c90e4ebef27453d44ef6b0e199be55dff1cc188ef2a02224c5775a149e79b8a8",
+          "target_sha256": "af809a307912b437a19f26101b349a0116b6242b9b977c359be26d281ec02641"
+        }
+      ],
+      "hour_full": [
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        },
+        {
+          "update": "0xf7",
+          "border": "0x5"
+        }
+      ],
+      "native_full_frame_reloads": 9
+    }
+  ],
+  "physical_device_access": false,
+  "optical_tested": false,
+  "note": "Digital native execution; no analog, pigment or endurance simulation"
+}

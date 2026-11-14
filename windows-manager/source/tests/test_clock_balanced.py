@@ -1,7 +1,7 @@
-"""Decode real compiled SPI payloads, including the native border's LUT selection."""
+"""Decode compiled SPI masks and check the approved border setting separately."""
 import unittest
 from test_product_ui import ProductMachine,BASE
-from test_firmware import END
+from test_firmware import END,STATE
 from unicorn.arm_const import UC_ARM_REG_R0,UC_ARM_REG_R1,UC_ARM_REG_LR,UC_ARM_REG_PC,UC_ARM_REG_SP
 
 class NativeDisplay(ProductMachine):
@@ -38,10 +38,10 @@ class ClockBalanced(unittest.TestCase):
         new=m.draw(minute=end)
         return m,old,new
 
-    def test_native_border_lut1_and_all_unchanged_pixels_are_neutral(self):
+    def test_unchanged_pixels_use_zero_lut1_without_claiming_border_hiz(self):
         for mode in (1,2):
             m,old,new=self.pair(mode)
-            self.assertEqual(m.stream[-70+7:-70+14],[0]*7,'Native border5 follows LUT1, which must be neutral')
+            self.assertEqual(m.stream[-70+7:-70+14],[0]*7,'Zero LUT1 encodes source VSS; border HiZ is checked via0x3C separately')
             self.assertEqual(len(m.stream),8070)
             drive,red,lut=map(bytes,(m.stream[:4000],m.stream[4000:8000],m.stream[8000:]))
             for p in range(4000):
@@ -140,5 +140,34 @@ class ClockBalanced(unittest.TestCase):
             for record in m.reloads[start:]:
                 self.assertEqual(bytes(record[0x24])+bytes(record[0x26]),target,'Execute the real native reload, not a fixed success stub')
             self.assertEqual(m.status()['display_generation'],generation);self.assertFalse(m.status()['busy'])
+
+    def test_clock_partial_border_is_hiz_in_both_stages_and_native_on_full(self):
+        class NativeInit(ProductMachine):
+            run=NativeDisplay.run
+            def hook(self,uc,address,size,data):
+                if address==BASE+0x3f68 and getattr(self,'native_init',False):return
+                return super().hook(uc,address,size,data)
+        def border_at_activation(m):
+            border=None;updates=[]
+            for c in m.commands:
+                if c[0]==BASE+0x3c10 and c[1]==0x3c:border=c[2]
+                if c[0]==BASE+0x3c10 and c[1]==0x22:updates.append((c[2],border))
+            return updates
+        for mode in (1,2):
+            m=NativeInit();m.native_init=True;m.cmd(bytes([0x94,mode,60]))
+            m.draw(minute=0,force=128);m.finish();self.assertEqual(border_at_activation(m),[(0xf7,5)])
+            m.commands.clear();m.draw(minute=1);m.finish()
+            self.assertEqual(border_at_activation(m),[(0xc7,0xc0),(0xc7,0xc0)],'Both partial stages require the approved border HiZ setting')
+            m.commands.clear();m.draw(h=10,minute=0);m.finish()
+            self.assertTrue(border_at_activation(m));self.assertTrue(all(v==(0xf7,5) for v in border_at_activation(m)))
+            self.assertFalse(any(c[0]==BASE+0x3c10 and c[1:3]==(0x3c,0xc0) for c in m.commands))
+            m.commands.clear();m.draw(h=10,minute=1);m.finish()
+            self.assertTrue(all(v==(0xc7,0xc0) for v in border_at_activation(m)))
+            # The shared full-update hook must restore5 even if a caller omitted fresh init.
+            m.uc.mem_write(STATE+7,b'\x04');m.commands.clear();m.run(BASE+0x4174);m.finish()
+            self.assertTrue(border_at_activation(m));self.assertTrue(all(v==(0xf7,5) for v in border_at_activation(m)))
+            for command in (b'\x9c\x02',b'\x9c\x01'):
+                m.commands.clear();m.cmd(command);m.finish()
+                self.assertTrue(border_at_activation(m));self.assertTrue(all(v==(0xf7,5) for v in border_at_activation(m)))
 
 if __name__=='__main__':unittest.main()

@@ -159,10 +159,11 @@ unsigned product_refresh(void){
         }
     }
     S[8]=1;S[26]=0;S[9]=0;
+    CMD1(0x3c,partial?0xc0:5); /* Approved clock-partial HiZ; restore native VBD on every full update. */
     if(partial){
         unsigned fly=U->valid==4&&partial==2;
         u8 *lut=(u8 *)(fly?0x07fcdc68:0x07fcdc18);
-        /* Native border5 follows LUT1. Map neutral/black/white to1/0/2,
+        /* Keep pixel neutral/black/white mapped to1/0/2,
            retaining the original FAST/FLY pulse vectors and timing. */
         for(unsigned i=0;i<7;i++){
             lut[7+i]=lut[21+i]=0;

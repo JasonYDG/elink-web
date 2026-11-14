@@ -133,7 +133,7 @@ def main():
     app[0xc3c4:0xd2b0]=clock_digits(app0)+bytes(0xd2b0-0xc8a4)
     # Reminder code uses the padding freed by the same-size glyph subset.
     for address,raw in regions.values():app[address-BASE:address-BASE+len(raw)]=raw
-    # Pin native FAST/FLY BW rows; product_refresh neutralizes red combinations for the chosen mode.
+    # Pin native FAST/FLY rows; product_refresh remaps unchanged/black/white to1/0/2.
     assert app0[0xdc18:0xdc26]==bytes.fromhex('80 60 40 00 00 00 00 10 60 20 00 00 00 00')
     assert app0[0xdc26:0xdc34]==app0[0xdc18:0xdc26]
     assert app0[0xdc68:0xdc76]==bytes.fromhex('40 00 00 00 00 00 00 80 00 00 00 00 00 00')
@@ -299,7 +299,8 @@ def main():
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
           'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'Native bitmap fonts: Terminus Bold ASCII; Terminus32 fine-grid photo date; all90 native18px CJK use one topology-preserving Unifont16 skeleton including unchanged27 solar-term hints; Fusion small CJK; flat-ended66px LCD; no outlines',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
-          'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'R=1, LUT2/3 neutral','drive_mask':'R=0 only for XOR of last successfully displayed and pending minute strokes; unchanged strokes/background neutral'},
+          'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'BW=1,R=0 selects all-zero LUT1 source VSS; not border HiZ','drive_mask':'Only XOR strokes: BW=0, R=target BW selects black LUT0 or white LUT2'},
+          'clock_border_control':{'register':'0x3c','clock_partial_both_stages':'0xc0','full_and_other_pages':'0x05','runtime_change_explicitly_approved':True,'native_init_binary_unchanged':True,'optical_tested':False},
           'panel':'DA14585 five-pad BWR 250x122','default_refresh':'full',
           'policy_persistence':'retained RAM; full default after power cycle',
           'offline_reminders':{'slots':8,'slot_bytes':8192,'flash_start':'0x26000','flash_end':'0x36000','state_address':'0x07fc8500','state_bytes':256,'recurrence':'fixed-offset daily / weekdays mask','summary_mode':5,'large_text':True,'summary_title_pixels':18,'summary_task_pixels':16,'summary_visible_rows':4,'summary_title_width':72,'reminder_duration_minutes':'0 or 1..120','check_interval_minutes':[1,5,15,60],'time_granularity_seconds':60,'atomic_commit':'CRC32 and readback before READY state','persistence':'SPI Flash; full power loss requires clock resynchronization'},
