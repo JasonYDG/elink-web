@@ -354,7 +354,8 @@ class ProductUi(unittest.TestCase):
         self.assertEqual(len(m.stream),16140) # Balanced pass followed by one black-only boost.
         expected=list(m.b[0xdc18:0xdc18+70]);expected[14:21]=expected[7:14];expected[7:14]=expected[21:28]=[0]*7
         self.assertEqual(m.stream[8000:8070],expected)
-        self.assertEqual(m.stream[16077:16098],[0]*21,'Boost keeps white, neutral and border channels undriven')
+        self.assertEqual(m.stream[16084:16091],list(m.b[0xdc6f:0xdc76]),'Compensation must erase old ink as strongly as it adds new ink')
+        self.assertEqual(m.stream[16077:16084]+m.stream[16091:16098],[0]*14,'Border and neutral channels stay undriven')
         self.assertFalse(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
         self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
@@ -365,9 +366,9 @@ class ProductUi(unittest.TestCase):
         m.commands.clear();m.stream.clear();m.draw(minute=56);m.finish()
         self.assertEqual(m.update_sequence(),0xc7)
         fast=list(m.b[0xdc18:0xdc18+70]);fast[14:21]=fast[7:14];fast[7:14]=fast[21:28]=[0]*7
-        fly=list(m.b[0xdc68:0xdc68+70]);fly[7:28]=[0]*21
-        self.assertEqual(len(m.stream),8070)
-        self.assertEqual(m.stream[8000:],fast,'Balanced mode reuses native FAST with neutral border LUT1')
+        fly=list(m.b[0xdc68:0xdc68+70]);fly[14:21]=fly[7:14];fly[7:14]=fly[21:28]=[0]*7
+        self.assertEqual(len(m.stream),16140)
+        self.assertEqual(m.stream[8000:8070],fast);self.assertEqual(m.stream[16070:],fast,'Light compensation repeats native FAST with neutral border LUT1')
         self.assertFalse(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
         self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(minute=57);m.finish();self.assertEqual(m.update_sequence(),0xc7)
@@ -376,7 +377,7 @@ class ProductUi(unittest.TestCase):
         self.assertEqual(len(m.stream),16140);self.assertEqual(m.stream[8000:8070],fast);self.assertEqual(m.stream[-70:],fly)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
         m.cmd(b'\x94\x01\x0a');m.stream.clear();m.draw(h=10,minute=1);m.finish()
-        self.assertEqual(m.stream[8000:],fast,'Changing back from boost must preserve the native white pulse vector')
+        self.assertEqual(m.stream[8000:8070],fast);self.assertEqual(m.stream[16070:],fast,'Both light phases preserve the native white pulse vector')
         m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1706));m.draw(h=10,minute=2);m.finish()
         self.assertEqual(m.update_sequence(),0xf7,'Header and battery changes require full refresh')
     def test_calendar_all_months_leap_years_bounds_and_daily_update(self):

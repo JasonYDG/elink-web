@@ -160,13 +160,13 @@ unsigned product_refresh(void){
     }
     S[8]=1;S[26]=0;S[9]=0;
     if(partial){
-        unsigned boost=U->valid==4;
-        u8 *lut=(u8 *)(boost?0x07fcdc68:0x07fcdc18);
+        unsigned fly=U->valid==4&&partial==2;
+        u8 *lut=(u8 *)(fly?0x07fcdc68:0x07fcdc18);
         /* Native border5 follows LUT1. Map neutral/black/white to1/0/2,
            retaining the original FAST/FLY pulse vectors and timing. */
         for(unsigned i=0;i<7;i++){
             lut[7+i]=lut[21+i]=0;
-            lut[14+i]=boost||i>=3?0:(0x206010u>>(8*i));
+            lut[14+i]=fly?(i?0:0x80):i>=3?0:(0x206010u>>(8*i));
         }
         char t[4];
         FORMAT(t,"%02u",U->minute);compressed_ink(DIGITS,139,1,t,2);
@@ -175,13 +175,13 @@ unsigned product_refresh(void){
             CMD1(0x4e,0);CMD2(0x4f,0,0);CMD(plane?0x26:0x24);
             for(unsigned gate=0;gate<250;gate++){
                 u8 row[16];for(unsigned j=0;j<16;j++){
-                    unsigned p=gate*16+j,mask=RR[p];if(boost)mask&=~BW[p];
+                    unsigned p=gate*16+j,mask=RR[p];
                     row[j]=plane?(mask&BW[p]):~mask;if(plane)RR[p]=0;
                 }
                 DATA(row,16);
             }
         }
-        return boost?2:1;
+        return fly?2:1;
     }
     return 0;
 }
@@ -194,10 +194,10 @@ unsigned product_finish(unsigned busy){
         CALL0(0x07fc3f68);CALL0(0x07fc40e8);CALL0(0x07fc4174);
         return 1; /* Keep polling, sleep disabled and generation uncommitted. */
     }
-    if(U->partial==2&&U->valid!=4){
+    if(U->pending&&U->partial&&U->valid!=4){
         U->valid=4;
         CALL0(0x07fc3f68);CALL0(0x07fc40e8);CALL0(0x07fc4174);
-        return 1; /* Commit only after the black-only boost also completes. */
+        return 1; /* Black and white compensation must both complete before commit. */
     }
     product_reminder_finish();product_album_finish();if(!U->pending)return 0;
     U->outside=U->pending_outside;U->red=U->pending_red;

@@ -1,0 +1,35 @@
+{
+  "firmware_id": "40059a32",
+  "native_init_and_frame_reload_executed": true,
+  "full_native_reloads": 7,
+  "changes": [
+    {
+      "minute": 6,
+      "balanced_black_polarity_frames": 0,
+      "balanced_white_polarity_frames": 0,
+      "extra_black_polarity_frames": 30,
+      "extra_white_polarity_frames": 0,
+      "extra_white_lut_hex": "00000000000000",
+      "generation_before_final_commit": 1
+    },
+    {
+      "minute": 5,
+      "balanced_black_polarity_frames": 0,
+      "balanced_white_polarity_frames": 0,
+      "extra_black_polarity_frames": 30,
+      "extra_white_polarity_frames": 0,
+      "extra_white_lut_hex": "00000000000000",
+      "generation_before_final_commit": 2
+    },
+    {
+      "minute": 6,
+      "balanced_black_polarity_frames": 0,
+      "balanced_white_polarity_frames": 0,
+      "extra_black_polarity_frames": 30,
+      "extra_white_polarity_frames": 0,
+      "extra_white_lut_hex": "00000000000000",
+      "generation_before_final_commit": 3
+    }
+  ],
+  "note": "Source-level polarity/frame accounting; not optical density, charge or a pigment simulator"
+}
