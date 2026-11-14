@@ -59,9 +59,9 @@ const ELinkProtocol = (() => {
         return {repeat_mask:b[4],check_minutes:b[5],duration_minutes:b[6],metadata_ready:b[7]!==255,next_due:v.getUint32(8,true),last_due:v.getUint32(12,true),utc_offset:v.getInt32(16,true)};
     }
     function settings(changes={}){
-        const defaults={mode:1,full_every:60,refresh_minutes:5,advertise_minutes:1,window_seconds:0,clock_timezone:"local"};
+        const defaults={mode:2,full_every:60,refresh_minutes:5,advertise_minutes:1,window_seconds:0,clock_timezone:"local"};
         if(!changes||typeof changes!=="object"||Object.keys(changes).some(k=>!Object.hasOwn(defaults,k)))throw Error("设置字段不合法");const c={...defaults,...changes};
-        int(c.mode,0,2,"刷新模式");int(c.full_every,1,60,"全刷间隔");int(c.refresh_minutes,1,60,"刷新分钟");int(c.advertise_minutes,1,240,"广播间隔");int(c.window_seconds,0,120,"连接窗口");if(c.window_seconds&&c.window_seconds<10)throw Error("窗口至少 10 秒");if(!["local","Europe/Amsterdam"].includes(c.clock_timezone))throw Error("时区不合法");if(c.mode===0)c.mode=1;return c;
+        int(c.mode,0,2,"刷新模式");int(c.full_every,1,60,"全刷间隔");int(c.refresh_minutes,1,60,"刷新分钟");int(c.advertise_minutes,1,240,"广播间隔");int(c.window_seconds,0,120,"连接窗口");if(c.window_seconds&&c.window_seconds<10)throw Error("窗口至少 10 秒");if(!["local","Europe/Amsterdam"].includes(c.clock_timezone))throw Error("时区不合法");if(c.mode===0)c.mode=2;return c;
     }
     function options(value={}){
         const d={repeat_mask:0,check_minutes:1,duration_minutes:5,utc_offset:-new Date().getTimezoneOffset()*60};
