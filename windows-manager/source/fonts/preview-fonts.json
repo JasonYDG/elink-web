@@ -1,5 +1,5 @@
 {
-  "purpose": "Original Fusion Pixel / Unifont bitmap sources; 12..20px actual-ink fitting without downsampling, original strokes and counters; larger glyphs remain integer-scaled and unchanged. Original font files unmodified.",
+  "purpose": "ELINK Screen Bold: native Terminus Bold bitmap ASCII; enlarged Fusion Pixel CJK with one-pixel horizontal emboldening; Unifont coverage fallback; no outline rasterization. Original font files unmodified.",
   "fusion": {
     "version": "2026.09.25",
     "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
@@ -44,5 +44,15 @@
     "local_sha256": "7633f5a016d4dd95e685a69633d818aabc4644c4b08e26bd35b1b30c45ed5dda",
     "license": "NotoSansSC/LICENSE.txt",
     "font_files_modified": false
+  },
+  "terminus": {
+    "version": "4.49.1",
+    "source": "https://sourceforge.net/projects/terminus-font/files/terminus-font-4.49/terminus-font-4.49.1.tar.gz/download",
+    "archive_sha256": "d961c1b781627bf417f9b340693d64fc219e0113ad3a3af1a3424c7aa373ef79",
+    "original_file": "ter-u14b.bdf",
+    "original_sha256": "00dd0c08c3fae274aa66161d89ffa900cf0b0efec0f114255188c1fb68a8b0da",
+    "local_file": "terminus-4.49.1-14b.bdf.gz",
+    "local_sha256": "358c97ee5e1117d0f360077ad202b06662ffa6d836447a5a8a2a739811484f23",
+    "license": "Terminus/OFL.txt"
   }
 }

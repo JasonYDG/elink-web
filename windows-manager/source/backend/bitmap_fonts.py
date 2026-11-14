@@ -1,8 +1,8 @@
-"""Fusion Pixel / Unifont bitmap glyphs, shared by host and device rendering."""
+"""ELINK Screen Bold bitmap cells, shared by host and device rendering."""
 import gzip,hashlib,json,sys
 from functools import lru_cache
 from pathlib import Path
-from PIL import Image,ImageDraw,ImageFont
+from PIL import Image,ImageDraw,ImageFont,ImageChops
 
 FONT_ROOT=(Path(sys._MEIPASS)/'source' if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[1])/'fonts'
 # Coverage threshold for the grey outline render. Lower values fill CJK counters at <=20px.
@@ -22,9 +22,9 @@ def row_mask(width,height,rows):
 def font_meta(name):
     return json.loads((FONT_ROOT/'preview-fonts.json').read_text('utf-8'))[name]
 
-@lru_cache(maxsize=2)
+@lru_cache(maxsize=3)
 def font_source(height):
-    name={12:'fusion',16:'unifont'}[height]
+    name={12:'fusion',14:'terminus',16:'unifont'}[height]
     meta=font_meta(name)
     raw=(FONT_ROOT/meta['local_file']).read_bytes()
     if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('字体哈希不一致：'+name)
@@ -33,7 +33,8 @@ def font_source(height):
 @lru_cache(maxsize=128)
 def fallback_cells(chars,height):
     wanted=set(chars);result={};lines=font_source(height)
-    if height==12:
+    if height in (12,14):
+        ascent=10 if height==12 else 12
         block=[]
         for line in lines:
             if line.startswith('STARTCHAR '):block=[]
@@ -43,9 +44,9 @@ def fallback_cells(chars,height):
             cp=int(props['ENCODING'])
             if chr(cp) not in wanted:continue
             advance=int(props['DWIDTH'].split()[0]);w,h,bx,by=map(int,props['BBX'].split())
-            glyph=row_mask(w,h,block[block.index('BITMAP')+1:-1]);cell=Image.new('1',(advance,12))
-            assert 0<=bx and bx+w<=advance and 0<=10-by-h and 10-by<=12
-            cell.paste(glyph,(bx,10-by-h));result[chr(cp)]=cell
+            glyph=row_mask(w,h,block[block.index('BITMAP')+1:-1]);cell=Image.new('1',(advance,height))
+            assert 0<=bx and bx+w<=advance and 0<=ascent-by-h and ascent-by<=height
+            cell.paste(glyph,(bx,ascent-by-h));result[chr(cp)]=cell
     else:
         for line in lines:
             code,bits=line.split(':');cp=int(code,16)
@@ -83,7 +84,8 @@ def cells(chars,height):
     if height<12:raise ValueError('点阵字号至少为12像素')
     native=12 if height in (12,14,15,24,28,44) else 16
     result={};scale=height//native;originals=fallback_cells(chars,native)
-    latin=(originals if native==12 else fallback_cells(''.join(ch for ch in chars if ord(ch)<128),12)) if height<=20 else {}
+    latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 else {}
+    cjk=fallback_cells(''.join(ch for ch in chars if ord(ch)>=0x2e80 and ch not in '\u3031\u3032'),12) if height<=20 else {}
     for ch,source in originals.items():
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
@@ -93,26 +95,32 @@ def cells(chars,height):
             cell=source.resize((source.width*zoom,source.height*zoom),Image.Resampling.NEAREST)
             width=27 if height==44 else 28 if ch==':' else 50
         if height<=20 and source.getbbox():
-            if ord(ch)<128:
+            if ch in latin:
                 source=latin[ch];box=source.getbbox()
-                # Fill the actual cap height; retain descenders and low punctuation.
-                cell=source.crop((0,min(2,box[1]),max(5,box[2]),max(10,box[3])))
-                width=max(8 if height in (12,16) else (height+2)//2,cell.width+2)
-                cell=cell.resize((max(cell.width,width-2),max(cell.height,height-1)),Image.Resampling.NEAREST)
-                x=1 if height>=16 else 0
+                # Native bold stems stay two pixels wide; retain descenders and punctuation.
+                cell=source.crop((0,min(2,box[1]),8,max(12,box[3])))
+                width=8 if height in (12,16) else max(8,(height+2)//2)
+                cell=cell.resize((8,min(height,max(cell.height,height-1))),Image.Resampling.NEAREST)
+                x=(width-8)//2
             else:
                 target=height-1 if height not in (12,16) else native
                 cell=source.resize((source.width*target//native,target),Image.Resampling.NEAREST)
                 width=max(width,cell.width+(height>12 and height!=16));x=(width-cell.width)//2
+                if ch in cjk and cjk[ch].width==12 and source.width>=12:
+                    # Enlarge the coarser native grid before adding weight, retaining open counters.
+                    target_width=max(12,height-2 if height>=16 else height-1)
+                    cell=cjk[ch].resize((target_width,max(12,height-1)),Image.Resampling.NEAREST)
+                    x=(width-cell.width)//2
             assert x+cell.width<=width and cell.height<=height
-            out=Image.new('1',(width,height));out.paste(cell,(x,(height-cell.height)//2));result[ch]=out
+            out=Image.new('1',(width,height));out.paste(cell,(x,(height-cell.height)//2))
+            result[ch]=out if ch in latin else ImageChops.logical_or(out,out.crop((-1,0,width-1,height)))
         else:
             assert cell.width<=width and cell.height<=height
             out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
     return result
 
 def text_mask(value,size=12,bold_digits=False):
-    # Compatibility flag: retain source strokes without synthetic bolding.
+    # Compatibility flag: weight is already baked into the shared cells.
     if not value:return Image.new('1',(1,1))
     glyphs=cells(''.join(sorted(set(value))),size)
     missing=set(value)-glyphs.keys()

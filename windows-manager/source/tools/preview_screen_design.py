@@ -1,23 +1,20 @@
 """Export exact compiled-binary frames and the shared host notice renderer."""
-import os,sys,struct,json,hashlib,io,calendar,zlib
+import os,sys,struct,json,zlib
 from pathlib import Path
 from datetime import datetime
-from PIL import Image
 ROOT=Path(__file__).resolve().parents[2]
-os.environ.setdefault('ELINK_TEST_FIRMWARE_DIR',str(ROOT/'build/firmware-1.5.2'))
 sys.path[:0]=[str(ROOT/'source/tests'),str(ROOT/'source/backend'),str(ROOT/'source/tools')]
 from test_product_ui import ProductMachine,BASE,STATE,END,FIRMWARE_DIR
 from unicorn.arm_const import UC_ARM_REG_R0,UC_ARM_REG_LR,UC_ARM_REG_PC
-from preview_firmware import frame_image
+from preview_firmware import export_frame,verify_firmware
 from lunar import lunar_fields
-from render import quantize,render
-from bitmap_fonts import paint
-OUT=Path(os.environ.get('ELINK_PREVIEW_OUT',ROOT/'source/opendesign/mockups/elink-screen-design'))
+from render import render
+OUT=Path(os.environ.get('ELINK_PREVIEW_OUT',ROOT/'build/native-pixel-preview'))
 MAC='18:BC:5A:6B:91:A7'
 
-def native_page(view,day=datetime(2026,10,6,6,55),nl=False):
+def native_page(view,day=datetime(2026,11,14,6,55),nl=False,adc=1705):
     m=ProductMachine();m.uc.mem_write(BASE+0x10520,bytes.fromhex(MAC.replace(':',''))[::-1])
-    m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1650))
+    m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',adc))
     if view=='default':m.run(BASE+0x2224)
     else:
         m.cmd(b'\x9f'+bytes([int(nl),int(nl)]))
@@ -46,31 +43,48 @@ def reminder_page():
     m.cmd(b'\xb9');m.finish()
     return bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
 
+def photo_calendar_page():
+    from test_photo_calendar_155 import Photo155
+    from builtin_gallery import native
+    from protocol import image_packets
+    m=Photo155().ready(datetime(2026,11,14).date())
+    frame=native('image/calendar/19-wind-and-waves.png')['frame']
+    for packet in list(image_packets(frame,55,128))[:-1]:m.cmd(packet)
+    m.cmd(b'\x9c\x03');m.finish()
+    return bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
+
+def notice_page():
+    from protocol import image_packets
+    m=ProductMachine();m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1705))
+    frame=render({'kind':'notice','title':'任务提醒','body':'你的日程','footer':'2026-11-14 星期六'},battery_percent=100)['frame']
+    for packet in image_packets(frame,56,128):m.cmd(packet)
+    m.finish()
+    return bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
+
 def main():
+    if not os.environ.get('ELINK_TEST_FIRMWARE_DIR') or not os.environ.get('ELINK_PREVIEW_UPDATE_PACKAGE'):
+        raise SystemExit('Set ELINK_TEST_FIRMWARE_DIR and ELINK_PREVIEW_UPDATE_PACKAGE explicitly; no legacy build fallback')
+    provenance=verify_firmware(FIRMWARE_DIR,os.environ['ELINK_PREVIEW_UPDATE_PACKAGE'])
+    if OUT.exists() and any(OUT.iterdir()):raise SystemExit('Use a new empty output directory to exclude stale previews')
     OUT.mkdir(parents=True,exist_ok=True)
     frames={name:native_page(name) for name in ('default','clock','calendar')}
     frames['clock-netherlands']=native_page('clock',datetime(2026,10,5,23,55),True)
     frames['calendar-six-rows']=native_page('calendar',datetime(2026,8,26,6,55))
     frames['calendar-leap-month']=native_page('calendar',datetime(2025,8,10,6,55))
     frames['reminders']=reminder_page()
-    frames['notice']=render({'kind':'notice','title':'任务提醒','body':'你的日程','footer':'2026-10-06 星期二'},battery_percent=67)['frame']
+    frames['photo-calendar']=photo_calendar_page()
+    frames['notice']=notice_page()
     records={}
     for name,frame in frames.items():
-        im=frame_image(frame);r=quantize(im)
-        assert r['frame']==frame
-        (OUT/f'{name}.png').write_bytes(r['png']);(OUT/f'{name}.bwr.bin').write_bytes(frame)
-        im.resize((1000,488),Image.Resampling.NEAREST).save(OUT/f'{name}-4x.png')
-        records[name]={'sha256':r['sha256'],'frame_bytes':len(frame),'png_matches_frame':True,'red_pixels':r['red_pixels']}
-        if name in ('default','clock','calendar','reminders'):
-            (ROOT/'source/opendesign/mockups/elink-manager'/f'page-{name}.png').write_bytes(r['png'])
-            (FIRMWARE_DIR/({'default':'boot'}.get(name,name)+'-preview.png')).write_bytes(r['png'])
-    sheet=Image.new('RGB',(1076,654),(245,240,231))
-    for i,(name,label) in enumerate((('default','默认界面'),('clock','时钟界面'),('calendar','日历界面'),('notice','任务提醒'))):
-        x,y=24+i%2*528,24+i//2*321
-        paint(sheet,label,(x,y),24);sheet.paste(frame_image(frames[name]).resize((500,244),Image.Resampling.NEAREST),(x,y+41))
-    sheet.save(OUT/'all-pages.png')
-    meta=json.loads((FIRMWARE_DIR/'manifest.json').read_text('utf-8'))
-    proof={'status':'compiled binary + shared host renderer; optical result unverified','version':meta['version'],'firmware_id':meta['firmware_id'],'font':meta['font_sources'],'sample_date':'2026-10-06','sample_mac':MAC,'sample_battery_percent':67,'clock_default_refresh_minutes':5,'pages':records}
+        records[name]=export_frame(OUT,name,frame)
+    html='<!doctype html><meta charset="utf-8"><title>250×122 原始点阵</title><style>body{font:16px sans-serif}figure{margin:24px 0}img{display:block;width:250px!important;height:122px!important;max-width:none;image-rendering:pixelated}</style><h1>250×122 原始点阵</h1><p>每张 PNG 都是固件模拟器帧缓冲逐位解码。无缩放、无补画、无字体重绘。显示器物理尺寸和墨水显影不由此模拟。</p>'
+    for name in frames:
+        html+=f'<figure><figcaption>{name} · 250×122 · 1×</figcaption><img src="{name}.png" width="250" height="122" alt="{name}"><a href="{name}.png">原始 PNG</a> · <a href="{name}.bwr.bin">8000 字节点阵</a></figure>'
+    (OUT/'index.html').write_text(html,encoding='utf-8')
+    proof={'status':'compiled application RAM; optical result unverified',**provenance,'stored_geometry':[128,250],
+           'visible_geometry':[250,122],'unused_source_bits_per_gate':6,'simulation_only':True,'physical_device_access':False,
+           'default_clock_calendar_fixture':'2026-11-14 06:55, battery 100%; reminders use 2026-10-06 fixture',
+           'pages':records}
     (OUT/'proof.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2),'utf-8')
     print(json.dumps(proof,ensure_ascii=False))
 if __name__=='__main__':main()

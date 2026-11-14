@@ -43,19 +43,24 @@ class FontReadability(unittest.TestCase):
         for n in range(17):self.assertLessEqual(36+text_mask(str(n)+'天后',12).width,76)
         self.assertLessEqual(208+text_mask('待提醒',12).width,250)
         self.assertLessEqual(text_mask('早餐后服…',16).width,72)
+        for size in (12,14,16,18,20):
+            for cell in cells('ｱ｡…，龘',size).values():
+                self.assertEqual(cell.height,size)
+                box=cell.getbbox()
+                if box:self.assertLessEqual(box[2],cell.width)
 
-    def test_small_ascii_is_only_enlarged_source_pixels_without_added_ink(self):
+    def test_small_ascii_uses_the_native_bold_bitmap_source(self):
         for size in (12,14,15,16,17,18,20):
-            original=fallback_cells('0123456789:/%AM',12)
+            original=fallback_cells('0123456789:/%AM',14)
             for ch,cell in cells(''.join(original),size).items():
                 source=original[ch];box=source.getbbox()
-                crop=source.crop((0,min(2,box[1]),max(5,box[2]),max(10,box[3])))
-                enlarged=crop.resize((max(crop.width,cell.width-2),max(crop.height,size-1)),Image.Resampling.NEAREST)
-                expected=Image.new('1',cell.size);expected.paste(enlarged,(1 if size>=16 else 0,(size-enlarged.height)//2))
+                crop=source.crop((0,min(2,box[1]),8,max(12,box[3])))
+                enlarged=crop.resize((8,min(size,max(crop.height,size-1))),Image.Resampling.NEAREST)
+                expected=Image.new('1',cell.size);expected.paste(enlarged,((cell.width-8)//2,(size-enlarged.height)//2))
                 self.assertEqual(cell.tobytes(),expected.tobytes(),(size,ch))
 
-    def test_every_native_small_glyph_keeps_its_counters_and_fits_its_original_slot(self):
-        old=(ROOT/'build/firmware-1.5.14-repro/elink-bwr-1.5.14-app.bin').read_bytes()
+    def test_compiled_bold_glyphs_fit_their_slots_and_keep_critical_counters_open(self):
+        old=(ROOT/'build/firmware-1.5.15-release/elink-bwr-1.5.15-app.bin').read_bytes()
         import json
         meta=json.loads((FIRMWARE_DIR/'manifest.json').read_text('utf-8'))
         current=(FIRMWARE_DIR/f'elink-bwr-{meta["version"]}-app.bin').read_bytes()
@@ -67,10 +72,27 @@ class FontReadability(unittest.TestCase):
             for ch in before:
                 self.assertEqual(compiled[ch].size,after[ch].size,(height,ch))
                 self.assertEqual(compiled[ch].tobytes(),after[ch].tobytes(),(height,ch))
-                a,b=counters(before[ch]),counters(after[ch])
-                self.assertEqual(len(a),len(b),(height,ch))
-                self.assertLessEqual(b.count(1),a.count(1),(height,ch))
-                self.assertGreaterEqual(sum(bool(p) for p in after[ch].get_flattened_data()),sum(bool(p) for p in before[ch].get_flattened_data()),(height,ch))
+            ink=lambda glyphs:sum(sum(bool(p) for p in cell.get_flattened_data()) for cell in glyphs.values())
+            self.assertGreater(ink(after),ink(before)*1.25,height)
+            for ch,minimum in (('0',1),('8',2),('B',2),('日',2),('月',1)):
+                if ch in after:self.assertGreaterEqual(len(counters(after[ch])),minimum,(height,ch))
+
+    def test_numeric_and_native_cjk_vertical_strokes_are_two_pixels_wide(self):
+        from product_build import REQUIRED,SMALL_REQUIRED
+        for size in (12,14,15,16,17,18,20):
+            chars='0123456789'
+            if size==12:chars+=''.join(ch for ch in SMALL_REQUIRED if ord(ch)>127)
+            if size==14:chars+='星期日一二三四五六'
+            if size==18:chars+=''.join(ch for ch in REQUIRED if ord(ch)>127)
+            if size==16:chars+='早餐后服药今日任务提醒'
+            for ch,cell in cells(chars,size).items():
+                for y in range(cell.height):
+                    run=0
+                    for x in range(cell.width+1):
+                        if x<cell.width and cell.getpixel((x,y)):run+=1
+                        elif run:
+                            self.assertGreaterEqual(run,2,(size,ch,x,y))
+                            run=0
 
     def test_large_digit_tables_and_all_code_remain_identical_to_1514(self):
         old=(ROOT/'build/firmware-1.5.14-repro/elink-bwr-1.5.14-app.bin').read_bytes()

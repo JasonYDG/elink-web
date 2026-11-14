@@ -25,7 +25,7 @@ def characters(size):
 
 
 def build():
-    manifest = {'format': 'ELF1', 'pixel_sources': ['fusion', 'unifont'], 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
+    manifest = {'format': 'ELF1', 'pixel_sources': ['terminus', 'fusion', 'unifont'], 'outline_rasterization': False, 'source': json.loads((HOST / 'fonts/preview-fonts.json').read_text('utf-8')), 'sizes': {}}
     for size in SIZES:
         glyphs = cells('0123456789:' if size == 64 else characters(size), size)
         index, pixels = bytearray(), bytearray()
