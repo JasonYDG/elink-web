@@ -1,0 +1,86 @@
+{
+  "tests": 20,
+  "local_timezone": "Asia/Singapore",
+  "cases": [
+    {
+      "zone": "local",
+      "time": "2026-11-14T03:59:00Z",
+      "day": 14,
+      "hour": 11,
+      "minute": 59,
+      "pass": true
+    },
+    {
+      "zone": "local",
+      "time": "2026-11-14T04:00:00Z",
+      "day": 14,
+      "hour": 12,
+      "minute": 0,
+      "pass": true
+    },
+    {
+      "zone": "local",
+      "time": "2026-11-14T15:59:00Z",
+      "day": 14,
+      "hour": 23,
+      "minute": 59,
+      "pass": true
+    },
+    {
+      "zone": "local",
+      "time": "2026-11-14T16:00:00Z",
+      "day": 15,
+      "hour": 0,
+      "minute": 0,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-11-14T10:59:00Z",
+      "day": 14,
+      "hour": 11,
+      "minute": 59,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-11-14T11:00:00Z",
+      "day": 14,
+      "hour": 12,
+      "minute": 0,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-11-14T22:59:00Z",
+      "day": 14,
+      "hour": 23,
+      "minute": 59,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-11-14T23:00:00Z",
+      "day": 15,
+      "hour": 0,
+      "minute": 0,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-06-14T21:59:00Z",
+      "day": 14,
+      "hour": 23,
+      "minute": 59,
+      "pass": true
+    },
+    {
+      "zone": "Europe/Amsterdam",
+      "time": "2026-06-14T22:00:00Z",
+      "day": 15,
+      "hour": 0,
+      "minute": 0,
+      "pass": true
+    }
+  ]
+}
