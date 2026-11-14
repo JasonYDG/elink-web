@@ -1,12 +1,13 @@
 {
   "format": "ELF1",
   "pixel_sources": [
+    "terminus",
     "fusion",
     "unifont"
   ],
   "outline_rasterization": false,
   "source": {
-    "purpose": "Original Fusion Pixel / Unifont bitmap sources; 12..20px actual-ink fitting without downsampling, original strokes and counters; larger glyphs remain integer-scaled and unchanged. Original font files unmodified.",
+    "purpose": "ELINK Screen Bold: native Terminus Bold bitmap ASCII; enlarged Fusion Pixel CJK with one-pixel horizontal emboldening; Unifont coverage fallback; no outline rasterization. Original font files unmodified.",
     "fusion": {
       "version": "2026.09.25",
       "source": "https://github.com/TakWolf/fusion-pixel-font/releases/tag/2026.09.25",
@@ -51,6 +52,16 @@
       "local_sha256": "7633f5a016d4dd95e685a69633d818aabc4644c4b08e26bd35b1b30c45ed5dda",
       "license": "NotoSansSC/LICENSE.txt",
       "font_files_modified": false
+    },
+    "terminus": {
+      "version": "4.49.1",
+      "source": "https://sourceforge.net/projects/terminus-font/files/terminus-font-4.49/terminus-font-4.49.1.tar.gz/download",
+      "archive_sha256": "d961c1b781627bf417f9b340693d64fc219e0113ad3a3af1a3424c7aa373ef79",
+      "original_file": "ter-u14b.bdf",
+      "original_sha256": "00dd0c08c3fae274aa66161d89ffa900cf0b0efec0f114255188c1fb68a8b0da",
+      "local_file": "terminus-4.49.1-14b.bdf.gz",
+      "local_sha256": "358c97ee5e1117d0f360077ad202b06662ffa6d836447a5a8a2a739811484f23",
+      "license": "Terminus/OFL.txt"
     }
   },
   "sizes": {
@@ -58,37 +69,37 @@
       "file": "text-12.bin",
       "glyphs": 36979,
       "bytes": 1207527,
-      "sha256": "77bd6a160b023b1814479a169b5490491622dab06ccc2da1d53ae5cf89b9f3e8"
+      "sha256": "6e438fc58f35c45c57a4e9bb74317316549e920092772eaf9f00c75debdafb60"
     },
     "14": {
       "file": "text-14.bin",
       "glyphs": 36979,
       "bytes": 1353367,
-      "sha256": "531df70ebf58ca6df893d6b541c22add094c723d0b3950553494ac257064285b"
+      "sha256": "2317aa8d1b7984ca156342a4152c287007a8d0f394fd2c2917b86d373b94ff92"
     },
     "16": {
       "file": "text-16.bin",
       "glyphs": 57021,
       "bytes": 2221361,
-      "sha256": "9df6719af42134a8a0249258228040e873e2aad69b957289f379ebaf8f220a32"
+      "sha256": "9b294e2057314eaf604be4fd521619bf84624bf36d13fa205d00ffb70470ff4e"
     },
     "17": {
       "file": "text-17.bin",
       "glyphs": 57021,
       "bytes": 3297206,
-      "sha256": "8019a8ee10691fac6a831b64011ba06b2a740a882660e3df41d613caf7b3feff"
+      "sha256": "5ff8c9cae7a3d4349230aeeea917f8d2948810ea64a350a8c0b757bc42dcfcda"
     },
     "18": {
       "file": "text-18.bin",
       "glyphs": 57021,
       "bytes": 3461259,
-      "sha256": "e6aab5e379d343afba96f3c5fd904700b639800044deabc7aa93ac9d28996182"
+      "sha256": "bb5d3c862ce84521f2161adf1b018ef28f2169c98ccdbeed99ac50bf8c9f6f3f"
     },
     "20": {
       "file": "text-20.bin",
       "glyphs": 57021,
       "bytes": 3788821,
-      "sha256": "5ca92eaf7c8557d0cd45a67ddf7f36f73baa0e5aaa309072fcbffabca1c9e17a"
+      "sha256": "27e00c32fc8a1c9da6136efca80e2927ccd33d722ab130e2a3c7f1d650a71d32"
     },
     "24": {
       "file": "text-24.bin",
