@@ -79,22 +79,39 @@ def has_glyph(ch,height):
     font=noto_font(height)
     return bytes(font.getmask(ch,mode='1'))!=bytes(font.getmask('\U0010fffd',mode='1')) or ch==' '
 
+def lcd_cell(ch):
+    """Fixed 50x66 seven-segment bitmap, without font outlines or antialiasing."""
+    cell=Image.new('1',(28 if ch==':' else 50,66));draw=ImageDraw.Draw(cell)
+    if ch==':':
+        for y in (14,38):draw.rectangle((10,y,17,y+6),fill=1)
+        return cell
+    horizontal=lambda y:((12,y),(37,y),(40,y+3),(37,y+5),(12,y+5),(9,y+3))
+    vertical=lambda x,y:((x+3,y),(x+5,y+2),(x+5,y+16),(x+3,y+18),(x,y+16),(x,y+2))
+    segments=(horizontal(3),vertical(39,10),vertical(39,37),horizontal(57),vertical(5,37),vertical(5,10),horizontal(30))
+    bits=(0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f)[int(ch)]
+    for i,points in enumerate(segments):
+        if bits&(1<<i):draw.polygon(points,fill=1)
+    return cell
+
 @lru_cache(maxsize=256)
 def cells(chars,height):
     if height<12:raise ValueError('点阵字号至少为12像素')
     native=12 if height in (12,14,15,24,28,44) else 16
     result={};scale=height//native;originals=fallback_cells(chars,native)
-    latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 else {}
+    latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 or height==40 else {}
+    digits=fallback_cells(''.join(ch for ch in chars if ch in '0123456789'),12) if height==18 else {}
     cjk=fallback_cells(''.join(ch for ch in chars if ord(ch)>=0x2e80 and ch not in '\u3031\u3032'),12) if height<=20 else {}
     for ch,source in originals.items():
+        if height==66 and ch in '0123456789:':
+            result[ch]=lcd_cell(ch);continue
         cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
         width=source.width*height//native
-        if height in (44,66) and ch in '0123456789:':
-            # Preserve the photo/clock column advances while enlarging whole source pixels.
-            zoom=4 if height==44 else 6;source=source.crop(source.getbbox())
+        if height==44 and ch in '0123456789':
+            # Preserve photo date columns while enlarging whole source pixels.
+            zoom=4;source=source.crop(source.getbbox())
             cell=source.resize((source.width*zoom,source.height*zoom),Image.Resampling.NEAREST)
-            width=27 if height==44 else 28 if ch==':' else 50
-        if height<=20 and source.getbbox():
+            width=27
+        if (height<=20 or (height==40 and ch in latin)) and source.getbbox():
             if ch in latin:
                 source=latin[ch];box=source.getbbox()
                 # Native bold stems stay two pixels wide; retain descenders and punctuation.
@@ -103,8 +120,13 @@ def cells(chars,height):
                 # Calendar days need three blank rows and two columns between paired digits.
                 if height==15:width=9
                 ink_height=12 if height==15 else min(height,max(cell.height,height-1))
-                cell=cell.resize((8,ink_height),Image.Resampling.NEAREST)
+                if height==40:width=22;ink_height=24
+                cell=cell.resize((20 if height==40 else 8,ink_height),Image.Resampling.NEAREST)
+                if height==18 and ch.isdigit():
+                    # Integer-scaled Fusion digits balance the 18px CJK countdown labels.
+                    digit=digits[ch];cell=digit.crop(digit.getbbox()).resize((10,16),Image.Resampling.NEAREST);width=12
                 x=1 if height==15 else (width-8)//2
+                if height in (18,40):x=(width-cell.width)//2
             else:
                 target=height-1 if height not in (12,16) else native
                 cell=source.resize((source.width*target//native,target),Image.Resampling.NEAREST)
@@ -116,7 +138,13 @@ def cells(chars,height):
                     x=(width-cell.width)//2
             assert x+cell.width<=width and cell.height<=height
             out=Image.new('1',(width,height));out.paste(cell,(x,(height-cell.height)//2))
-            result[ch]=out if ch in latin else ImageChops.logical_or(out,out.crop((-1,0,width-1,height)))
+            if ch not in latin:
+                out=ImageChops.logical_or(out,out.crop((-1,0,width-1,height)))
+                if height==18 and out.getbbox():
+                    # Thicken horizontal strokes inside the existing ink box, preserving line bounds.
+                    box=out.getbbox();ink=out.crop(box)
+                    out.paste(ImageChops.logical_or(ink,ink.crop((0,-1,ink.width,ink.height-1))),box[:2])
+            result[ch]=out
         else:
             assert cell.width<=width and cell.height<=height
             out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
@@ -149,8 +177,8 @@ def status_icon(im,x=194,y=4,percent=None):
         if type(percent)!=int or not 0<=percent<=100:raise ValueError('电量须为 0..100')
         fill=(percent*11+50)//100
         if fill:d.rectangle((x+3,y+3,x+2+fill,y+7),fill='black')
-    # Same cell origin as the firmware label text(x+24,y-2), side bearings included.
-    im.paste('black',(x+24,y-2),text_mask('--%' if percent is None else str(percent)+'%',12))
+    # The 11px ink cap aligns to both horizontal edges of the 11px battery body.
+    im.paste('black',(x+24,y),text_mask('--%' if percent is None else str(percent)+'%',12))
 
 def native_font(chars,height,bold_digits=False):
     """Original u16 table / five-byte glyph-header format; no new device renderer."""

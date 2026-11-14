@@ -18,7 +18,7 @@ typedef unsigned int u32;
 #define CMD ((void (*)(int))0x07fc3be9)
 #define DATA ((void (*)(const u8 *,int))0x07fc3cf5)
 #define DIV ((u32 (*)(u32,u32))0x07f1dfb9)
-/* Fusion/Unifont pixel tables; 44px photo and 66px clock use integer zoom + lossless run coding. */
+/* Native bitmap tables; integer-scaled 44px photo and seven-segment 66px clock are run-coded. */
 #define SMALL 0x07fc7eb4
 #define DATE 0x07fc90a4
 #define MAIN 0x07fca48c

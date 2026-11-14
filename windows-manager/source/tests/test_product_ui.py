@@ -104,7 +104,7 @@ class ProductUi(unittest.TestCase):
         m=ProductMachine();m.run(BASE+0x2224);m.finish()
         frame=bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
         self.assertTrue(frame_matches(frame,'BWR 2.13 / 250x122',18,19,61),'Specification must use the 18px table')
-        self.assertTrue(frame_matches(frame,'V'+m.meta['version'],12,148,39,'red'),'Version must be complete red 12px glyphs')
+        self.assertTrue(frame_matches(frame,'V'+m.meta['version'],12,148,33,'red'),'Version must be complete red 12px glyphs')
         m.draw(force=128);m.finish()
         frame=bytes(m.uc.mem_read(BASE+0xdedc,4000))
         self.assertTrue(frame_matches(frame,'农历',18,8,103),'Clock footer must use complete 18px glyphs')
@@ -415,6 +415,6 @@ class ProductUi(unittest.TestCase):
             for row,bits in enumerate((48,56,60,567,1843,1023,252,120,252,1023,1843,567,60,56,48)):
                 for col in range(11):
                     if bits&(1024>>col):self.assertFalse(frame[(249-(x-18+col))*16+(y-2+row)//8]&(128>>((y-2+row)%8)))
-            if label:self.assertIn((x+24,y-2,b'100%'),m.draws)
+            if label:self.assertIn((x+24,y,b'100%'),m.draws)
 
 if __name__=='__main__':unittest.main()

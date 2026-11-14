@@ -23,12 +23,13 @@ class PixelFonts(unittest.TestCase):
                 value='Aa09/%…今日天后农历星期'
                 source=fallback_cells(value,native)
                 for ch,actual in cells(value,height).items():
+                    if height==40 and ch.isascii():continue # Boot title has its own bold-cap regression.
                     original=source[ch];zoom=original.resize((original.width*scale,native*scale),Image.Resampling.NEAREST)
                     width=original.width*height//native
                     expected=Image.new('1',(width,height));expected.paste(zoom,((width-zoom.width)//2,(height-zoom.height)//2))
                     self.assertEqual(actual.size,expected.size)
                     self.assertEqual(actual.tobytes(),expected.tobytes(),(height,ch))
-            for height,native,scale,width in ((44,12,4,27),(66,16,6,50)):
+            for height,native,scale,width in ((44,12,4,27),):
                 for ch in '0123456789':
                     original=fallback_cells(ch,native)[ch];original=original.crop(original.getbbox())
                     zoom=original.resize((original.width*scale,original.height*scale),Image.Resampling.NEAREST)
@@ -48,7 +49,7 @@ class PixelFonts(unittest.TestCase):
                     self.assertEqual(not bool(actual[pos]&bit),bool(expected.getpixel((x,y))),(hour,minute,x,y))
             m.finish()
 
-    def test_only_font_asset_version_and_id_bytes_change_from_verified_1513(self):
+    def test_only_font_assets_two_ui_functions_version_and_id_change_from_verified_1513(self):
         baseline=ROOT/'build/firmware-1.5.13-font-baseline'
         before=json.loads((baseline/'manifest.json').read_text());after=json.loads((FIRMWARE_DIR/'manifest.json').read_text())
         old=(baseline/'elink-bwr-1.5.13-app.bin').read_bytes();new=(FIRMWARE_DIR/f'elink-bwr-{after["version"]}-app.bin').read_bytes()
@@ -59,11 +60,14 @@ class PixelFonts(unittest.TestCase):
         ranges=pixel_asset_ranges(after);version=old.index(b'V1.5.13\0')
         self.assertEqual(new[version:version+8],('V'+after['version']+'\0').encode())
         ranges.extend(((version,version+8),(int(after['state_file_offset'],16)+28,int(after['state_file_offset'],16)+32)))
-        for offset,(a,b) in enumerate(zip(old,new)):
-            if a!=b:self.assertTrue(any(lo<=offset<hi for lo,hi in ranges),hex(offset))
         functions=json.loads((baseline/'product-functions.json').read_text())
         self.assertEqual(functions,json.loads((FIRMWARE_DIR/'product-functions.json').read_text()))
+        for name in ('product_battery','product_boot_battery'):
+            f=functions[name];ranges.append((f['address']-BASE,f['address']-BASE+f['bytes']))
+        for offset,(a,b) in enumerate(zip(old,new)):
+            if a!=b:self.assertTrue(any(lo<=offset<hi for lo,hi in ranges),hex(offset))
         for name,function in functions.items():
+            if name in ('product_battery','product_boot_battery'):continue
             offset=function['address']-BASE;size=function['bytes']
             self.assertEqual(old[offset:offset+size],new[offset:offset+size],name)
 

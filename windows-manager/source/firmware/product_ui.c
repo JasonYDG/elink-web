@@ -59,19 +59,21 @@ u32 product_battery_percent(void){
 }
 __attribute__((noinline)) void product_battery(int x,int y,int label){
     u32 p=product_battery_percent();char t[8];
+    /* Keep the following UI entry points at their verified native hook addresses. */
+    __asm__ volatile("nop\nnop");
     /* Bluetooth mark identifies radio capability, not an active connection. */
     static const u16 bt[15]={48,56,60,567,1843,1023,252,120,252,1023,1843,567,60,56,48};
     for(int j=0;j<15;j++)for(int i=0;i<11;i++)if(bt[j]&(1024>>i))pixel(x-18+i,y-2+j,0);
     for(int j=0;j<11;j++)for(int i=0;i<17;i++)if(j<2||j>8||i<2||i>14)pixel(x+i,y+j,0);
     for(int j=3;j<8;j++)for(int i=17;i<19;i++)pixel(x+i,y+j,0);
     if(p!=255)for(unsigned i=0;i<DIV(p*11+50,100);i++)for(int j=3;j<8;j++)pixel(x+3+i,y+j,0);
-    if(label){font(SMALL);if(p==255)text(x+24,y-2,"--%",0);
-        else {FORMAT(t,"%u%%",p);text(x+24,y-2,t,0);}}
+    if(label){font(SMALL);const char *value="--%";
+        if(p!=255){FORMAT(t,"%u%%",p);value=t;}text(x+24,y,value,0);}
 }
 /* Boot text is drawn from the font tables: the RLE background has no room for it. */
 void product_boot_battery(void){
     product_album_init();
-    font(MAIN);text(19,61,"BWR 2.13 / 250x122",0);product_ink(SMALL,148,39,BOOT_VERSION,1);product_battery(194,89,1);
+    font(MAIN);text(19,61,"BWR 2.13 / 250x122",0);product_ink(SMALL,148,33,BOOT_VERSION,1);product_battery(194,89,1);
 }
 static unsigned month_days(unsigned y,unsigned m){
     static const u8 days[12]={31,28,31,30,31,30,31,31,30,31,30,31};

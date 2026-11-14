@@ -33,6 +33,9 @@ test("photo-calendar glyphs match the device host for term days, leap dates and 
 test("battery refresh changes only its reserved rectangle and uses the fixed 12px glyphs",async()=>{
     const {renderer}=harness(),item=fixtures.frames[0],before=await renderer.render(item.spec),after=await renderer.noticeBattery(before.png,51),direct=await renderer.render(item.spec,51);
     assert.equal(after.frame,direct.frame);const a=P.pixels(P.decode64(before.frame)),b=P.pixels(P.decode64(after.frame));for(let y=0;y<122;y++)for(let x=0;x<250;x++)if(x<176||y<8||y>=23){const offset=(y*250+x)*4;assert.deepEqual(a.subarray(offset,offset+4),b.subarray(offset,offset+4));}
+    for(const percent of [null,100]){const pixels=P.pixels(P.decode64((await renderer.render(item.spec,percent)).frame)),ys=[];
+        for(let y=8;y<23;y++)for(let x=218;x<250;x++)if(pixels[(y*250+x)*4]===0)ys.push(y);
+        assert.deepEqual([Math.min(...ys),Math.max(...ys)],[10,20],"Label ink must share the battery body's top and bottom");}
 });
 
 test("fonts are cached across concurrent requests and failed loads can be retried",async()=>{

@@ -90,7 +90,7 @@ def identity_preview(im,app,address,version):
                         draw.point((x+bx+col,y+by+row),fill=fill)
             x+=advance
     put(0xa48c,19,61,'BWR 2.13 / 250x122','black')
-    put(0x7eb4,148,39,'V'+version.split('-')[0],(190,0,0))
+    put(0x7eb4,148,33,'V'+version.split('-')[0],(190,0,0))
     put(0x7eb4,20,87,address,'black')
     from bitmap_fonts import status_icon
     status_icon(im,194,89)
@@ -297,7 +297,7 @@ def main():
           'product_symbols':{name:hex(address) for name,address in product.items()},'product_elf_sha256':elf_hash,
           'product_regions':{name:{'address':hex(address),'bytes':len(raw),'sha256':sha(raw)} for name,(address,raw) in regions.items()},
           'bold_font_bytes':len(font_data),'bold_font_sha256':sha(font_data),
-          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'ELINK Screen Bold: native Terminus Bold ASCII, enlarged Fusion Pixel CJK with horizontal bitmap weight, Unifont coverage fallback; 12..20px; unchanged integer-scaled 44px photo and 66px clock; no outlines',
+          'small_font_bytes':len(small_data),'small_font_sha256':sha(small_data),'font_sources':'ELINK Screen Bold: Terminus Bold ASCII and 24px boot cap; 18px CJK strengthened on both axes with integer-scaled Fusion digits; Unifont fallback; unchanged 44px photo; fixed 66px seven-segment clock bitmaps; no outlines',
           'clock_default_refresh_minutes':5,'clock_refresh_alignment':'local wall-clock minute modulo interval','clock_timezone':'local / Europe/Amsterdam with retained DST state',
           'minute_window':{'logical':[138,24,240,95],'native_gates':[9,111],'source_bytes':[3,11],'outside_mask':'R=1, LUT2/3 neutral'},
           'panel':'DA14585 five-pad BWR 250x122','default_refresh':'full',

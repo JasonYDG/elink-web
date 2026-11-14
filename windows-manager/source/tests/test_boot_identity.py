@@ -22,7 +22,7 @@ class BootIdentity(unittest.TestCase):
             m.run(BASE+0x2224)
             self.assertEqual(m.uc.reg_read(UC_ARM_REG_PC),END)
             self.assertEqual(m.uc.reg_read(UC_ARM_REG_SP),BASE+0x1d000)
-            self.assertEqual(draws,[(19,61,b'BWR 2.13 / 250x122'),(218,87,b'--%'),(20,87,address.encode())])
+            self.assertEqual(draws,[(19,61,b'BWR 2.13 / 250x122'),(218,89,b'--%'),(20,87,address.encode())])
             for addr,guard in ((0xdedc-8,b'guard123'),(0xdedc+4000,b'guard456'),(0xf15c-8,b'guard789'),(0xf15c+4000,b'guardabc')):
                 self.assertEqual(bytes(m.uc.mem_read(BASE+addr,8)),guard)
             frames.append(bytes(m.uc.mem_read(BASE+0xdedc,4000)))
