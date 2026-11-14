@@ -11,14 +11,17 @@ const ELinkBLE = (() => {
     }
     async function read(characteristic=control,timeout=8000){if(!portable.device?.gatt.connected||!characteristic){const e=Error("屏幕蓝牙已断开");e.connection=true;throw e;}lastActivity=Date.now();try{const v=await bounded(characteristic.readValue(),"蓝牙读取",timeout);return new Uint8Array(v.buffer,v.byteOffset,v.byteLength);}catch(e){e.connection=true;throw e;}}
     async function query(command,decode,timeout=8000){
-        for(let i=0;i<3;i++){await write(command,false,timeout);await sleep(120);const b=await read(control,timeout);try{return decode(b);}catch(e){if(i===2)throw e;}}
+        for(let i=0;i<3;i++){await write(command,false,timeout);await sleep(120);const b=await read(control,timeout);try{const value=decode(b);if(command[0]===0xb4&&value.slot!==command[1])throw Error("提醒槽位回执不一致");return value;}catch(e){
+            if(i===2)throw Error(e.message+"（指令 "+P.hex(command).toUpperCase()+"，收到 "+b.length+" 字节："+P.hex(b.subarray(0,32))+"）",{cause:e});
+            if(command[0]!==0x93)await idle(await status(timeout),190);
+        }}
     }
     async function status(timeout=8000){return {...await query(Uint8Array.of(0x93),P.status,timeout),...caps,...battery};}
     function block(size){return b=>{if(b.length!==size)throw Error("像素读回长度不一致");return b;};}
-    async function idle(s,seconds=95){const end=Date.now()+seconds*1000;while(true){if(s.error)throw Error("设备报错："+s.error);if(!s.busy)return s;if(Date.now()>end)throw Error("屏幕仍忙，请等待后读取状态");await sleep(1000);s=await status();}}
+    async function idle(s,seconds=95){const end=Date.now()+seconds*1000;while(true){if(s.error&&s.error!==2)throw Error("设备报错："+s.error);if(!s.busy)return s;if(Date.now()>end)throw Error("屏幕仍忙，请等待后读取状态");await sleep(1000);s=await status();}}
     async function committed(j,phase){await L.updateJob(j,{committed:true,status:"awaiting_display",phase});}
     async function configure(c,s){
-        c=P.settings({...c,advertise_minutes:1,window_seconds:0});if(c.mode===1&&!s.global_clock_refresh)throw Error("此固件不支持整页快刷，请选择全刷或升级固件");if(c.mode===2&&!s.minute_region_refresh)throw Error("此固件不支持分钟局刷");if(c.clock_timezone!=="local"&&!s.timezone_clock)throw Error("荷兰时钟需要 V1.3.0 固件");
+        c=P.settings({...c,advertise_minutes:1,window_seconds:0});if(c.mode===1&&!s.global_clock_refresh)throw Error("此固件不支持笔画局刷，请先升级固件");if(c.mode===2&&!s.minute_region_refresh)throw Error("此固件不支持分钟局刷");if(c.clock_timezone!=="local"&&!s.timezone_clock)throw Error("荷兰时钟需要 V1.3.0 固件");
         s=await idle(s);if(s.timezone_clock)await write(P.timezone(c.clock_timezone));await write(Uint8Array.of(0x94,c.mode,c.full_every));await write(Uint8Array.of(0x99,c.refresh_minutes,1,0));const actual=await status(),wanted={mode:c.mode,full_every:c.full_every,clock_refresh_minutes:c.refresh_minutes,advertise_every_minutes:1,advertise_window_seconds:0};if(s.timezone_clock)wanted.clock_timezone=c.clock_timezone;if(actual.error||Object.entries(wanted).some(([k,v])=>actual[k]!==v))throw Error("设备设置读回不一致");return actual;
     }
     async function sync(c,s,quiet){
@@ -254,7 +257,14 @@ const ELinkBLE = (() => {
                 s=await stopAlbum(j,s);
                 const cap={default:"default_page",resume:"bold_clock",calendar:"embedded_calendar"}[j.action];if(!s[cap])throw Error("此固件不支持所选页面，请先升级");s=await idle(s);
                 if(j.action!=="default"){const config=P.settings({...c,...j.payload});s=await configure(config,s);await sync(config,s,true);s=await idle(await status());await L.saveSettings(j.address,{...config,advertise_minutes:1,window_seconds:0});}
-                const [view,mode]={default:[2,4],resume:[0,0],calendar:[1,3]}[j.action];await committed(j,"切换页面，等待屏幕刷新完成");await write(Uint8Array.of(0x9c,view));const after=await completed(j,s.display_generation,mode);L.stopPlans(j.address);return {...after,result:"busy_completed",optical_result_verified:false};
+                const [view,mode]={default:[2,4],resume:[0,0],calendar:[1,3]}[j.action];await committed(j,"切换页面，等待屏幕刷新完成");let generation;
+                for(let attempt=0;attempt<3;attempt++){
+                    s=await idle(s,190);generation=s.display_generation;await write(Uint8Array.of(0x9c,view));const check=await status();
+                    if(check.error!==2){s=check;break;}
+                    if(attempt===2||check.display_mode!==s.display_mode)throw Error("切页被设备忙状态拒绝，请等待后重试");
+                    s=check;await L.updateJob(j,{phase:"等待时钟刷新结束后切换页面"});
+                }
+                const after=await completed(j,generation,mode);L.stopPlans(j.address);return {...after,result:"busy_completed",optical_result_verified:false};
             }
             throw Error("未知设备动作");
         }finally{lastActivity=Date.now();working=false;}

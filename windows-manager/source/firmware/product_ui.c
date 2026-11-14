@@ -159,23 +159,31 @@ unsigned product_refresh(void){
         }
     }
     S[8]=1;S[26]=0;S[9]=0;
-    for(unsigned i=0;i<14;i++)((u8 *)0x07fcdc26)[i]=partial==2?0:((const u8 *)0x07fcdc18)[i];
-    /* Native minute FLY pulses, with red pixels left undriven (R=1 rows). */
-    for(unsigned i=0;i<14;i++)((u8 *)0x07fcdc76)[i]=partial==1?0:((const u8 *)0x07fcdc68)[i];
     if(partial){
-        /* Clock red RAM is empty. XOR the last committed and pending minute ink;
-           R=1 leaves unchanged strokes and the background undriven. */
+        unsigned boost=U->valid==4;
+        u8 *lut=(u8 *)(boost?0x07fcdc68:0x07fcdc18);
+        /* Native border5 follows LUT1. Map neutral/black/white to1/0/2,
+           retaining the original FAST/FLY pulse vectors and timing. */
+        for(unsigned i=0;i<7;i++){
+            lut[7+i]=lut[21+i]=0;
+            lut[14+i]=boost||i>=3?0:(0x206010u>>(8*i));
+        }
         char t[4];
         FORMAT(t,"%02u",U->minute);compressed_ink(DIGITS,139,1,t,2);
         FORMAT(t,"%02u",U->pending-1);compressed_ink(DIGITS,139,1,t,2);
-        CMD1(0x4e,0);CMD2(0x4f,0,0);CMD(0x26);
-        for(unsigned gate=0;gate<250;gate++){
-            u8 row[16];for(unsigned j=0;j<16;j++){unsigned p=gate*16+j;row[j]=~RR[p];RR[p]=0;}
-            DATA(row,16);
+        for(unsigned plane=0;plane<2;plane++){
+            CMD1(0x4e,0);CMD2(0x4f,0,0);CMD(plane?0x26:0x24);
+            for(unsigned gate=0;gate<250;gate++){
+                u8 row[16];for(unsigned j=0;j<16;j++){
+                    unsigned p=gate*16+j,mask=RR[p];if(boost)mask&=~BW[p];
+                    row[j]=plane?(mask&BW[p]):~mask;if(plane)RR[p]=0;
+                }
+                DATA(row,16);
+            }
         }
-        /* Preserve native gate scan and border waveform; the pixel mask limits drive. */
+        return boost?2:1;
     }
-    return partial==1?2:partial!=0;
+    return 0;
 }
 /* Called after each BUSY poll, including timeout. Commit no reference on failure. */
 unsigned product_finish(unsigned busy){
@@ -185,6 +193,11 @@ unsigned product_finish(unsigned busy){
         U->valid=0;U->count=0;S[20]=0;
         CALL0(0x07fc3f68);CALL0(0x07fc40e8);CALL0(0x07fc4174);
         return 1; /* Keep polling, sleep disabled and generation uncommitted. */
+    }
+    if(U->partial==2&&U->valid!=4){
+        U->valid=4;
+        CALL0(0x07fc3f68);CALL0(0x07fc40e8);CALL0(0x07fc4174);
+        return 1; /* Commit only after the black-only boost also completes. */
     }
     product_reminder_finish();product_album_finish();if(!U->pending)return 0;
     U->outside=U->pending_outside;U->red=U->pending_red;

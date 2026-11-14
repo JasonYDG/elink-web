@@ -22,12 +22,29 @@ def main():
         assert m.status()['clock_refresh_minutes']==1
         m.stream.clear();m.uc.mem_write(BASE+0x104dc+40,struct.pack('<I',56));m.run(BASE+0x2cc4)
         after=bytes(m.uc.mem_read(BASE+0xdedc,4000))+bytes(m.uc.mem_read(BASE+0xf15c,4000))
-        mask=bytes(m.stream[:4000]);assert len(m.stream)==4070
+        mask=bytes(m.stream[:4000]);assert len(m.stream)==8070
         assert mask==bytes(255^(a^b) for a,b in zip(before[:4000],after[:4000]))
         assert before[4000:]==after[4000:]==bytes(4000)
-        m.finish();assert m.status()['display_generation']==2
+        assert bytes(m.stream[4000:8000])==bytes((255^a)&b for a,b in zip(mask,after[:4000]))
+        assert m.stream[8007:8014]==[0]*7
+        stages=[]
+        def save_stage(name):
+            for suffix,raw in (('bw',m.stream[:4000]),('rr',m.stream[4000:8000]),('lut',m.stream[8000:])):
+                (out/(name+'.'+suffix+'.bin')).write_bytes(bytes(raw))
+            stages.append({'name':name,'bw_bytes':4000,'rr_bytes':4000,'lut_bytes':70,'border_lut1_neutral':m.stream[8007:8014]==[0]*7})
+        save_stage(f'mode{mode}-balanced')
+        if mode==2:
+            m.stream.clear();m.run(BASE+0x4208);assert m.status()['busy'] and m.status()['display_generation']==1
+            black=bytes((a^b)&(255^b) for a,b in zip(before[:4000],after[:4000]))
+            assert len(m.stream)==8070 and bytes(m.stream[:4000])==bytes(255^v for v in black)
+            assert not any(m.stream[4000:8000]) and not any(m.stream[8007:8028])
+            save_stage('mode2-black-boost');m.run(BASE+0x4208)
+            records['black-boost-mask']=export_frame(out,'black-boost-mask',bytes(255^v for v in black)+black)
+        else:m.finish()
+        assert m.status()['display_generation']==2 and not m.status()['busy']
         modes[mode]={'driven_pixels':sum(8-v.bit_count() for v in mask),'former_rectangle_pixels':103*72,
-                     'native_update_command':m.update_sequence(),'unchanged_background_neutral':True}
+                     'native_update_command':m.update_sequence(),'unchanged_background_neutral':True,'stages':stages,
+                     'native_voltage_and_phase_timing_unchanged':True,'generation_commits':1}
         if mode==1:
             records['clock-before']=export_frame(out,'clock-before',before)
             records['clock-after']=export_frame(out,'clock-after',after)
@@ -51,10 +68,11 @@ def main():
     (out/'proof.json').write_text(json.dumps(proof,ensure_ascii=False,indent=2)+'\n','utf-8')
     (out/'index.html').write_text('''<!doctype html><meta charset="utf-8"><title>笔画差分与字形核对</title>
 <style>body{font:16px sans-serif}img{display:block;width:250px!important;height:122px!important;max-width:none;image-rendering:pixelated}figure{margin:24px 0}</style>
-<h1>笔画差分 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。前后画面来自同一交付固件的完整绘制入口。红色诊断图仅标记SPI遮罩中实际允许驱动的像素，白色为不驱动区域，不是设备页面；不模拟墨水显影。</p>
+<h1>平衡与加深局刷 · 250×122原始点阵</h1><p>此用例选择每分钟更新，日常默认间隔仍为5分钟。前后画面来自同一交付固件的完整绘制入口。红色诊断图仅标记SPI编码中允许驱动的像素，白色为不驱动区域，不是设备页面；不模拟墨水显影。两种模式先使用原有平衡擦写；加深模式只对新黑笔画补一次原有黑脉冲，两个阶段完成后只提交一次显示代次。原生边框5跟随的LUT1为中性，未改原生扫描、供电或脉冲时长。</p>
 <figure>刷新前 06:55<img src="clock-before.png" width="250" height="122"></figure>
 <figure>刷新后 06:56<img src="clock-after.png" width="250" height="122"></figure>
 <figure>驱动遮罩诊断<img src="stroke-mask.png" width="250" height="122"></figure>
+<figure>加深模式：仅新黑笔画<img src="black-boost-mask.png" width="250" height="122"></figure>
 <p>下方是90个原生界面汉字的编译字形拼排，属于诊断表，不是设备页面。</p>
 <img src="ui-glyphs-01.png" width="250" height="122"><img src="ui-glyphs-02.png" width="250" height="122">
 <p><a href="proof.json">固件、遮罩与字形来源</a></p>''','utf-8')

@@ -13,6 +13,7 @@ async function harness(options={}){
     const characteristic={async writeValueWithResponse(b){
         if(b.length>(options.maxWrite||((options.album||options.ota)?136:20)))throw Error("GATT write capacity exceeded");commands.push(Uint8Array.from(b));const v=P.view(b),code=b[0];
         if(options.beforeWrite)await options.beforeWrite(b,album);
+        if(code===options.rejectBusyCommand&&options.rejectBusyCount>0){options.rejectBusyCount--;model.busyReads=3;model.error=2;return;}
         if(code===0x93){if(b.length!==1)model.error=1;answer=state();}
         else if(code===0x9d)answer=Uint8Array.from([69,76,85,73,1,255,options.album||options.ota?31:3,0]);
         else if(code===0x94){model.mode=b[1];model.every=b[2];model.error=0;}
@@ -25,7 +26,7 @@ async function harness(options={}){
         else if(code===0x95){model.page=1;model.transfer=v.getUint16(1,true);model.expected=v.getUint16(3,true);model.received=0;model.sum=0;}
         else if(code===0x96){assert.equal(v.getUint16(1,true),model.received);const bytes=b.subarray(3);pixels.set(bytes,model.received);model.received+=bytes.length;model.sum=(model.sum+bytes.reduce((a,b)=>a+b,0))&65535;if(options.badPosition&&model.received>=544)model.received--;}
         else if(code===0x97){assert.equal(model.received,8000);assert.equal(model.sum,model.expected);model.page=2;model.generation++;commitCount++;if(options.disconnectCommit){device.gatt.connected=false;throw Error("disconnected after device accepted commit");}}
-        else if(code===0x9c){model.page={0:0,1:3,2:4,3:6}[b[1]];model.generation++;commitCount++;}
+        else if(code===0x9c){model.error=0;model.page={0:0,1:3,2:4,3:6}[b[1]];model.generation++;commitCount++;}
         else if(code===0xbd){
             if(b[1]===0)answer=albumData();
             else if(b[1]===6){if(options.preflightUnsupported){model.error=1;answer=state();}else answer=Uint8Array.of(69,76,65,80,b[2]+(options.badPreflight?2:1),120,0,0);}
@@ -36,8 +37,8 @@ async function harness(options={}){
             else if(b[1]===5){const off=v.getUint16(3,true);answer=album.frames[b[2]].slice(off,off+128);if(options.corruptAlbumReadback)answer[0]^=1;}
         }
         else if(code===0x91||code===0x9e){model.time=1;model.page=code===0x91?0:2;album.running=false;model.busyReads=options.busyAfterSync||0;model.error=options.syncError||0;}
-        else if(code===0xb4)answer=slotData(b[1]);
-        else if(code===0xbb)answer=runtime(b[1]);
+        else if(code===0xb4){model.error=0;answer=slotData(options.staleSlot&&b[1]===1?0:b[1]);if(options.invalidSlot)answer[22]=255;}
+        else if(code===0xbb){model.error=0;answer=runtime(b[1]);}
         else if(code===0xb0){currentSlot=b[1];const s=slots[currentSlot];s.token=v.getUint32(2,true);s.due=v.getUint32(6,true);s.crc=v.getUint32(10,true);s.received=0;s.writing=true;}
         else if(code===0xb1){const s=slots[currentSlot],off=v.getUint16(1,true);assert.equal(off,s.received);s.frame.set(b.subarray(3),off);s.received+=b.length-3;}
         else if(code===0xb7){const s=slots[b[1]],off=v.getUint16(2,true);answer=s.frame.slice(off,Math.min(8000,off+128));if(options.corruptReadback)answer[0]^=1;}
@@ -334,6 +335,48 @@ test("gallery verification stops after three reconnect failures or a changed tar
 });
 test("a changed framebuffer is never associated with old status",async()=>{
     const changed=await harness({changeDuringReadback:true}),probe=await changed.execute("probe"),receipt=await probe.promise;assert.equal(receipt.result,"pixel_readback_verified");assert.equal(receipt.generation_after,10);assert.ok(probe.job.payload.display_png);assert.equal(changed.commands.filter(b=>b[0]===0x9a).length,128);assert.ok(changed.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));
+});
+
+test("clock BUSY during a reminder read waits and retries only the read command",async()=>{
+    for(const code of [0xb4,0xbb]){
+        const h=await harness({rejectBusyCommand:code,rejectBusyCount:1}),run=await h.execute("probe");
+        const receipt=await run.promise;assert.equal(receipt.result,"pixel_readback_verified");
+        assert.equal(h.commands.filter(b=>b[0]===code).length,9);assert.equal(h.commitCount(),0);
+        assert.ok(h.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));
+    }
+});
+
+test("a stale BUSY rejection does not poison a later read-only probe",async()=>{
+    const h=await harness();h.model.error=2;
+    const run=await h.execute("probe"),receipt=await run.promise;
+    assert.equal(receipt.result,"pixel_readback_verified");assert.equal(h.model.error,0);assert.equal(h.commitCount(),0);
+});
+
+test("calendar selection retries a confirmed BUSY rejection without duplicating an accepted view",async()=>{
+    const h=await harness({rejectBusyCommand:0x9c,rejectBusyCount:1}),run=await h.execute("calendar");
+    const receipt=await run.promise;assert.equal(receipt.display_mode,3);assert.equal(h.commitCount(),1);
+    assert.equal(h.commands.filter(b=>b[0]===0x9c).length,2);
+});
+
+test("a genuinely invalid reminder response stays an error with command and byte context",async()=>{
+    const h=await harness({invalidSlot:true}),run=await h.execute("probe");
+    await assert.rejects(run.promise,/提醒存储返回无效.*B400.*24.*45524d31/i);
+    assert.equal(h.commands.filter(b=>b[0]===0xb4).length,3);assert.equal(h.commitCount(),0);
+});
+
+test("a stale reply for another reminder slot is never accepted",async()=>{
+    const h=await harness({staleSlot:true}),run=await h.execute("probe");
+    await assert.rejects(run.promise,/提醒槽位回执不一致.*B401/i);assert.equal(h.commitCount(),0);
+});
+
+test("BUSY recovery remains bounded and never hides a display timeout",async()=>{
+    const failed=await harness();failed.model.error=4;const probe=await failed.execute("probe");
+    await assert.rejects(probe.promise,/设备报错：4/);assert.equal(failed.commands.filter(b=>b[0]===0xb4).length,0);
+    let time=0;const stuck=await harness({clock:()=>time+=1000});stuck.model.busyReads=1000000;
+    const wait=await stuck.execute("probe");await assert.rejects(wait.promise,/屏幕仍忙/);
+    assert.equal(stuck.commands.filter(b=>b[0]===0xb4).length,0);assert.ok(stuck.commands.length<250);
+    const reject=await harness({rejectBusyCommand:0x9c,rejectBusyCount:3}),view=await reject.execute("calendar");
+    await assert.rejects(view.promise,/切页被设备忙状态拒绝/);assert.equal(reject.commands.filter(b=>b[0]===0x9c).length,3);assert.equal(reject.commitCount(),0);
 });
 test("a continuously changing screen stops after two pixel reads without claiming success",async()=>{
     const h=await harness({keepChanging:true}),probe=await h.execute("probe");await assert.rejects(probe.promise,/页面已变化/);assert.equal(probe.job.payload.display_png,undefined);assert.equal(h.commands.filter(b=>b[0]===0x9a).length,128);assert.ok(h.commands.every(b=>[0x93,0x9d,0x9a,0xb4,0xbb].includes(b[0])));

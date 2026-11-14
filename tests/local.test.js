@@ -18,8 +18,19 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.22");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.23");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
+});
+
+test("removing full refresh migrates only the retired clock choice and preserves user records",async()=>{
+    const w=workspace();w.devices[0].settings={...P.settings(),mode:0,full_every:12,refresh_minutes:15};
+    w.devices.push({...structuredClone(w.devices[0]),address:"AA:BB:CC:DD:EE:02",settings:{...P.settings(),mode:2}});
+    w.reminders=[{id:"keep-reminder",status:"completed"}];const h=await harness(w),saved=h.saved.get("current");
+    assert.equal(saved.devices[0].settings.mode,1);assert.equal(saved.devices[0].settings.full_every,12);
+    assert.equal(saved.devices[0].settings.refresh_minutes,15);assert.equal(saved.devices[1].settings.mode,2);
+    assert.deepEqual(saved.reminders,w.reminders);
+    const html=fs.readFileSync(path.join(root,"index.html"),"utf8"),select=html.match(/id="refresh-mode"[\s\S]*?<\/select>/)[0];
+    assert.doesNotMatch(select,/value="0"/);assert.match(select,/value="1" selected/);assert.match(select,/value="2"/);
 });
 
 test("readback restores native originals and duplicate pictures to distinct editable slots",async()=>{

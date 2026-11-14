@@ -289,7 +289,7 @@ class ProductUi(unittest.TestCase):
                 m=ProductMachine();m.cmd(bytes([0x94,mode,60]))
                 old=m.draw(minute=before,force=128);m.finish();m.stream.clear()
                 new=m.draw(minute=after)
-                self.assertEqual(len(m.stream),4070,'Stroke mask and the selected native 70-byte waveform')
+                self.assertEqual(len(m.stream),8070,'Two masked planes and the selected native 70-byte waveform')
                 expected=bytes(255^(a^b) for a,b in zip(old[:4000],new[:4000]))
                 self.assertEqual(bytes(m.stream[:4000]),expected,(mode,before,after))
                 self.assertEqual(new[4000:],old[4000:],'A mask must not become the retained red image')
@@ -351,10 +351,10 @@ class ProductUi(unittest.TestCase):
         changes=[i for i in range(8000) if a[i]!=b[i]];self.assertTrue(changes)
         self.assertTrue(all(i<4000 and 9<=i//16<=111 and 3<=i%16<=11 for i in changes))
         self.assertEqual(m.stream[:4000],[255^(a[i]^b[i]) for i in range(4000)])
-        self.assertEqual(len(m.stream),4070) # Mask then native quick waveform upload.
-        expected=list(m.b[0xdc18:0xdc18+70]);expected[14:28]=[0]*14
-        self.assertEqual(m.stream[4000:],expected)
-        self.assertEqual(m.stream[4014:4028],[0]*14,'Masked red combinations must be undriven')
+        self.assertEqual(len(m.stream),16140) # Balanced pass followed by one black-only boost.
+        expected=list(m.b[0xdc18:0xdc18+70]);expected[14:21]=expected[7:14];expected[7:14]=expected[21:28]=[0]*7
+        self.assertEqual(m.stream[8000:8070],expected)
+        self.assertEqual(m.stream[16077:16098],[0]*21,'Boost keeps white, neutral and border channels undriven')
         self.assertFalse(any(c[:4]==(BASE+0x3c48,0x0f,9,0) for c in m.commands))
         self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
@@ -364,18 +364,19 @@ class ProductUi(unittest.TestCase):
         self.assertEqual(m.update_sequence(),0xf7)
         m.commands.clear();m.stream.clear();m.draw(minute=56);m.finish()
         self.assertEqual(m.update_sequence(),0xc7)
-        fly=list(m.b[0xdc68:0xdc68+70]);fly[14:28]=[0]*14
-        self.assertEqual(len(m.stream),4070)
-        self.assertEqual(m.stream[4000:],fly,'Stroke refresh retains native FLY, preserving red pixels')
+        fast=list(m.b[0xdc18:0xdc18+70]);fast[14:21]=fast[7:14];fast[7:14]=fast[21:28]=[0]*7
+        fly=list(m.b[0xdc68:0xdc68+70]);fly[7:28]=[0]*21
+        self.assertEqual(len(m.stream),8070)
+        self.assertEqual(m.stream[8000:],fast,'Balanced mode reuses native FAST with neutral border LUT1')
         self.assertFalse(any(c[0]==BASE+0x3c48 and c[1]==0x0f for c in m.commands))
         self.assertNotIn((BASE+0x3c84,0x01,102,0,0),m.commands)
         m.draw(minute=57);m.finish();self.assertEqual(m.update_sequence(),0xc7)
         m.draw(minute=58);m.finish();self.assertEqual(m.update_sequence(),0xf7,'Periodic BWR full refresh')
         m.cmd(b'\x94\x02\x0a');m.stream.clear();m.draw(minute=59);m.finish()
-        self.assertEqual(len(m.stream),4070);self.assertEqual(m.stream[4014:4028],[0]*14)
+        self.assertEqual(len(m.stream),16140);self.assertEqual(m.stream[8000:8070],fast);self.assertEqual(m.stream[-70:],fly)
         m.draw(h=10,minute=0);m.finish();self.assertEqual(m.update_sequence(),0xf7)
         m.cmd(b'\x94\x01\x0a');m.stream.clear();m.draw(h=10,minute=1);m.finish()
-        self.assertEqual(m.stream[4000:],fly,'Changing back from FAST must select native FLY')
+        self.assertEqual(m.stream[8000:],fast,'Changing back from boost must preserve the native white pulse vector')
         m.uc.mem_write(BASE+0x104dc+0x18,struct.pack('<H',1706));m.draw(h=10,minute=2);m.finish()
         self.assertEqual(m.update_sequence(),0xf7,'Header and battery changes require full refresh')
     def test_calendar_all_months_leap_years_bounds_and_daily_update(self):

@@ -12,11 +12,11 @@ function harness(fetcher=async()=>new Response(raw)){
     return {c,elements,calls,requests,messages,queued,confirmations,selected:()=>vm.runInContext("otaPackage",c)};
 }
 
-test("published firmware is the exact 1.5.22 application and produces a valid OTA image",async()=>{
+test("published firmware is the exact 1.5.23 application and produces a valid OTA image",async()=>{
     const meta=await OTA.validate(packageData),image=OTA.image(meta);
-    assert.equal(meta.version,"1.5.22");assert.equal(meta.firmware_id,"26ddc767");assert.equal(meta.bytes,60028);
-    assert.equal(meta.sha256,"b6e3ada75f4143fd24d90865778e1f47f588ecf2e04ed1258c11cb21cbdec02f");
-    assert.equal(await P.sha256(raw),"a2862b4f19566312142149a6b366a56e3fd757f5d80e23b5b05270c63f7ed1fe");
+    assert.equal(meta.version,"1.5.23");assert.equal(meta.firmware_id,"40059a32");assert.equal(meta.bytes,60028);
+    assert.equal(meta.sha256,"a6800e8360dfd5821658c089e247b07738be58ed6c854ad23dbe9f160f50d8bb");
+    assert.equal(await P.sha256(raw),"981edabaad6b2371212cb85f57d8363ff9ddf0bb48e06fadbcdd5c504bfcea0f");
     assert.equal(P.view(image).getUint32(4,true),meta.bytes);assert.equal(P.view(image).getUint32(8,true),P.crc32(meta.raw));
     assert.deepEqual(image.subarray(64,64+meta.bytes),meta.raw);assert.ok(image.subarray(64+meta.bytes).every(b=>b===255));
 });
@@ -24,9 +24,9 @@ test("published firmware is the exact 1.5.22 application and produces a valid OT
 test("online and local selection share validation, use the Pages subpath and never queue a device write",async()=>{
     assert.doesNotMatch(html,/id="ota-download"/);assert.doesNotMatch(html,/<a[^>]+href="firmware\//);
     const h=harness();await h.elements["ota-online"].onclick();
-    assert.equal(h.requests[0][0],"https://example.test/elink-web/firmware/elink-bwr-1.5.22.elink-update.json");
-    assert.equal(h.requests[0][1].cache,"no-store");assert.equal(h.selected().firmware_id,"26ddc767");
-    assert.match(h.elements["ota-package"].textContent,/版本 1.5.22.*60028 bytes/);assert.equal(h.elements["ota-install"].disabled,false);
+    assert.equal(h.requests[0][0],"https://example.test/elink-web/firmware/elink-bwr-1.5.23.elink-update.json");
+    assert.equal(h.requests[0][1].cache,"no-store");assert.equal(h.selected().firmware_id,"40059a32");
+    assert.match(h.elements["ota-package"].textContent,/版本 1.5.23.*60028 bytes/);assert.equal(h.elements["ota-install"].disabled,false);
     h.elements["ota-file"].files=[new Blob([raw])];await h.elements["ota-file"].onchange();
     assert.deepEqual(h.calls,["/api/ota/validate","/api/ota/validate"]);assert.equal(h.requests.length,1);
 });
@@ -48,9 +48,9 @@ test("loading disables selection/install and any download or validation failure 
 
 test("OTA requires target/version confirmation and rejects a changed target or package",async()=>{
     const h=harness();await h.elements["ota-online"].onclick();await h.elements["ota-install"].onclick();
-    assert.equal(h.confirmations[0].phrase,"UPDATE");assert.match(h.confirmations[0].text,/AA:BB:CC:DD:EE:01.*1\.5\.22/);assert.equal(h.queued.length,0);
+    assert.equal(h.confirmations[0].phrase,"UPDATE");assert.match(h.confirmations[0].text,/AA:BB:CC:DD:EE:01.*1\.5\.23/);assert.equal(h.queued.length,0);
     h.c.confirmAction=async()=>{h.c.currentAddress="AA:BB:CC:DD:EE:02";return true;};await h.elements["ota-install"].onclick();assert.equal(h.queued.length,0);assert.match(h.messages.at(-1)[0],/已变化/);
     h.c.confirmAction=async()=>{vm.runInContext("otaPackage=null",h.c);return true;};await h.elements["ota-install"].onclick();assert.equal(h.queued.length,0);
     await h.elements["ota-online"].onclick();h.c.confirmAction=async()=>true;await h.elements["ota-install"].onclick();
-    assert.equal(h.queued.length,1);assert.equal(h.queued[0].action,"ota");assert.equal(h.queued[0].payload.package.firmware_id,"26ddc767");
+    assert.equal(h.queued.length,1);assert.equal(h.queued[0].action,"ota");assert.equal(h.queued[0].payload.package.firmware_id,"40059a32");
 });
