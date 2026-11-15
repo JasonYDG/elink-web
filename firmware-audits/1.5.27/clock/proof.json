@@ -1,0 +1,305 @@
+{
+  "version": "1.5.27",
+  "firmware_id": "56958d30",
+  "application_sha256": "566508067a48ba69dc52d77db3ad1f66b494c53490d4c00db5b669dbe9b0453b",
+  "ota_package": "F:\\AI\\2.13-Elink\\build\\firmware-1.5.27-final\\elink-bwr-1.5.27.elink-update.json",
+  "ota_package_sha256": "01ba24b3330a8a3659b9e46cff895eb36c5a9901a2f30f352f81ebc5377ce0a3",
+  "fixture": "2026-11-14 06:55 -> 06:56; real lunar fields; simulated ADC100%",
+  "clock_refresh_minutes": 1,
+  "modes": {
+    "1": {
+      "driven_pixels": 152,
+      "former_rectangle_pixels": 7416,
+      "native_update_command": 199,
+      "unchanged_background_neutral": true,
+      "stages": [
+        {
+          "name": "mode1-balanced",
+          "bw_bytes": 4000,
+          "rr_bytes": 4000,
+          "lut_bytes": 70,
+          "unchanged_pixel_lut1_all_zero_vss": true
+        },
+        {
+          "name": "mode1-compensation",
+          "bw_bytes": 4000,
+          "rr_bytes": 4000,
+          "lut_bytes": 70,
+          "unchanged_pixel_lut1_all_zero_vss": true
+        }
+      ],
+      "native_voltage_and_phase_timing_unchanged": true,
+      "generation_commits": 1
+    },
+    "2": {
+      "driven_pixels": 152,
+      "former_rectangle_pixels": 7416,
+      "native_update_command": 199,
+      "unchanged_background_neutral": true,
+      "stages": [
+        {
+          "name": "mode2-balanced",
+          "bw_bytes": 4000,
+          "rr_bytes": 4000,
+          "lut_bytes": 70,
+          "unchanged_pixel_lut1_all_zero_vss": true
+        },
+        {
+          "name": "mode2-compensation",
+          "bw_bytes": 4000,
+          "rr_bytes": 4000,
+          "lut_bytes": 70,
+          "unchanged_pixel_lut1_all_zero_vss": true
+        }
+      ],
+      "native_voltage_and_phase_timing_unchanged": true,
+      "generation_commits": 1
+    }
+  },
+  "sequences": {
+    "1": [
+      {
+        "minute": 56,
+        "generation": 2,
+        "phase_count": 2,
+        "new_black_pixels": 152,
+        "removed_pixels": 0,
+        "extra_black_polarity_frames": 0,
+        "extra_white_polarity_frames": 0,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      },
+      {
+        "minute": 55,
+        "generation": 3,
+        "phase_count": 2,
+        "new_black_pixels": 0,
+        "removed_pixels": 152,
+        "extra_black_polarity_frames": 0,
+        "extra_white_polarity_frames": 0,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      },
+      {
+        "minute": 56,
+        "generation": 4,
+        "phase_count": 2,
+        "new_black_pixels": 152,
+        "removed_pixels": 0,
+        "extra_black_polarity_frames": 0,
+        "extra_white_polarity_frames": 0,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      }
+    ],
+    "2": [
+      {
+        "minute": 56,
+        "generation": 2,
+        "phase_count": 2,
+        "new_black_pixels": 152,
+        "removed_pixels": 0,
+        "extra_black_polarity_frames": 30,
+        "extra_white_polarity_frames": -30,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      },
+      {
+        "minute": 55,
+        "generation": 3,
+        "phase_count": 2,
+        "new_black_pixels": 0,
+        "removed_pixels": 152,
+        "extra_black_polarity_frames": 30,
+        "extra_white_polarity_frames": -30,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      },
+      {
+        "minute": 56,
+        "generation": 4,
+        "phase_count": 2,
+        "new_black_pixels": 152,
+        "removed_pixels": 0,
+        "extra_black_polarity_frames": 30,
+        "extra_white_polarity_frames": -30,
+        "unchanged_pixel_lut1_all_zero_vss": true
+      }
+    ]
+  },
+  "frames": {
+    "clock-before": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c3e87fe71598144596e11ed135b33179064c232eb10bb6746da7fd2fcf66247",
+      "png_sha256": "a37fba072ef64471c2c9730425400f97e6bd85a096bd659223f4cd74f78ac8d4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "clock-after": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "91d6ee07601c1262ae13705335c8ac90a428a950c4eefc76a31f25b4ab2ca45b",
+      "png_sha256": "3dd56f8315b21902d5078cbd0acd287b23b4d811ae45b7c9590d68c6ea5788b6",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "stroke-mask": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e9f15306b3879d369a1f7360422e95e494cce353f70ddc70a97bf459bf5e19f3",
+      "png_sha256": "fad7e5d4724285f6410e5fbe39d3a646f95de2eb27abb9610c1244b57b320dd5",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "black-boost-mask": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e9f15306b3879d369a1f7360422e95e494cce353f70ddc70a97bf459bf5e19f3",
+      "png_sha256": "fad7e5d4724285f6410e5fbe39d3a646f95de2eb27abb9610c1244b57b320dd5",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode1-step0": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c3e87fe71598144596e11ed135b33179064c232eb10bb6746da7fd2fcf66247",
+      "png_sha256": "a37fba072ef64471c2c9730425400f97e6bd85a096bd659223f4cd74f78ac8d4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode1-step1": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "91d6ee07601c1262ae13705335c8ac90a428a950c4eefc76a31f25b4ab2ca45b",
+      "png_sha256": "3dd56f8315b21902d5078cbd0acd287b23b4d811ae45b7c9590d68c6ea5788b6",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode1-step2": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c3e87fe71598144596e11ed135b33179064c232eb10bb6746da7fd2fcf66247",
+      "png_sha256": "a37fba072ef64471c2c9730425400f97e6bd85a096bd659223f4cd74f78ac8d4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode1-step3": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "91d6ee07601c1262ae13705335c8ac90a428a950c4eefc76a31f25b4ab2ca45b",
+      "png_sha256": "3dd56f8315b21902d5078cbd0acd287b23b4d811ae45b7c9590d68c6ea5788b6",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode2-step0": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c3e87fe71598144596e11ed135b33179064c232eb10bb6746da7fd2fcf66247",
+      "png_sha256": "a37fba072ef64471c2c9730425400f97e6bd85a096bd659223f4cd74f78ac8d4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode2-step1": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "91d6ee07601c1262ae13705335c8ac90a428a950c4eefc76a31f25b4ab2ca45b",
+      "png_sha256": "3dd56f8315b21902d5078cbd0acd287b23b4d811ae45b7c9590d68c6ea5788b6",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "white-erase-mask": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "e9f15306b3879d369a1f7360422e95e494cce353f70ddc70a97bf459bf5e19f3",
+      "png_sha256": "fad7e5d4724285f6410e5fbe39d3a646f95de2eb27abb9610c1244b57b320dd5",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode2-step2": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "4c3e87fe71598144596e11ed135b33179064c232eb10bb6746da7fd2fcf66247",
+      "png_sha256": "a37fba072ef64471c2c9730425400f97e6bd85a096bd659223f4cd74f78ac8d4",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "mode2-step3": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "91d6ee07601c1262ae13705335c8ac90a428a950c4eefc76a31f25b4ab2ca45b",
+      "png_sha256": "3dd56f8315b21902d5078cbd0acd287b23b4d811ae45b7c9590d68c6ea5788b6",
+      "colors": 2,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    }
+  },
+  "geometry": [
+    250,
+    122
+  ],
+  "native_cjk_glyphs": 90,
+  "cjk_source": {
+    "version": "1",
+    "source": "Native Unifont16 plus reviewed Snow hint; source/tools/build_ui_fonts.py",
+    "local_file": "ui-cjk-18.json",
+    "local_sha256": "3d38671970dbc47746e5131d96e49a1f49383045ae36471b17b18f00bb4f699b",
+    "license": "https://unifoundry.com/LICENSE.txt",
+    "characters": "一丁七三丑丙乙九二五亥今任兔八六兰农冬分初务十午卯历后四壬处夏大天子寅寒小己巳年庚廿惊戊戌日明星春暑月期未正水清满牛狗猪猴甲申癸白秋种立羊腊至芒荷虎蛇蛰谷辛辰酉闰降雨雪霜露马鸡鼠龙"
+  },
+  "photo_digit_source": {
+    "version": "4.49.1",
+    "source": "https://sourceforge.net/projects/terminus-font/files/terminus-font-4.49/terminus-font-4.49.1.tar.gz/download",
+    "archive_sha256": "d961c1b781627bf417f9b340693d64fc219e0113ad3a3af1a3424c7aa373ef79",
+    "original_file": "ter-u32b.bdf",
+    "original_sha256": "f6295e92ebbf95afbb6274f4621608d255c1287ec90d3fefbc50f077bf09dab4",
+    "local_file": "terminus-4.49.1-32b.bdf.gz",
+    "local_sha256": "9bf7c8feb04601ed162e81f8e73dfccde946374f5dfa85395aaa7bab0cb714b0",
+    "license": "Terminus/OFL.txt"
+  },
+  "photo_plain_zero_source": "O bitmap from the same Terminus32 font",
+  "diagnostics": [
+    "stroke-mask is the actual SPI drive-mask diagnostic, not a device page",
+    "ui-glyphs sheets contain compiled font masks, not a device page"
+  ],
+  "clock_partial_border_register": "0xc0",
+  "full_border_register": "0x05",
+  "register_execution_proof": "border-after.json (separate native-init trace)",
+  "zero_lut_is_not_border_hiz": true,
+  "computer_use": false,
+  "physical_device_access": false,
+  "optical_tested": false
+}

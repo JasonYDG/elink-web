@@ -20,9 +20,9 @@ const ELinkProtocol = (() => {
     }
     function capabilities(b){
         if(b.length===32&&starts(b,"ELK1")&&b[4]===1)return {};
-        if(b.length!==8||!starts(b,"ELUI")||b[4]!==1||(b[6]&224)||((b[6]&2)&&!(b[6]&1))||((b[6]&8)&&!(b[6]&4))||((b[6]&16)&&!(b[6]&8))||b[7])throw Error("显示能力返回无效");
+        if(b.length!==8||!starts(b,"ELUI")||b[4]!==1||(b[6]&192)||((b[6]&2)&&!(b[6]&1))||((b[6]&8)&&!(b[6]&4))||((b[6]&16)&&!(b[6]&8))||b[7])throw Error("显示能力返回无效");
         const names=["embedded_calendar","minute_region_refresh","bold_clock","global_clock_refresh","quiet_sync","default_page","timezone_clock","offline_reminders"];
-        return {...Object.fromEntries(names.map((n,i)=>[n,!!(b[5]&(1<<i))])),reminder_summary:!!(b[6]&1),reminder_large_text:!!(b[6]&2),...(b[6]&4?{offline_album:true,photo_calendar:true,photo_calendar_commit:true,photo_calendar_native_digits:true,max_image_payload:128}:{}),...(b[6]&8?{photo_calendar_wide:true,album_minute_tick:true}:{}),...(b[6]&16?{album_capacity:7,album_readback:true}:{})};
+        return {...Object.fromEntries(names.map((n,i)=>[n,!!(b[5]&(1<<i))])),...(b[6]&32?{reminder_led:true}:{}),reminder_summary:!!(b[6]&1),reminder_large_text:!!(b[6]&2),...(b[6]&4?{offline_album:true,photo_calendar:true,photo_calendar_commit:true,photo_calendar_native_digits:true,max_image_payload:128}:{}),...(b[6]&8?{photo_calendar_wide:true,album_minute_tick:true}:{}),...(b[6]&16?{album_capacity:7,album_readback:true}:{})};
     }
     function albumPreflight(b){if(b.length!==8||!starts(b,"ELAP")||b[4]<1||b[4]>120||b[5]!==120||b[6]||b[7])throw Error("设备未返回分段图库检查回执");return b[4];}
     function album(b){
@@ -65,8 +65,14 @@ const ELinkProtocol = (() => {
     }
     function options(value={}){
         const d={repeat_mask:0,check_minutes:1,duration_minutes:5,utc_offset:-new Date().getTimezoneOffset()*60};
-        if(!value||typeof value!=="object"||Object.keys(value).some(k=>!Object.hasOwn(d,k)))throw Error("提醒策略不合法");const o={...d,...value};
+        if(!value||typeof value!=="object"||Object.keys(value).some(k=>!Object.hasOwn(d,k)&&!["large_red","led_blink"].includes(k)))throw Error("提醒策略不合法");const o={...d,...value};for(const k of ["large_red","led_blink"])if(Object.hasOwn(o,k)&&typeof o[k]!=="boolean")throw Error("提醒方式不合法");
         int(o.repeat_mask,0,127,"重复日期");int(o.duration_minutes,0,120,"持续时间");int(o.utc_offset,-50400,50400,"UTC 偏移");if(![1,5,15,60].includes(o.check_minutes))throw Error("提醒检查间隔不合法");return o;
+    }
+    function reminderLines(title,body){
+        const text=String(body||title).replaceAll("\r\n","\n").trim(),lines=text.split("\n");
+        if(!text||Array.from(text.replaceAll("\n","")).length>12||lines.length>2||/[\x00-\x09\x0b-\x1f\x7f]/.test(text))throw Error("大红字最多12字，两行各6字");
+        if(lines.length===1){const chars=Array.from(text);return [chars.slice(0,6).join(""),chars.slice(6).join("")].filter(Boolean);}
+        if(lines.some(s=>!s||Array.from(s).length>6))throw Error("大红字每行最多6字，请调整换行");return lines;
     }
     const years=[0x7954,0x6aa0,0xad50,0x5b52,0x4b60,0xa6e6,0xa4e0,0xd260,0xea65,0xd530,0x5aa0,0x76a3,0x96d0,0x4afb,0x4ad0,0xa4d0,0xd0b6,0xd250,0xd520,0xdd45,0xb5a0,0x56d0,0x55b2,0x49b0,0xa577,0xa4b0,0xaa50,0xb255,0x6d20,0xada0,0x4b63,0x9370];
     function lunar(year,month,day){
@@ -95,6 +101,6 @@ const ELinkProtocol = (() => {
         if(b.length!==8000)throw Error("原生画面须为 8000 字节");const a=new Uint8ClampedArray(250*122*4);
         for(let y=0;y<122;y++)for(let x=0;x<250;x++){const pos=(249-x)*16+(y>>3),mask=128>>(y&7),i=(y*250+x)*4,r=b[pos+4000]&mask,w=b[pos]&mask;a[i]=r?190:w?255:0;a[i+1]=a[i+2]=r?0:w?255:0;a[i+3]=255;}return a;
     }
-    return {service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,albumPreflight,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
+    return {reminderLines,service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,albumPreflight,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
 })();
 if(typeof module!=="undefined")module.exports=ELinkProtocol;
