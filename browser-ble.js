@@ -156,7 +156,7 @@ const ELinkBLE = (() => {
         return {...check,result:"album_rotation_verified",transmitted_image_bytes:0,recovered_after_disconnect:recovered,optical_result_verified:false};
     }
     async function upgrade(j,s){
-        const meta=await ELinkOTA.validate(j.payload.package),wire=ELinkOTA.image(meta);if(s.firmware_id===meta.firmware_id)throw Error("设备已是此固件版本，尚未擦写");s=await idle(s,190);
+        const meta=await ELinkOTA.validate(j.payload.package),wire=ELinkOTA.image(meta),device=portable.device;if(s.firmware_id===meta.firmware_id)throw Error("设备已是此固件版本，尚未擦写");s=await idle(s,190);
         await L.updateJob(j,{phase:"检查蓝牙写入容量（尚未擦写固件）"});try{await capacityProbe(136,s);}catch(e){throw Error("当前蓝牙连接未通过 136 字节写入检查，尚未擦写固件："+e.message);}
         if(!s.time_initialized){await sync(L.device(j.address).settings,s,true);s=await idle(await status(),190);}
         await committed(j,"写入非活动固件区，旧启动标记保留");let finalized=false;const receipt={firmware_id:meta.firmware_id,sha256:meta.sha256,bytes:meta.bytes,result:"ota_uploading"};
@@ -166,12 +166,21 @@ const ELinkBLE = (() => {
             const expected=wire.slice();expected[2]=255;
             for(let off=0;off<wire.length;off+=128){let verified=false;for(let i=0;i<3;i++){const b=await query(P.packet(0xa1,[[2,off]]),block(128));if(off===0){if(b[3]>127)throw Error("OTA 启动区序号不安全，未提交");expected[3]=b[3];}if(P.equal(b,expected.subarray(off,off+128))){verified=true;break;}}if(!verified)throw Error("OTA 读回不一致，偏移 "+off);await L.updateJob(j,{phase:"逐块读回全部固件",progress:60+Math.floor(30*(off+128)/wire.length)});}
             receipt.result="ota_readback_verified";await L.updateJob(j,{receipt,phase:"提交启动标记，等待设备重启核对版本",progress:92});finalized=true;
-            try{await write(Uint8Array.of(0xa4));}catch(e){if(!e.connection)throw e;}portable.device.gatt.disconnect();
-            const end=Date.now()+120000;while(Date.now()<end){await sleep(2000);try{
-                await bounded(portable.device.gatt.connect(),"OTA 重启后重连",15000);await channels(portable.device);caps={};battery={};imagePayload=null;
-                let check=await status();if(check.firmware_id!==meta.firmware_id)throw Error("重启后版本与升级包不一致，请读取状态核对");caps=await query(Uint8Array.of(0x9d),P.capabilities);check={...check,...caps};check=await configure(L.device(j.address).settings,check);await sync(L.device(j.address).settings,check,true);check=await idle(await status(),190);portable.session=portable.device.id;await L.updateState(j.address,check);return {...receipt,result:"ota_boot_verified",physical_display_confirmed:false};
-            }catch(e){if(!e.connection&&!e.timeout)throw e;portable.device.gatt.disconnect();}}
-            throw Error("固件已读回校验，提交后未确认新版本启动");
+            try{await write(Uint8Array.of(0xa4));}catch(e){if(!e.connection)throw e;}device.gatt.disconnect();
+            const end=Date.now()+120000;let check,lastError;
+            while(Date.now()<end){await sleep(2000);
+                if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，OTA 结果待核对");
+                await L.updateJob(j,{phase:"固件已提交，等待屏幕重启并重连核对版本",progress:92});
+                try{
+                    try{await bounded(device.gatt.connect(),"OTA 重启后重连",15000,device);await channels(device);}catch(e){e.connection=true;throw e;}
+                    if(portable.paused||portable.device!==device||portable.address!==j.address)throw Error("目标屏幕已变化，OTA 结果待核对");
+                    caps={};battery={};imagePayload=null;
+                    const boot=await status();if(boot.firmware_id!==meta.firmware_id)throw Error("重启后版本与升级包不一致，请读取状态核对");caps=await query(Uint8Array.of(0x9d),P.capabilities);check={...boot,...caps};break;
+                }catch(e){if(!e.connection&&!e.timeout)throw e;lastError=e;device.gatt.disconnect();}
+            }
+            if(!check)throw Error("固件已读回校验，120 秒内未确认新版本启动，请读取状态并核对屏幕"+(lastError?"："+lastError.message:""));
+            await L.updateJob(j,{phase:"新固件已启动，正在恢复设置并核对完成",progress:96});
+            check=await configure(L.device(j.address).settings,check);await sync(L.device(j.address).settings,check,true);check=await idle(await status(),190);portable.session=device.id;await L.updateState(j.address,check);return {...receipt,result:"ota_boot_verified",physical_display_confirmed:false};
         }catch(e){if(!finalized){try{await write(Uint8Array.of(0xa5));}catch(_){}throw Error("OTA 未提交启动标记，新固件区保持无效："+e.message);}throw Error("OTA 提交后结果待核对（不重复提交）："+e.message);}
     }
     async function previewReminder(j,s,values){
