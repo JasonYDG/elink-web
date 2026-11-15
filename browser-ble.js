@@ -192,6 +192,7 @@ const ELinkBLE = (() => {
         if(!s.reminder_summary)throw Error("离线重复提醒需要 V1.5.0 或更新固件");s=await idle(s,190);let values=await slots();const p=j.payload;
         if(p.operation==="cancel"){await cancelTokens(j,[p.token,p.previous_token],values);return {...await overview(j,await status()),result:"reminder_cancel_verified",token:p.token};}
         if(!s.time_initialized)s=await initialized(L.device(j.address).settings,s);await write(P.packet(0xb3,[[4,-new Date().getTimezoneOffset()*60,true]]));const frame=P.decode64(p.frame);if(frame.length!==8000||await P.sha256(frame)!==p.sha256)throw Error("提醒像素校验失败");
+        if(P.options(p.options).led_blink&&!s.reminder_led)throw Error("LED提醒需要 V1.5.27 或更新固件，请先升级；尚未写入日程");
         const checksum=P.crc32(frame),metadata=await ELinkRenderer.metadata(p.title,p.options,s.reminder_large_text),existing=values.find(v=>v.token===p.token&&[254,252].includes(v.state));let slot;
         if(existing){if(existing.due!==p.due||existing.crc32!==checksum)throw Error("提醒标识与设备内容冲突");slot=existing.slot;}
         else{
@@ -203,7 +204,7 @@ const ELinkBLE = (() => {
             for(let off=0;off<156;off+=18)await write(P.packet(0xb8,[[1,off]],metadata.subarray(off,off+18)));
             await committed(j,"启用已验证的离线提醒，等待设备确认");await write(P.packet(0xb2,[[4,p.token]]));
         }
-        const readback=new Uint8Array(156);for(const off of [0,128])readback.set(await query(P.packet(0xba,[[1,slot],[2,off]]),block(Math.min(128,156-off))),off);if(!P.equal(readback,metadata))throw Error("提醒策略读回不一致");
+        const readback=new Uint8Array(metadata.length);for(const off of [0,128])readback.set(await query(P.packet(0xba,[[1,slot],[2,off]]),block(Math.min(128,156-off))),off);if(metadata.length===157)readback.set(await query(P.packet(0xba,[[1,slot],[2,156]]),block(1)),156);if(!P.equal(readback,metadata))throw Error("提醒策略读回不一致");
         const check=await query(Uint8Array.of(0xb4,slot),P.slot);if(check.token!==p.token||![254,252].includes(check.state)||check.due!==p.due||check.crc32!==checksum||!check.clock_ready)throw Error("设备尚未确认离线提醒已启用");
         await cancelTokens(j,[p.previous_token],await slots());const summary=await overview(j,await status()),runtime=await query(Uint8Array.of(0xbb,slot),P.runtime);
         return {...summary,...runtime,result:"reminder_flash_verified",slot,token:p.token,due:p.due,crc32:checksum,sha256:p.sha256,bytes:8000,offline:true,slot_state:check.state,optical_result_verified:false};

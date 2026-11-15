@@ -1,0 +1,23 @@
+{
+  "version": "1.5.27",
+  "firmware_id": "56958d30",
+  "native_init_and_frame_reload_executed": true,
+  "mode": 2,
+  "activations": [
+    {
+      "update": "0xc7",
+      "border": "0xc0"
+    },
+    {
+      "update": "0xc7",
+      "border": "0xc0"
+    }
+  ],
+  "first_spi_sha256": "9d34f1d97a3060c8baa6863970f6c55bf635cfff77eb12a7a87b02a84842d68d",
+  "second_spi_sha256": "ad27906ef11fbc426b53690ab274796e4317045162cf0de7836b77b6d6d94ec3",
+  "glyph_masks_changed_from_1525": true,
+  "compensation_code_and_original_waveform_bytes_unchanged": true,
+  "native_full_frame_reloads": 3,
+  "physical_device_access": false,
+  "optical_tested": false
+}

@@ -18,7 +18,7 @@ test("queued image stays immutable after editing and deleting its template",asyn
 
 test("upgrading the web app preserves records and requests a fresh capability read",async()=>{
     const w=workspace();w.devices[0].state={protocol:1,firmware_id:"fde89808",display_mode:8,display_generation:2};const h=await harness(w);
-    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.26");
+    assert.equal(h.local.device(address).state.firmware_id,"fde89808");assert.equal(h.local.device(address).state.capabilities_stale,true);assert.equal(h.saved.get("current").app_version,"1.1.27");
     await h.local.updateState(address,{protocol:1,firmware_id:"fde89808",photo_calendar_wide:true});assert.equal(h.local.device(address).state.capabilities_stale,undefined);
 });
 
@@ -160,4 +160,12 @@ test("pending reminders reserve the workspace but only uninstalled ones can be c
     await h.local.api("/api/reminders/cancel-pending",{id:r.ids[0]});assert.equal(h.local.summary().operation.busy,false);
     const w=workspace();w.reminders.push({id:ident(302),address,title:"old",body:"",status:"pending",previous_token:42,job_id:""});const old=await harness(w);
     await assert.rejects(old.local.api("/api/reminders/cancel-pending",{id:ident(302)}),/尚未派发/);assert.equal(old.local.summary().reminders.length,1);
+});
+
+
+test("large red length rejection preserves existing jobs and reminders; mode flags persist",async()=>{
+    const {local}=await harness(),base={addresses:[address],title:"提醒",body:"一二三四五六七八九十甲乙丙",due:Math.floor(Date.now()/1000)+3600,options:{large_red:true,led_blink:false}};
+    const before=JSON.stringify(local.summary().reminders);await assert.rejects(local.api("/api/reminders",base),/12字/);assert.equal(JSON.stringify(local.summary().reminders),before);
+    await local.api("/api/reminders",{...base,body:"按时吃药",options:{large_red:true,led_blink:true}});
+    assert.equal(JSON.parse(local.summary().reminders[0].options).led_blink,true);
 });

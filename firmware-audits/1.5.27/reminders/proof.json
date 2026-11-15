@@ -1,0 +1,35 @@
+{
+  "version": "1.5.27",
+  "firmware_id": "56958d30",
+  "application_sha256": "566508067a48ba69dc52d77db3ad1f66b494c53490d4c00db5b669dbe9b0453b",
+  "ota_package": "F:\\AI\\2.13-Elink\\build\\firmware-1.5.27-final\\elink-bwr-1.5.27.elink-update.json",
+  "ota_package_sha256": "01ba24b3330a8a3659b9e46cff895eb36c5a9901a2f30f352f81ebc5377ce0a3",
+  "frames": {
+    "red-short": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "f1f3fe5257e8164c6d40b7bede9f4595db8688f3cf0e9157cea6141f632fb9da",
+      "png_sha256": "6037dd3a5863658532360de9b915673d4477d4363a1293a021aa352768d37aca",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    },
+    "red-twelve": {
+      "width": 250,
+      "height": 122,
+      "frame_bytes": 8000,
+      "frame_sha256": "a088f6bf115c33aa5fd62e21f6b6dccb50dbdfdba8cf4818c90d576d4a9c743b",
+      "png_sha256": "1f4f6057c6829c918f01be2dea2c916849433aa6d02590980ebe1b9d4b3bca79",
+      "colors": 3,
+      "scale": 1,
+      "interpolation": false,
+      "png_matches_frame": true
+    }
+  },
+  "host_browser_python_exact": true,
+  "native_reminder_readback_matches_outside_live_battery": true,
+  "computer_use": false,
+  "optical_tested": false
+}

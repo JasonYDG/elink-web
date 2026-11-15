@@ -52,3 +52,14 @@ test("missing glyphs, unsupported sizes and corrupt files fail explicitly withou
 test("original image frames do not load or depend on text fonts",async()=>{
     const {renderer,requests}=harness(),frame=Uint8Array.from(Buffer.from(fixtures.frames[0].frame,"hex")),actual=await renderer.render({kind:"image",native_frame:P.bytes64(frame)});assert.equal(actual.frame,P.bytes64(frame));assert.equal(requests.length,0);
 });
+
+
+test("large red reminders use fixed32px bitmap rows without shrink or cropping",async()=>{
+    const {renderer}=harness();const spec={kind:"notice",large_red:true,title:"测试",body:"按时喝水休息记得按时吃药"};
+    const r=await renderer.render(spec,100),pixels=P.pixels(P.decode64(r.frame));let count=0;
+    for(let y=0;y<122;y++)for(let x=0;x<250;x++)if(pixels[(y*250+x)*4]===190){count++;assert.ok(y>=40&&y<110&&x>=8&&x<242);}
+    assert.ok(count>1000);const expected=await renderer.font(32);assert.ok(expected.glyphs.size>1000);
+    await assert.rejects(renderer.render({...spec,body:spec.body+"哦"}),/12字/);
+    await assert.rejects(renderer.render({...spec,body:"一二三四五六七\n八"}),/每行/);
+    const meta=await renderer.metadata("喝水",{led_blink:true,large_red:true});assert.equal(meta[2],1);assert.equal(meta[156],165);assert.equal(P.view(meta).getUint32(152,true),P.crc32(meta.subarray(0,152)));
+});
