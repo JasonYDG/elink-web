@@ -390,6 +390,52 @@ test("OTA reads back every padded byte before a single commit and verifies the r
     assert.equal(r.result,"ota_boot_verified");assert.equal(r.firmware_id,"11223344");const commands=h.commands;assert.equal(commands.filter(b=>b[0]===0xa4).length,1);assert.equal(commands.filter(b=>b[0]===0xa1).length,h.model.ota.length/128);assert.equal(commands.filter(b=>[0xa2,0xa3].includes(b[0])).length,h.model.ota.length/128);
     assert.ok(commands.findIndex(b=>b.length===136&&b[0]===0x93)<commands.findIndex(b=>b[0]===0xa0));assert.equal(commands.at(-1)[0],0x93);
 });
+test("OTA reboot retries raw GATT connect and discovery errors without resubmitting firmware",async()=>{
+    for(const stage of ["connect","service","characteristic"]){
+        const h=await harness({ota:true});let failures=0,connections=0;
+        const connect=h.device.gatt.connect,service=h.device.gatt.getPrimaryService;
+        function restarting(){if(failures++<2){h.device.gatt.connected=false;h.device.ongattserverdisconnected();throw new DOMException("GATT Server is disconnected. Cannot retrieve services. (Re)connect first with `device.gatt.connect`.","NetworkError");}}
+        h.device.gatt.connect=async function(){connections++;if(stage==="connect")restarting();return connect.call(this);};
+        h.device.gatt.getPrimaryService=async function(...args){
+            if(stage==="service")restarting();const result=await service.apply(this,args),characteristic=result.getCharacteristic;
+            if(stage==="characteristic")result.getCharacteristic=async id=>{if(id===P.control)restarting();return characteristic(id);};return result;
+        };
+        const run=await h.execute("ota",{package:await updatePackage()}),receipt=await run.promise;
+        assert.equal(receipt.result,"ota_boot_verified",stage);assert.equal(connections,3,stage);assert.equal(h.commands.filter(b=>b[0]===0xa4).length,1,stage);
+        assert.deepEqual(h.commands.filter(b=>[0xa0,0xa4,0xa5].includes(b[0])).map(b=>b[0]),[0xa0,0xa4],stage);
+        const after=h.commands.slice(h.commands.findIndex(b=>b[0]===0xa4)+1);assert.deepEqual(after.slice(0,2).map(b=>b[0]),[0x93,0x9d],stage);
+    }
+});
+test("OTA reboot connection failures exhaust the existing deadline and retain an uncertain single submission",async()=>{
+    let now=0,connections=0;const h=await harness({ota:true,clock:()=>now}),timer=h.context.setTimeout;
+    h.context.setTimeout=(fn,ms)=>{if(ms===2000)now+=ms;return timer(fn,ms);};
+    h.device.gatt.connect=async()=>{connections++;throw new DOMException("Device is still rebooting","NetworkError");};
+    const run=await h.execute("ota",{package:await updatePackage()});await assert.rejects(run.promise,/OTA 提交后结果待核对.*未确认新版本启动/);
+    assert.equal(now,120000);assert.equal(connections,60);assert.equal(run.job.committed,true);assert.equal(h.commands.filter(b=>b[0]===0xa4).length,1);assert.equal(h.commands.filter(b=>b[0]===0xa5).length,0);
+    assert.ok(h.updates.some(u=>/等待屏幕重启/.test(u.phase)));assert.equal(h.device.gatt.connected,false);
+});
+test("OTA retries boot status and capability reads before applying settings once",async()=>{
+    for(const command of [0x93,0x9d]){
+        let h,lastCommand,failures=0;h=await harness({ota:true,beforeWrite:b=>{lastCommand=b[0];},beforeRead:()=>{if(h.commitCount()&&lastCommand===command&&failures++<2)throw new DOMException("Reboot status not yet readable","NetworkError");}});
+        const run=await h.execute("ota",{package:await updatePackage()}),receipt=await run.promise;
+        assert.equal(receipt.result,"ota_boot_verified");const after=h.commands.slice(h.commands.findIndex(b=>b[0]===0xa4)+1);
+        const reads=after.slice(0,after.findIndex(b=>![0x93,0x9d].includes(b[0])));assert.equal(reads.filter(b=>b[0]===command).length,3);assert.equal(after.filter(b=>b[0]===0x99).length,1);assert.equal(h.commands.filter(b=>b[0]===0xa4).length,1);
+    }
+});
+test("OTA reboot verification stops when the target changes or the connection is paused",async()=>{
+    for(const change of ['portable.paused=true','portable.address="another-screen"','portable.device={gatt:{connected:false}}']){
+        const h=await harness({ota:true}),timer=h.context.setTimeout;let connections=0;
+        h.context.setTimeout=(fn,ms)=>{if(ms===2000)vm.runInContext(change,h.context);return timer(fn,ms);};
+        h.device.gatt.connect=async()=>{connections++;h.device.gatt.connected=true;return h.device.gatt;};
+        const run=await h.execute("ota",{package:await updatePackage()});await assert.rejects(run.promise,/目标屏幕已变化/);
+        assert.equal(connections,0);assert.equal(h.commands.filter(b=>b[0]===0xa4).length,1);assert.equal(h.commands.at(-1)[0],0xa4);
+    }
+});
+test("OTA does not replay settings or sync after the boot version has already been verified",async()=>{
+    let synced=false,failed=false;const h=await harness({ota:true,beforeWrite:b=>{if(b[0]===0x91||b[0]===0x9e)synced=true;},beforeRead:()=>{if(synced&&!failed){failed=true;throw new DOMException("Disconnected after sync was accepted","NetworkError");}}});
+    const run=await h.execute("ota",{package:await updatePackage()});await assert.rejects(run.promise,/OTA 提交后结果待核对.*Disconnected after sync/);
+    const after=h.commands.slice(h.commands.findIndex(b=>b[0]===0xa4)+1);assert.equal(after.filter(b=>b[0]===0x99).length,1);assert.equal(after.filter(b=>[0x91,0x9e].includes(b[0])).length,1);assert.equal(h.commands.filter(b=>b[0]===0xa4).length,1);
+});
 test("bad OTA package/capacity stops before erase, corrupt readback never submits, wrong boot remains unknown",async()=>{
     const bad=await updatePackage();bad.sha256="0".repeat(64);const h=await harness({ota:true}),run=await h.execute("ota",{package:bad});await assert.rejects(run.promise,/SHA256/);assert.equal(h.commands.filter(b=>b[0]===0xa0).length,0);
     const tooLarge=await updatePackage(),raw=new Uint8Array(65535);raw.set(P.decode64(tooLarge.application));tooLarge.application=P.bytes64(raw);tooLarge.sha256=await P.sha256(raw);const big=await h.execute("ota",{package:tooLarge});await assert.rejects(big.promise,/应用镜像/);assert.equal(h.commands.filter(b=>b[0]===0xa0).length,0);
