@@ -1,0 +1,246 @@
+"""ELINK Screen Bold bitmap cells, shared by host and device rendering."""
+import gzip,hashlib,json,sys
+from functools import lru_cache
+from pathlib import Path
+from PIL import Image,ImageDraw,ImageFont,ImageChops
+
+FONT_ROOT=(Path(sys._MEIPASS)/'source' if getattr(sys,'frozen',False) else Path(__file__).resolve().parents[1])/'fonts'
+# Coverage threshold for the grey outline render. Lower values fill CJK counters at <=20px.
+INK=128
+# Ideographic em box spans 0.88em above to 0.12em below the baseline in Noto/Source Han.
+BASELINE=0.88
+
+def row_mask(width,height,rows):
+    assert len(rows)==height
+    mask=Image.new('1',(width,height));stride=(width+7)//8
+    for y,row in enumerate(rows):
+        bits=int(row,16)
+        for x in range(width):
+            if bits&(1<<(stride*8-1-x)):mask.putpixel((x,y),1)
+    return mask
+
+def font_meta(name):
+    return json.loads((FONT_ROOT/'preview-fonts.json').read_text('utf-8'))[name]
+
+@lru_cache(maxsize=4)
+def font_source(height):
+    name={12:'fusion',14:'terminus',16:'unifont',32:'terminus_large'}[height]
+    meta=font_meta(name)
+    raw=(FONT_ROOT/meta['local_file']).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('字体哈希不一致：'+name)
+    return gzip.decompress(raw).decode('utf-8').splitlines()
+
+@lru_cache(maxsize=128)
+def fallback_cells(chars,height):
+    wanted=set(chars);result={};lines=font_source(height)
+    if height in (12,14,32):
+        ascent=int(next(line.split()[1] for line in lines if line.startswith('FONT_ASCENT ')))
+        block=[]
+        for line in lines:
+            if line.startswith('STARTCHAR '):block=[]
+            block.append(line)
+            if line!='ENDCHAR':continue
+            props=dict(x.split(' ',1) for x in block if ' ' in x)
+            cp=int(props['ENCODING'])
+            if chr(cp) not in wanted:continue
+            advance=int(props['DWIDTH'].split()[0]);w,h,bx,by=map(int,props['BBX'].split())
+            glyph=row_mask(w,h,block[block.index('BITMAP')+1:-1]);cell=Image.new('1',(advance,height))
+            assert 0<=bx and bx+w<=advance and 0<=ascent-by-h and ascent-by<=height
+            cell.paste(glyph,(bx,ascent-by-h));result[chr(cp)]=cell
+    else:
+        for line in lines:
+            code,bits=line.split(':');cp=int(code,16)
+            if chr(cp) not in wanted:continue
+            width=len(bits)//4;digits=width//4
+            result[chr(cp)]=row_mask(width,16,[bits[y*digits:(y+1)*digits] for y in range(16)])
+    return result
+
+@lru_cache(maxsize=2)
+def noto_path(style='noto'):
+    meta=font_meta(style);path=FONT_ROOT/meta['local_file']
+    if hashlib.sha256(path.read_bytes()).hexdigest()!=meta['local_sha256']:raise ValueError('思源黑体字体哈希不一致')
+    return str(path)
+
+@lru_cache(maxsize=32)
+def noto_font(height):
+    return ImageFont.truetype(noto_path('noto_medium' if height in (14,18) else 'noto'),height)
+
+def glyph_cell(ch,height):
+    """One baseline-aligned binary cell, `height` rows tall, from the unmodified outline."""
+    font=noto_font(height);advance=max(1,round(font.getlength(ch)));pad=height
+    canvas=Image.new('L',(advance+2*pad,height),0)
+    # The native 12px Black slash needs one row upward to keep its lower tip.
+    ImageDraw.Draw(canvas).text((pad,round(height*BASELINE)-(height==12 and ch=='/')),ch,font=font,fill=255,anchor='ls')
+    ink=canvas.point(lambda v:255 if v>=INK else 0).convert('1');box=ink.getbbox()
+    left=min(pad,box[0]) if box else pad;right=max(pad+advance,box[2]) if box else pad+advance
+    return ink.crop((left,0,right,height))
+
+def has_glyph(ch,height):
+    font=noto_font(height)
+    return bytes(font.getmask(ch,mode='1'))!=bytes(font.getmask('\U0010fffd',mode='1')) or ch==' '
+
+@lru_cache(maxsize=1)
+def solar_term_cells():
+    meta=font_meta('solar_terms_18');raw=(FONT_ROOT/meta['local_file']).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('节气点阵字库哈希不一致')
+    data=json.loads(raw);glyphs=data['glyphs']
+    if data['format']!='ELINK-solar-18-1' or data['size']!=18 or len(glyphs)!=27:raise ValueError('节气点阵字库格式无效')
+    result={}
+    for ch,record in glyphs.items():
+        bits=bytes.fromhex(record['bits'])
+        if len(ch)!=1 or len(bits)!=54:raise ValueError('节气点阵字形长度无效')
+        result[ch]=Image.frombytes('1',(18,18),bits)
+    return result
+
+@lru_cache(maxsize=1)
+def ui_cjk_cells():
+    meta=font_meta('ui_cjk_18');raw=(FONT_ROOT/meta['local_file']).read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=meta['local_sha256']:raise ValueError('原生界面字库哈希不一致')
+    data=json.loads(raw)
+    if data['format']!='ELINK-cjk-18-1' or data['size']!=18 or len(data['glyphs'])!=90:raise ValueError('原生界面字库格式无效')
+    result={}
+    for ch,record in data['glyphs'].items():
+        bits=bytes.fromhex(record['bits'])
+        if len(ch)!=1 or len(bits)!=54:raise ValueError('原生界面字形长度无效')
+        result[ch]=Image.frombytes('1',(18,18),bits)
+    return result
+
+@lru_cache(maxsize=1)
+def lcd_owners():
+    result={};left,right=6,43
+    for y in range(3,63):
+        for x in range(left,right+1):
+            k=None
+            if y<=8:
+                k=(0 if x-left>=y-3 else 5) if x<=left+5 else (0 if right-x>=y-3 else 1) if x>=right-5 else 0
+            elif y>=57:
+                k=(3 if x-left>=62-y else 4) if x<=left+5 else (3 if right-x>=62-y else 2) if x>=right-5 else 3
+            elif 30<=y<=35:
+                edge=(5,4,3,3,4,5)[y-30]
+                k=(6 if x-left>=edge else 5 if y<=32 else 4) if x<=left+5 else (6 if right-x>=edge else 1 if y<=32 else 2) if x>=right-5 else 6
+            elif x<=left+5:k=5 if y<30 else 4
+            elif x>=right-5:k=1 if y<30 else 2
+            if k is None:continue
+            # Keep the outer corner bevels while the interior ends meet on a diagonal.
+            if (x-left<6 and y<=8 and x-left+y-3<2) or (right-x<6 and y<=8 and right-x+y-3<2) or (x-left<6 and y>=57 and x-left+62-y<2) or (right-x<6 and y>=57 and right-x+62-y<2):continue
+            result[x,y]=k
+    return result
+
+def lcd_cell(ch):
+    """Native seven segments meet at mitred joints; every pixel has one owner."""
+    cell=Image.new('1',(28 if ch==':' else 50,66))
+    if ch==':':
+        draw=ImageDraw.Draw(cell)
+        for y in (14,38):draw.rectangle((10,y,17,y+6),fill=1)
+    else:
+        bits=(0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f)[int(ch)]
+        for p,k in lcd_owners().items():
+            if bits&(1<<k):cell.putpixel(p,1)
+    return cell
+
+@lru_cache(maxsize=256)
+def cells(chars,height):
+    if height<12:raise ValueError('点阵字号至少为12像素')
+    native=12 if height in (12,14,15,24,28,44) else 16
+    result={};scale=height//native;originals=fallback_cells(chars,native)
+    latin=fallback_cells(''.join(ch for ch in chars if 32<=ord(ch)<127),14) if height<=20 or height==40 else {}
+    digits=fallback_cells(''.join(ch for ch in chars if ch in '0123456789'),12) if height==18 else {}
+    cjk=fallback_cells(''.join(ch for ch in chars if ord(ch)>=0x2e80 and ch not in '\u3031\u3032'),12) if height<=20 else {}
+    terms=ui_cjk_cells() if height==18 else {}
+    for ch,source in originals.items():
+        if height==66 and ch in '0123456789:':
+            result[ch]=lcd_cell(ch);continue
+        if ch in terms:
+            result[ch]=terms[ch];continue
+        cell=source.resize((source.width*scale,native*scale),Image.Resampling.NEAREST)
+        width=source.width*height//native
+        if height==44 and ch in '0123456789':
+            # Use the finer native32 grid instead of magnifying an eight-row digit fourfold.
+            # The matching O glyph supplies a plain zero, without the terminal-style slash.
+            source_ch='O' if ch=='0' else ch
+            source=fallback_cells(source_ch,32)[source_ch];source=source.crop(source.getbbox())
+            cell=source.resize((20,32),Image.Resampling.NEAREST)
+            width=27
+        if (height<=20 or (height==40 and ch in latin)) and source.getbbox():
+            if ch in latin:
+                source=latin[ch];box=source.getbbox()
+                # Native bold stems stay two pixels wide; retain descenders and punctuation.
+                cell=source.crop((0,min(2,box[1]),8,max(12,box[3])))
+                width=8 if height in (12,16) else max(8,(height+2)//2)
+                # Calendar days need three blank rows and two columns between paired digits.
+                if height==15:width=9
+                ink_height=12 if height==15 else min(height,max(cell.height,height-1))
+                if height==40:width=22;ink_height=24
+                cell=cell.resize((20 if height==40 else 8,ink_height),Image.Resampling.NEAREST)
+                if height==18 and ch.isdigit():
+                    # Integer-scaled Fusion digits balance the 18px CJK countdown labels.
+                    digit=digits[ch];cell=digit.crop(digit.getbbox()).resize((10,16),Image.Resampling.NEAREST);width=12
+                x=1 if height==15 else (width-8)//2
+                if height in (18,40):x=(width-cell.width)//2
+            else:
+                target=height-1 if height not in (12,16) else native
+                cell=source.resize((source.width*target//native,target),Image.Resampling.NEAREST)
+                width=max(width,cell.width+(height>12 and height!=16));x=(width-cell.width)//2
+                if ch in cjk and cjk[ch].width==12 and source.width>=12:
+                    # Enlarge the coarser native grid before adding weight, retaining open counters.
+                    target_width=max(12,height-2 if height>=16 else height-1)
+                    cell=cjk[ch].resize((target_width,max(12,height-1)),Image.Resampling.NEAREST)
+                    x=(width-cell.width)//2
+            assert x+cell.width<=width and cell.height<=height
+            out=Image.new('1',(width,height));out.paste(cell,(x,(height-cell.height)//2))
+            if ch not in latin:
+                out=ImageChops.logical_or(out,out.crop((-1,0,width-1,height)))
+                if height==18 and out.getbbox():
+                    # Thicken horizontal strokes inside the existing ink box, preserving line bounds.
+                    box=out.getbbox();ink=out.crop(box)
+                    out.paste(ImageChops.logical_or(ink,ink.crop((0,-1,ink.width,ink.height-1))),box[:2])
+            result[ch]=out
+        else:
+            assert cell.width<=width and cell.height<=height
+            out=Image.new('1',(width,height));out.paste(cell,((width-cell.width)//2,(height-cell.height)//2));result[ch]=out
+    return result
+
+def text_mask(value,size=12,bold_digits=False):
+    # Compatibility flag: weight is already baked into the shared cells.
+    if not value:return Image.new('1',(1,1))
+    glyphs=cells(''.join(sorted(set(value))),size)
+    missing=set(value)-glyphs.keys()
+    if missing:raise ValueError('字体不含这些字符：'+''.join(sorted(missing)))
+    mask=Image.new('1',(sum(glyphs[ch].width for ch in value),size));x=0
+    for ch in value:
+        mask.paste(glyphs[ch],(x,0));x+=glyphs[ch].width
+    return mask
+
+def paint(im,value,xy,size=12,color=(0,0,0),bold_digits=False):
+    mask=text_mask(value,size,bold_digits);box=mask.getbbox()
+    if box:im.paste(color,xy,mask.crop(box))
+    return mask
+
+def status_icon(im,x=194,y=4,percent=None):
+    from PIL import ImageDraw
+    d=ImageDraw.Draw(im)
+    for row,bits in enumerate((48,56,60,567,1843,1023,252,120,252,1023,1843,567,60,56,48)):
+        for col in range(11):
+            if bits&(1024>>col):d.point((x-18+col,y-2+row),fill='black')
+    d.rectangle((x,y,x+16,y+10),outline='black',width=2);d.rectangle((x+17,y+3,x+18,y+7),fill='black')
+    if percent is not None:
+        if type(percent)!=int or not 0<=percent<=100:raise ValueError('电量须为 0..100')
+        fill=(percent*11+50)//100
+        if fill:d.rectangle((x+3,y+3,x+2+fill,y+7),fill='black')
+    # The 11px ink cap aligns to both horizontal edges of the 11px battery body.
+    im.paste('black',(x+24,y),text_mask('--%' if percent is None else str(percent)+'%',12))
+
+def native_font(chars,height,bold_digits=False):
+    """Original u16 table / five-byte glyph-header format; no new device renderer."""
+    import struct
+    glyphs=cells(''.join(sorted(set(chars))),height)
+    if set(chars)-glyphs.keys():raise ValueError('设备字库缺字：'+''.join(set(chars)-glyphs.keys()))
+    table=bytearray(struct.pack('<H',len(glyphs))+bytes(len(glyphs)*4));data=bytearray()
+    for i,(ch,cell) in enumerate(sorted(glyphs.items())):
+        box=cell.getbbox();bx,by=(box[:2] if box else (0,0));glyph=cell.crop(box) if box else Image.new('1',(0,0))
+        struct.pack_into('<HH',table,2+i*4,ord(ch),len(table)+len(data))
+        data.extend(struct.pack('<BBBbb',cell.width,glyph.width,glyph.height,bx,by))
+        for y in range(glyph.height):
+            for start in range(0,glyph.width,8):
+                data.append(sum(128>>bit for bit in range(8) if start+bit<glyph.width and glyph.getpixel((start+bit,y))))
+    return bytes(table+data)

@@ -30,7 +30,7 @@ const ELinkLocal = (() => {
     function trim(){const protectedIds=new Set(data.reminders.map(r=>r.job_id));const complete=data.jobs.filter(j=>!unfinished.includes(j.status)&&!protectedIds.has(j.id)).sort((a,b)=>b.created-a.created);const keep=new Set(complete.slice(0,100).map(j=>j.id));data.jobs=data.jobs.filter(j=>unfinished.includes(j.status)||protectedIds.has(j.id)||keep.has(j.id));}
     function enqueue(address,action,payload={}){
         device(address);if(busy(address))throw Error("此屏幕已有未完成任务，请等待或取消");
-        if(!["probe","sync","settings","default","resume","calendar","publish","photo_calendar","album","album_rotation","album_stop","album_read","album_show","overview","reminder","ota"].includes(action))throw Error("不支持此操作");
+        if(!Object.hasOwn(P.largeDates,action)&&!["probe","sync","settings","default","resume","calendar","publish","photo_calendar","album","album_rotation","album_stop","album_read","album_show","overview","reminder","ota"].includes(action))throw Error("不支持此操作");
         const j={id:id(),address,action,payload:copy(payload),status:"queued",progress:0,error:null,receipt:{},created:now(),updated:now(),due:now(),attempts:0,phase:"等待连接屏幕",committed:false};data.jobs.push(j);trim();return j;
     }
     function snapshot(t){return {template_id:t.id,...ELinkSnapshot(t)};}
@@ -59,7 +59,7 @@ const ELinkLocal = (() => {
         }
         if(action==="album_stop"&&Object.keys(payload).length)throw Error("停止轮播不接受额外设置");
         if(action==="ota")await ELinkOTA.validate(payload.package);
-        if(action==="settings")payload=P.settings(payload);if(action==="resume"||action==="calendar")payload=P.settings({...device(address).settings,...payload});if(action==="reminder")throw Error("请通过日程页面创建提醒");return enqueue(address,action,payload);
+        if(action==="settings")payload=P.settings(payload);if(action==="resume"||action==="calendar"||Object.hasOwn(P.largeDates,action))payload=P.settings({...device(address).settings,...payload});if(action==="reminder")throw Error("请通过日程页面创建提醒");return enqueue(address,action,payload);
     }
     function ELinkSnapshot(t){const s=JSON.parse(t.spec);return {kind:s.kind,frame:t.frame,png:t.png,sha256:t.sha256};}
     function reminder(ident){const r=data.reminders.find(r=>r.id===ident);if(!r)throw Error("日程不存在");return r;}

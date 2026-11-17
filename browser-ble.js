@@ -263,11 +263,13 @@ const ELinkBLE = (() => {
             if(j.action==="album")return await installAlbum(j,s);if(j.action==="album_stop")return await stopAlbum(j,s);if(j.action==="album_rotation")return await rotateAlbum(j,s);
             if(j.action==="album_read"||j.action==="album_show")return await albumSlot(j,s);
             if(j.action==="ota")return await upgrade(j,s);
-            if(["default","resume","calendar"].includes(j.action)){
-                s=await stopAlbum(j,s);
-                const cap={default:"default_page",resume:"bold_clock",calendar:"embedded_calendar"}[j.action];if(!s[cap])throw Error("此固件不支持所选页面，请先升级");s=await idle(s);
+            const large=Object.hasOwn(P.largeDates,j.action)?P.largeDates[j.action]:null;
+            if(large||["default","resume","calendar"].includes(j.action)){
+                const cap=large?"large_date":{default:"default_page",resume:"bold_clock",calendar:"embedded_calendar"}[j.action];
+                if(!s[cap])throw Error(large?"大字日历需要 1.5.28 或更新固件":"此固件不支持所选页面，请先升级");
+                s=await stopAlbum(j,s);s=await idle(s);
                 if(j.action!=="default"){const config=P.settings({...c,...j.payload});s=await configure(config,s);await sync(config,s,true);s=await idle(await status());await L.saveSettings(j.address,{...config,advertise_minutes:1,window_seconds:0});}
-                const [view,mode]={default:[2,4],resume:[0,0],calendar:[1,3]}[j.action];await committed(j,"切换页面，等待屏幕刷新完成");let generation;
+                const [view,mode]=large?[large.view,large.mode]:{default:[2,4],resume:[0,0],calendar:[1,3]}[j.action];await committed(j,"切换页面，等待屏幕刷新完成");let generation;
                 for(let attempt=0;attempt<3;attempt++){
                     s=await idle(s,190);generation=s.display_generation;await write(Uint8Array.of(0x9c,view));const check=await status();
                     if(check.error!==2){s=check;break;}
