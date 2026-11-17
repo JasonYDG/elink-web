@@ -1,4 +1,10 @@
-# ELINK Web 1.1.28
+# ELINK Web 1.1.29
+
+配套固件 **1.5.28**（ID `9ee31968`）新增三款大字日历。打开「日历界面」，在「日历主题 → 大字日历」内选择 B 左月右日、D 红白等宽横排或 F 双页台历，应用到屏幕后即可断开蓝牙。设备在所选时区的午夜分钟回调换日，忙碌时在下一次可用的分钟回调补刷。
+
+[打开管理网页](https://jasonydg.github.io/elink-web/?v=1.1.29) · [蓝牙 OTA 升级包](firmware/elink-bwr-1.5.28.elink-update.json) · [固件源文件与验证范围](https://github.com/JasonYDG/elink-web/tree/main/firmware-updates/1.5.28)
+
+## Web 1.1.28 历史记录
 
 [打开网页](https://jasonydg.github.io/elink-web/?v=1.1.28)。本次只更新网页，在线固件仍为V1.5.27 / `56958d30`，固件文件逐字节保持。已运行目标固件的设备无需为此修复重刷。
 
