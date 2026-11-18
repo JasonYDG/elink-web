@@ -6,7 +6,7 @@ const ELinkProtocol = (() => {
         large_b:{view:4,mode:9,title:"B · 左月右日",preview:"page-large-b.png"},
         large_d:{view:5,mode:10,title:"D · 红白等宽横排",preview:"page-large-d.png"},
         large_f:{view:6,mode:11,title:"F · 双页台历",preview:"page-large-f.png"},
-        large_en:{view:7,mode:12,title:"英文 · 月份与星期",preview:"page-large-en.png"}
+        large_en:{view:7,mode:12,title:"英文 · 月份与星期",preview:"page-large-en-1.5.30.png"}
     });
     const bytes64=b=>btoa(String.fromCharCode(...b)), decode64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
     const hex=b=>Array.from(b,v=>v.toString(16).padStart(2,"0")).join("");
