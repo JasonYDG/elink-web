@@ -1,4 +1,10 @@
-# ELINK Web 1.1.30
+# ELINK Web 1.1.31
+
+配套固件 **1.5.30** 将英文大字日历的星期缩写下移 10 像素。月历、图片日历（含离线图库）以及 B、D、F、英文四款大字日历均支持校时后离线换日。请在「蓝牙固件升级」加载在线固件，升级后到「日历界面」选择主题。
+
+[打开管理网页](https://jasonydg.github.io/elink-web/?v=1.1.31) · [蓝牙 OTA 升级包](firmware/elink-bwr-1.5.30.elink-update.json) · [预览与固件验证](https://github.com/JasonYDG/elink-web/tree/main/firmware-updates/1.5.30)
+
+## Web 1.1.30 历史记录
 
 配套固件 **1.5.29** 新增英文大字日历。选「日历界面 → 日历主题 → 英文 · 月份与星期」，左栏显示英文月份和星期缩写，右栏只显示日期数字。校时后可断开蓝牙，设备在当地午夜换日。
 
