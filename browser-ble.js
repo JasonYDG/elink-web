@@ -265,6 +265,7 @@ const ELinkBLE = (() => {
             if(j.action==="ota")return await upgrade(j,s);
             const large=Object.hasOwn(P.largeDates,j.action)?P.largeDates[j.action]:null;
             if(large||["default","resume","calendar"].includes(j.action)){
+                if(j.action==="large_en"&&!s.large_date_en)throw Error("英文大字日历需要 1.5.29 或更新固件");
                 const cap=large?"large_date":{default:"default_page",resume:"bold_clock",calendar:"embedded_calendar"}[j.action];
                 if(!s[cap])throw Error(large?"大字日历需要 1.5.28 或更新固件":"此固件不支持所选页面，请先升级");
                 s=await stopAlbum(j,s);s=await idle(s);

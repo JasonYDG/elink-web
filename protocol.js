@@ -5,7 +5,8 @@ const ELinkProtocol = (() => {
     const largeDates=Object.freeze({
         large_b:{view:4,mode:9,title:"B · 左月右日",preview:"page-large-b.png"},
         large_d:{view:5,mode:10,title:"D · 红白等宽横排",preview:"page-large-d.png"},
-        large_f:{view:6,mode:11,title:"F · 双页台历",preview:"page-large-f.png"}
+        large_f:{view:6,mode:11,title:"F · 双页台历",preview:"page-large-f.png"},
+        large_en:{view:7,mode:12,title:"英文 · 月份与星期",preview:"page-large-en.png"}
     });
     const bytes64=b=>btoa(String.fromCharCode(...b)), decode64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
     const hex=b=>Array.from(b,v=>v.toString(16).padStart(2,"0")).join("");
@@ -21,7 +22,7 @@ const ELinkProtocol = (() => {
     function status(b){
         if(b.length!==32||!starts(b,"ELK1")||b[4]!==1)throw Error("当前固件未返回 ELK1 状态；原版仅支持校时");const v=view(b);
         const firmware=hex(b.slice(28,32)),photo=["d78aa415","6c3279f4","14271ec2"].includes(firmware);
-        return {protocol:1,...(b[27]&128?{large_date:true}:{}),photo_calendar:photo,photo_calendar_commit:["6c3279f4","14271ec2"].includes(firmware),photo_calendar_native_digits:firmware==="14271ec2",max_image_payload:photo?128:17,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:firmware};
+        return {protocol:1,...(b[27]&128?{large_date:true}:{}),...(b[27]&64?{large_date_en:true}:{}),photo_calendar:photo,photo_calendar_commit:["6c3279f4","14271ec2"].includes(firmware),photo_calendar_native_digits:firmware==="14271ec2",max_image_payload:photo?128:17,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:firmware};
     }
     function capabilities(b){
         if(b.length===32&&starts(b,"ELK1")&&b[4]===1)return {};
