@@ -7,8 +7,8 @@ function node(tag="div") {return {tag,children:[],dataset:{},hidden:false,value:
 test("upgrade notice compares the read firmware to the actual online OTA target",()=>{
     const ota=html.match(/id="ota-online"[^>]*data-package="([^"]+)"[^>]*data-version="([^"]+)"/);assert.ok(ota);
     const pack=JSON.parse(fs.readFileSync(path.join(root,ota[1]),"utf8"));assert.equal(ota[2],pack.version);assert.equal(config.firmware_versions[pack.firmware_id],pack.version);
-    const c={$:()=>({dataset:{version:ota[2]}}),firmwareVersions:{...config.firmware_versions,future:"1.5.31"}};vm.createContext(c);vm.runInContext(line("firmwareUpgrade"),c);
-    for(const id of ["feacec0e","9c096ccc","b826f754","9ee31968","ac45dbde"])assert.match(c.firmwareUpgrade({protocol:1,firmware_id:id}),/旧固件.*1\.5\.30/);
+    const c={$:()=>({dataset:{version:ota[2]}}),firmwareVersions:{...config.firmware_versions,future:"1.5.32"}};vm.createContext(c);vm.runInContext(line("firmwareUpgrade"),c);
+    for(const id of ["feacec0e","9c096ccc","b826f754","9ee31968","ac45dbde","5e6aa405"])assert.match(c.firmwareUpgrade({protocol:1,firmware_id:id}),/旧固件.*1\.5\.31/);
     for(const s of [{protocol:1,firmware_id:pack.firmware_id},{protocol:1,firmware_id:"future"},{protocol:1,firmware_id:"unknown"},{protocol:1,firmware_id:"9c096ccc",capabilities_stale:true},{}])assert.equal(c.firmwareUpgrade(s),"");
 });
 
@@ -21,24 +21,28 @@ test("settings select dark by default while preserving saved or read explicit ch
 });
 
 test("card upgrade link selects its device without queuing OTA and respects ongoing work",()=>{
-    const elements={fleet:node(),device:node(),"fleet-count":node(),"ota-panel":node(),"ota-online":{dataset:{version:"1.5.30"}}},chosen=[];let busy=false;
-    const c={$:id=>elements[id],firmwareVersions:config.firmware_versions,targets:new Set(),batching:false,state:{devices:[{address:"old",name:"Old",state:{protocol:1,firmware_id:"9c096ccc"},updated:1},{address:"current",name:"Current",state:{protocol:1,firmware_id:"5e6aa405"},updated:1}],jobs:[]},document:{createElement:node},pageAction:()=>"default",pending:()=>false,modeLabel:()=>"默认界面",pageIssue:()=>"",pageControls(){},selectDevice:a=>chosen.push(a),operationBusy:()=>busy};
+    const elements={fleet:node(),device:node(),"fleet-count":node(),"ota-panel":node(),"ota-online":{dataset:{version:"1.5.31"}}},chosen=[];let busy=false;
+    const c={$:id=>elements[id],firmwareVersions:config.firmware_versions,targets:new Set(),batching:false,state:{devices:[{address:"old",name:"Old",state:{protocol:1,firmware_id:"9c096ccc"},updated:1},{address:"current",name:"Current",state:{protocol:1,firmware_id:"f9a128cd"},updated:1}],jobs:[]},document:{createElement:node},pageAction:()=>"default",pending:()=>false,modeLabel:()=>"默认界面",pageIssue:()=>"",pageControls(){},selectDevice:a=>chosen.push(a),operationBusy:()=>busy};
     vm.createContext(c);vm.runInContext(line("firmwareUpgrade")+"\n"+source.slice(source.indexOf("function fleet(){"),source.indexOf("function liveJobs(){")),c);c.fleet();
-    const [old,current]=elements.fleet.children;assert.equal(old.view.upgrade.hidden,false);assert.match(old.view.upgrade.textContent,/旧固件.*1\.5\.30/);assert.equal(current.view.upgrade.hidden,true);
+    const [old,current]=elements.fleet.children;assert.equal(old.view.upgrade.hidden,false);assert.match(old.view.upgrade.textContent,/旧固件.*1\.5\.31/);assert.equal(current.view.upgrade.hidden,true);
     let prevented=false;old.view.upgrade.onclick({preventDefault(){prevented=true;}});assert.equal(prevented,true);assert.deepEqual(chosen,["old"]);assert.equal(elements["ota-panel"].scrolled,true);
     busy=true;old.view.upgrade.onclick({preventDefault(){}});assert.deepEqual(chosen,["old"]);assert.equal(c.state.jobs.length,0);
 });
 
 test("calendar selector previews all four firmware layouts through the normal page control",()=>{
-    const protocol=require("../protocol.js"),theme=node(),image=node();
-    const elements={"calendar-theme":theme,"large-date-preview":image};
+    const protocol=require("../protocol.js"),theme=node(),color=node(),image=node(),field=node();
+    const elements={"calendar-theme":theme,"date-color":color,"date-color-field":field,"large-date-preview":image};
     const c={ELinkProtocol:protocol,$:id=>elements[id],document:{querySelector:()=>({value:"calendar"})}};
     vm.createContext(c);
     vm.runInContext(line("pageAction")+"\n"+source.slice(source.indexOf("function largeDatePreview()"),source.indexOf("function pageControls()")),c);
     for(const [key,layout] of Object.entries(protocol.largeDates)){
-        assert.ok(html.includes('value="'+key+'"'));
-        theme.value=key;c.largeDatePreview();assert.equal(image.hidden,false);
+        assert.ok(html.includes('value="'+layout.theme+'"'));
+        theme.value=layout.theme;color.value=layout.red?"red":"black";c.largeDatePreview();
+        assert.equal(c.pageAction(),key);assert.equal(field.hidden,false);assert.equal(image.hidden,false);
+        assert.equal(protocol.largeDateMode(layout.mode),layout);
         assert.equal(image.src,layout.preview);assert.ok(fs.existsSync(path.join(root,image.src)));
     }
-    theme.value="calendar";c.largeDatePreview();assert.equal(image.hidden,true);
+    for(const key of ["calendar","photo_calendar"]){
+        theme.value=key;c.largeDatePreview();assert.equal(image.hidden,true);assert.equal(field.hidden,true);assert.equal(c.pageAction(),key);
+    }
 });

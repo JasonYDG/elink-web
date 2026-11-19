@@ -7,7 +7,7 @@ async function harness(options={}){
     const slots=Array.from({length:8},(_,slot)=>({slot,state:255,token:0,due:0,crc:0,received:0,frame:new Uint8Array(8000),metadata:new Uint8Array(157),writing:false}));let currentSlot=0,answer=new Uint8Array(32),commitCount=0;
     const pixels=new Uint8Array(8000),album={sequence:0,count:0,mode:0,minutes:1440,enabled:false,running:false,index:255,writing:false,step:0,staged:[],frames:[],positions:[]};pixels.fill(255,0,4000);
     function albumData(){const b=new Uint8Array(64),v=P.view(b);b.set([69,76,65,49,3,Number(!!album.sequence),Number(album.running),album.index,Number(album.writing),album.staged.length]);v.setUint16(10,album.step,true);if(album.sequence){const c=b.subarray(12),cv=P.view(c);c.set([69,76,71,50]);cv.setUint32(4,album.sequence,true);cv.setUint16(12,album.minutes,true);c[14]=album.count;c[15]=album.mode+Number(album.enabled)*4;album.frames.forEach((f,i)=>cv.setUint32(16+i*4,P.crc32(f),true));c.set(album.positions,44);c[51]=254;cv.setUint32(8,P.crc32(Uint8Array.from([...c.subarray(0,8),...c.subarray(12,51)])),true);}return b;}
-    function state(){const busy=model.busyReads>0;if(busy)model.busyReads--;const b=new Uint8Array(32);b.set([69,76,75,49,1,model.mode,model.every,model.page,Number(busy),model.error]);const v=P.view(b);v.setUint16(10,model.received,true);v.setUint16(12,model.transfer,true);v.setUint16(14,model.sum,true);v.setUint16(16,model.expected,true);v.setUint16(18,model.generation,true);b[21]=model.window;b[22]=model.advertise;b[24]=model.refresh;b[27]=model.time|(options.largeDate?128:0)|(options.largeDateEnglish?64:0);b.set(model.firmware,28);return b;}
+    function state(){const busy=model.busyReads>0;if(busy)model.busyReads--;const b=new Uint8Array(32);b.set([69,76,75,49,1,model.mode,model.every,model.page,Number(busy),model.error]);const v=P.view(b);v.setUint16(10,model.received,true);v.setUint16(12,model.transfer,true);v.setUint16(14,model.sum,true);v.setUint16(16,model.expected,true);v.setUint16(18,model.generation,true);b[21]=model.window;b[22]=model.advertise;b[24]=model.refresh;b[27]=model.time|(options.largeDate?128:0)|(options.largeDateEnglish?64:0)|(options.largeDateRed?32:0);b.set(model.firmware,28);return b;}
     function slotData(i){const s=slots[i],b=new Uint8Array(24),v=P.view(b);b.set([69,82,77,49,1,i,s.state,Number(s.writing)]);v.setUint32(8,s.token,true);v.setUint32(12,s.due,true);v.setUint32(16,s.crc,true);v.setUint16(20,s.received,true);b[22]=currentSlot;b[23]=1;return b;}
     function runtime(i){const s=slots[i],b=new Uint8Array(20),v=P.view(b);b.set([69,82,77,50,s.metadata[1]||0,(s.metadata[2]&127)||1,s.metadata[3]||5,s.metadata[0]||255]);v.setUint32(8,s.due,true);return b;}
     const characteristic={async writeValueWithResponse(b){
@@ -26,7 +26,7 @@ async function harness(options={}){
         else if(code===0x95){model.page=1;model.transfer=v.getUint16(1,true);model.expected=v.getUint16(3,true);model.received=0;model.sum=0;}
         else if(code===0x96){assert.equal(v.getUint16(1,true),model.received);const bytes=b.subarray(3);pixels.set(bytes,model.received);model.received+=bytes.length;model.sum=(model.sum+bytes.reduce((a,b)=>a+b,0))&65535;if(options.badPosition&&model.received>=544)model.received--;}
         else if(code===0x97){assert.equal(model.received,8000);assert.equal(model.sum,model.expected);model.page=2;model.generation++;commitCount++;if(options.disconnectCommit){device.gatt.connected=false;throw Error("disconnected after device accepted commit");}}
-        else if(code===0x9c){model.error=0;model.page={0:0,1:3,2:4,3:6,4:9,5:10,6:11,7:12}[b[1]];model.generation++;commitCount++;}
+        else if(code===0x9c){model.error=0;model.page={0:0,1:3,2:4,3:6,4:9,5:10,6:11,7:12,8:13,9:14,10:15,11:16}[b[1]];model.generation++;commitCount++;}
         else if(code===0xbd){
             if(b[1]===0)answer=albumData();
             else if(b[1]===6){if(options.preflightUnsupported){model.error=1;answer=state();}else answer=Uint8Array.of(69,76,65,80,b[2]+(options.badPreflight?2:1),120,0,0);}
@@ -453,11 +453,14 @@ test("LED policy is gated before Flash erase and its complete metadata is read b
 });
 
 test("offline large calendars submit their selected native view and confirm the matching mode",async()=>{
-    for(const [action,view,mode] of [["large_b",4,9],["large_d",5,10],["large_f",6,11],["large_en",7,12]]){
-        const h=await harness({largeDate:true,largeDateEnglish:action==="large_en"}),job=await h.execute(action);
+    for(const [action,view,mode] of [["large_b",4,9],["large_d",5,10],["large_f",6,11],["large_en",7,12],["large_b_red",8,13],["large_d_red",9,14],["large_f_red",10,15],["large_en_red",11,16]]){
+        const h=await harness({largeDate:true,largeDateEnglish:action.startsWith("large_en"),largeDateRed:action.endsWith("_red")}),job=await h.execute(action);
         assert.equal((await job.promise).display_mode,mode);
         assert.deepEqual(h.commands.filter(b=>b[0]===0x9c).map(b=>b[1]),[view]);
     }
+    const blackOnly=await harness({largeDate:true,largeDateEnglish:true}),red=await blackOnly.execute("large_en_red");
+    await assert.rejects(red.promise,/1.5.31/);
+    assert.ok(blackOnly.commands.every(b=>[0x93,0x9d,0xb4,0xbb,0xbd].includes(b[0])&&(b[0]!==0xbd||b[1]===0)));
     const previous=await harness({largeDate:true}),english=await previous.execute("large_en");
     await assert.rejects(english.promise,/1.5.29/);
     assert.ok(previous.commands.every(b=>[0x93,0x9d,0xb4,0xbb,0xbd].includes(b[0])&&(b[0]!==0xbd||b[1]===0)));

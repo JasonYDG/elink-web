@@ -2,12 +2,18 @@
 // FF01 commands and rotated BWR planes shared with the existing ELK1 firmware.
 const ELinkProtocol = (() => {
     const service="0000ff00-0000-1000-8000-00805f9b34fb", control="0000ff01-0000-1000-8000-00805f9b34fb", volts="0000ff02-0000-1000-8000-00805f9b34fb";
-    const largeDates=Object.freeze({
-        large_b:{view:4,mode:9,title:"B · 左月右日",preview:"page-large-b.png"},
-        large_d:{view:5,mode:10,title:"D · 红白等宽横排",preview:"page-large-d.png"},
-        large_f:{view:6,mode:11,title:"F · 双页台历",preview:"page-large-f.png"},
-        large_en:{view:7,mode:12,title:"英文 · 月份与星期",preview:"page-large-en-1.5.30.png"}
-    });
+    const largeDates={};
+    for(const [theme,view,title,preview] of [
+        ["large_b",4,"月份侧栏","page-large-b"],
+        ["large_d",5,"月日对半","page-large-d"],
+        ["large_f",6,"双页台历","page-large-f"],
+        ["large_en",7,"英文月与星期","page-large-en-1.5.31"]
+    ]){
+        largeDates[theme]={theme,view,mode:view+5,title,preview:preview+".png"};
+        largeDates[theme+"_red"]={theme,view:view+4,mode:view+9,title:title+"（红字）",preview:preview+"-red.png",red:true};
+    }
+    Object.freeze(largeDates);
+    const largeDateMode=mode=>Object.values(largeDates).find(layout=>layout.mode===mode);
     const bytes64=b=>btoa(String.fromCharCode(...b)), decode64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
     const hex=b=>Array.from(b,v=>v.toString(16).padStart(2,"0")).join("");
     const equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
@@ -22,7 +28,7 @@ const ELinkProtocol = (() => {
     function status(b){
         if(b.length!==32||!starts(b,"ELK1")||b[4]!==1)throw Error("当前固件未返回 ELK1 状态；原版仅支持校时");const v=view(b);
         const firmware=hex(b.slice(28,32)),photo=["d78aa415","6c3279f4","14271ec2"].includes(firmware);
-        return {protocol:1,...(b[27]&128?{large_date:true}:{}),...(b[27]&64?{large_date_en:true}:{}),photo_calendar:photo,photo_calendar_commit:["6c3279f4","14271ec2"].includes(firmware),photo_calendar_native_digits:firmware==="14271ec2",max_image_payload:photo?128:17,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:firmware};
+        return {protocol:1,...(b[27]&128?{large_date:true}:{}),...(b[27]&64?{large_date_en:true}:{}),...(b[27]&32?{large_date_red:true}:{}),photo_calendar:photo,photo_calendar_commit:["6c3279f4","14271ec2"].includes(firmware),photo_calendar_native_digits:firmware==="14271ec2",max_image_payload:photo?128:17,mode:b[5],full_every:b[6],display_mode:b[7],busy:!!b[8],error:b[9],received:v.getUint16(10,true),transfer_id:v.getUint16(12,true),sum16:v.getUint16(14,true),expected_sum16:v.getUint16(16,true),display_generation:v.getUint16(18,true),advertise_window_seconds:b[21],advertise_every_minutes:b[22],clock_refresh_minutes:b[24],time_initialized:!!(b[27]&1),clock_timezone:b[27]&2?"Europe/Amsterdam":"local",clock_summer_time:!!(b[27]&4),firmware_id:firmware};
     }
     function capabilities(b){
         if(b.length===32&&starts(b,"ELK1")&&b[4]===1)return {};
@@ -107,6 +113,6 @@ const ELinkProtocol = (() => {
         if(b.length!==8000)throw Error("原生画面须为 8000 字节");const a=new Uint8ClampedArray(250*122*4);
         for(let y=0;y<122;y++)for(let x=0;x<250;x++){const pos=(249-x)*16+(y>>3),mask=128>>(y&7),i=(y*250+x)*4,r=b[pos+4000]&mask,w=b[pos]&mask;a[i]=r?190:w?255:0;a[i+1]=a[i+2]=r?0:w?255:0;a[i+3]=255;}return a;
     }
-    return {largeDates,reminderLines,service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,albumPreflight,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
+    return {largeDates,largeDateMode,reminderLines,service,control,volts,bytes64,decode64,hex,equal,view,int,packet,status,capabilities,album,albumPreflight,photoFrame,battery,slot,runtime,settings,options,lunar,wall,sync,timezone,crc32,sha256,quantize,pixels};
 })();
 if(typeof module!=="undefined")module.exports=ELinkProtocol;
